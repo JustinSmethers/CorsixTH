@@ -1,0 +1,75 @@
+---
+name: Web Rewrite Phase 0
+
+on:
+  push:
+    paths:
+      - "web/**"
+      - "docs/architecture/typescript-web-rewrite-plan.md"
+      - "scripts/verify_theme_hospital_assets.sh"
+      - ".github/workflows/web-rewrite-phase0.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - "docs/architecture/typescript-web-rewrite-plan.md"
+      - "scripts/verify_theme_hospital_assets.sh"
+      - ".github/workflows/web-rewrite-phase0.yml"
+
+jobs:
+  required-gates:
+    name: lint + typecheck + unit + replay + assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: pnpm
+          cache-dependency-path: web/package.json
+
+      - name: Install web workspace dependencies
+        run: pnpm install --dir web --no-frozen-lockfile
+
+      - name: Run required quality gates
+        run: pnpm --dir web ci:gates
+
+      - name: Run deterministic replay command contract
+        run: pnpm --dir web replay
+
+      - name: Verify Theme Hospital assets contract (CI fixture)
+        run: pnpm --dir web ci:assets
+
+  e2e-smoke:
+    name: playwright e2e smoke
+    runs-on: ubuntu-latest
+    needs: required-gates
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: pnpm
+          cache-dependency-path: web/package.json
+
+      - name: Install web workspace dependencies
+        run: pnpm install --dir web --no-frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm --dir web exec playwright install --with-deps chromium
+
+      - name: Run e2e smoke
+        run: pnpm --dir web test:e2e

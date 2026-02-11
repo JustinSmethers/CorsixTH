@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "moduleDetection": "force",
+    "resolveJsonModule": true,
+    "strict": true,
+    "noImplicitOverride": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "baseUrl": ".",
+    "paths": {
+      "@corsixth/core": ["packages/core/src/index.ts"],
+      "@corsixth/rules": ["packages/rules/src/index.ts"],
+      "@corsixth/renderer-webgl": ["packages/renderer-webgl/src/index.ts"],
+      "@corsixth/audio-webaudio": ["packages/audio-webaudio/src/index.ts"],
+      "@corsixth/assets": ["packages/assets/src/index.ts"],
+      "@corsixth/persistence": ["packages/persistence/src/index.ts"],
+      "@corsixth/app": ["packages/app/src/index.ts"],
+      "@corsixth/replay": ["packages/replay/src/index.ts"],
+      "@corsixth/testkit": ["packages/testkit/src/index.ts"]
+    }
+  }
+}

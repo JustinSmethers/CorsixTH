@@ -1,0 +1,12 @@
+{
+  "name": "@corsixth/scenario-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "replay": "node --experimental-strip-types src/replay.ts"
+  },
+  "dependencies": {
+    "@corsixth/replay": "workspace:*"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "name": "@corsixth/web-rewrite",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Phase 0 scaffold for the TypeScript/WebGL/WebAudio rewrite",
+  "packageManager": "pnpm@10.29.3",
+  "engines": {
+    "node": ">=23 <24",
+    "pnpm": ">=10 <11"
+  },
+  "scripts": {
+    "dev": "bash scripts/node-tool.sh vite/bin/vite.js --config apps/game/vite.config.mjs",
+    "lint": "pnpm run lint:eslint",
+    "lint:eslint": "bash scripts/node-tool.sh eslint/bin/eslint.js .",
+    "typecheck": "bash scripts/node-tool.sh typescript/bin/tsc -b --pretty false",
+    "test": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs --reporter=dot",
+    "test:replay": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/replay/test/replay-harness.spec.ts --reporter=dot",
+    "test:e2e": "bash scripts/node-tool.sh @playwright/test/cli.js test --config playwright.config.mjs",
+    "test:visual": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/renderer-webgl/test/renderer-visual.spec.ts --reporter=dot",
+    "test:assets": "bash ../scripts/verify_theme_hospital_assets.sh",
+    "bench": "bash scripts/node-tool.sh vitest/vitest.mjs bench --config vitest.config.mjs --run --reporter=dot",
+    "replay": "pnpm run test:replay",
+    "build": "bash scripts/node-tool.sh vite/bin/vite.js build --config apps/game/vite.config.mjs",
+    "phase0:check": "bash scripts/phase0-check.sh",
+    "ci:gates": "bash scripts/ci-required-gates.sh",
+    "ci:assets": "bash scripts/ci-asset-preflight.sh"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "eslint": "10.0.0",
+    "pixelmatch": "7.1.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "vitest": "4.0.18"
+  }
+}

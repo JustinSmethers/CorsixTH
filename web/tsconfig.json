@@ -1,0 +1,16 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/core" },
+    { "path": "./packages/rules" },
+    { "path": "./packages/renderer-webgl" },
+    { "path": "./packages/audio-webaudio" },
+    { "path": "./packages/assets" },
+    { "path": "./packages/persistence" },
+    { "path": "./packages/app" },
+    { "path": "./packages/replay" },
+    { "path": "./packages/testkit" },
+    { "path": "./apps/game" },
+    { "path": "./apps/scenario-runner" }
+  ]
+}

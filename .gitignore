@@ -114,3 +114,7 @@ CorsixTH/corsix-th
 # Nix
 *.so
 /result*
+
+# JS/TS local tooling artifacts
+node_modules/
+.pnpm-store/
