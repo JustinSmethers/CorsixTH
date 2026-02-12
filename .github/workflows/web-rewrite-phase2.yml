@@ -1,0 +1,38 @@
+name: Web Rewrite Phase 2
+
+on:
+  push:
+    paths:
+      - "web/**"
+      - "docs/architecture/typescript-web-rewrite-plan.md"
+      - ".github/workflows/web-rewrite-phase2.yml"
+  pull_request:
+    paths:
+      - "web/**"
+      - "docs/architecture/typescript-web-rewrite-plan.md"
+      - ".github/workflows/web-rewrite-phase2.yml"
+
+jobs:
+  required-gates:
+    name: lint + typecheck + unit + replay + pathfinding + perf + core isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.29.3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 23
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - name: Install web workspace dependencies
+        run: pnpm install --dir web --frozen-lockfile
+
+      - name: Run Phase 2 required quality gates
+        run: pnpm --dir web phase2:check

@@ -14,7 +14,9 @@
     "lint:eslint": "bash scripts/node-tool.sh eslint/bin/eslint.js .",
     "typecheck": "bash scripts/node-tool.sh typescript/bin/tsc -b --pretty false",
     "test": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs --reporter=dot",
-    "test:replay": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/replay/test/replay-harness.spec.ts --reporter=dot",
+    "test:replay": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/replay/test/replay-harness.spec.ts packages/replay/test/pathfinding-fixture.spec.ts --reporter=dot",
+    "test:pathfinding": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/core/test/pathfinding-golden.spec.ts packages/core/test/pathfinding-property.spec.ts packages/replay/test/pathfinding-fixture.spec.ts --reporter=dot",
+    "test:pathfinding-perf": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/core/test/pathfinding-perf.spec.ts --reporter=dot",
     "test:core-isolation": "bash scripts/check-core-isolation.sh",
     "test:e2e": "bash scripts/node-tool.sh @playwright/test/cli.js test --config playwright.config.mjs",
     "test:visual": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/renderer-webgl/test/renderer-visual.spec.ts --reporter=dot",
@@ -24,6 +26,7 @@
     "build": "bash scripts/node-tool.sh vite/bin/vite.js build --config apps/game/vite.config.mjs",
     "phase0:check": "bash scripts/phase0-check.sh",
     "phase1:check": "bash scripts/phase1-check.sh",
+    "phase2:check": "bash scripts/phase2-check.sh",
     "ci:gates": "bash scripts/ci-required-gates.sh",
     "ci:assets": "bash scripts/ci-asset-preflight.sh"
   },

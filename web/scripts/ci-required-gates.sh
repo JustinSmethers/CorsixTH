@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pnpm phase1:check
+pnpm phase2:check
