@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-pnpm lint
-pnpm typecheck
-pnpm test
-pnpm test:replay
+pnpm phase1:check
