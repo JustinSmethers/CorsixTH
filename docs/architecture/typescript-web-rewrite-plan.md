@@ -2,7 +2,7 @@
 
 Status: Draft v1  
 Owner: Rewrite team  
-Last updated: 2026-02-11
+Last updated: 2026-02-12
 
 ## Locked toolchain baselines
 
@@ -434,12 +434,15 @@ Performance:
 
 ## Required CI pipeline
 
-On every PR:
+On every PR (Phase 1 minimum):
 1. Lint (required gate).
 2. Typecheck (required gate).
 3. Unit tests (required gate).
-4. Determinism replay subset (required gate).
-5. Playwright E2E smoke subset (required gate).
+4. Determinism replay subset with `1000+` tick fixture (required gate).
+5. Core isolation check: no DOM/WebGL/WebAudio/browser API dependencies in `packages/core` (required gate).
+
+On every PR (post-Phase 1 additions):
+1. Playwright E2E smoke subset.
 
 Nightly:
 1. Full replay parity suite.
@@ -451,6 +454,26 @@ Release candidate:
 1. Full pipeline.
 2. Staging deployment.
 3. Manual acceptance checklist.
+
+## Supported browser/device matrix and performance budgets (CP-1 lock)
+
+Supported browser matrix for CP-1 determinism and kernel validation:
+
+| Platform | Browser | Version policy | Validation scope |
+|---|---|---|---|
+| macOS 14+ desktop | Chromium | Latest stable -1 | `phase1:check`, replay determinism, core isolation |
+| macOS 14+ desktop | Safari | Latest stable | `phase1:check`, replay determinism |
+| Windows 11 desktop | Chromium (Edge/Chrome) | Latest stable -1 | `phase1:check`, replay determinism |
+| Ubuntu 24.04 desktop | Chromium | Latest stable -1 | CI required gate (`Web Rewrite Phase 1`) |
+| iPadOS 18+ tablet | Safari | Latest stable | manual determinism replay smoke before CP-2 |
+
+Performance budgets required before CP-1 closeout:
+
+| Metric | Budget | Measurement command | Notes |
+|---|---|---|---|
+| Deterministic kernel throughput | `>= 200,000 ticks/sec` in headless replay scenario | `pnpm --dir web test:replay` (timing recorded in CP-1 report) | Single-thread baseline on CI `ubuntu-latest` |
+| Replay determinism drift | `0` hash mismatches for Phase 0 + Phase 1 fixtures | `pnpm --dir web test:replay` | Includes `1200`-tick scenario |
+| Core isolation violations | `0` violations | `pnpm --dir web test:core-isolation` | Blocks CP-1 close if non-zero |
 
 ## Mandatory parity and verification protocol
 
@@ -476,6 +499,9 @@ Use this format for every architecture/product decision.
 | D-003 | 2026-02-11 | Define deterministic replay fixture schema `replay.v0` with locked step hashes | Ad-hoc test scripts, non-versioned fixture format | Versioned replay artifacts provide stable parity evidence and future migration path | core, replay, testkit, app | Extend fixture set for each migrated subsystem and parity scenario | Rewrite team |
 | D-004 | 2026-02-11 | Enforce Phase 0 gate contract through `phase0:check` script and dedicated workflow | Manual local checks only, single combined CI job without explicit gates | Makes lint/typecheck/unit/replay/e2e/assets checks explicit and reproducible | web scripts, CI workflow, replay, app | Wire branch protection required checks in repository settings | Rewrite team |
 | D-005 | 2026-02-11 | Add local tool-resolution wrapper (`./node_modules` first, `../node_modules` fallback) for gate commands | Block local execution until full `web` install is possible | Keeps Phase 0 validation executable despite offline npm DNS limitations while preserving standard CI install path | web command scripts, local tooling | Add standard `web/pnpm-lock.yaml` from networked environment for fully isolated workspace installs | Rewrite team |
+| D-006 | 2026-02-12 | Implement deterministic Phase 1 kernel model in `packages/core` with explicit tick loop, scheduled admissions, bounded resources, and entity boundaries | Keep scalar-only state and defer scheduler/entity model to Phase 2 | Required to satisfy Phase 1 deterministic simulation scope and invariant testing requirements | core, app, replay, testkit | Expand to map occupancy/pathfinding primitives in Phase 2 | Rewrite team |
+| D-007 | 2026-02-12 | Lock Phase 1 gate contract with `phase1:check` and CI workflow `Web Rewrite Phase 1` | Continue using Phase 0 mixed gates as sole required workflow | Phase-specific gates keep deterministic kernel quality controls explicit and reviewable | web scripts, CI workflow, core, replay | Update branch protection to require Phase 1 workflow status | Rewrite team |
+| D-008 | 2026-02-12 | Set CP-1 browser/device validation matrix and measurable kernel determinism budgets before checkpoint closeout | Defer matrix/budgets until rendering/app-shell phases | Avoids ambiguous acceptance criteria and prevents implicit CP-1 scope drift | docs, core, replay, CI | Re-baseline budgets after Phase 3 renderer integration | Rewrite team |
 
 ## Checkpoint log (append-only)
 
@@ -484,30 +510,32 @@ Use this format at each checkpoint close.
 | Checkpoint | Date | Status | Gates passed | Gates failed | Evidence links | Risks opened | Risks closed | Owner |
 |---|---|---|---|---|---|---|---|---|
 | CP-0 | 2026-02-11 | Complete | lint, typecheck, unit, replay-smoke, e2e-smoke, asset-preflight | - | `web/docs/milestone-reports/2026-02-11-cp0-validation.md`; `web/docs/parity-specs/phase-0-initial-parity-scenario-catalog.md`; `.github/workflows/web-rewrite-phase0.yml` | R-004 | - | Rewrite team |
+| CP-1 | 2026-02-12 | Complete | lint, typecheck, unit, replay-determinism (`1200` tick fixture), core-isolation, phase1-check aggregate | - | `web/docs/milestone-reports/2026-02-12-cp1-validation.md`; `web/packages/replay/fixtures/phase1-long-run.replay.json`; `.github/workflows/web-rewrite-phase1.yml` | R-005 | R-001 | Rewrite team |
 
 ## Risk register
 
 | ID | Risk | Probability | Impact | Mitigation | Trigger | Owner | Status |
 |---|---|---|---|---|---|---|---|
-| R-001 | Non-deterministic behavior from hidden browser timing dependencies | Medium | High | Strict core isolation + deterministic replay harness | Divergent state hashes with same seed/input | TBD | Open |
+| R-001 | Non-deterministic behavior from hidden browser timing dependencies | Medium | High | Strict core isolation + deterministic replay harness | Divergent state hashes with same seed/input | Rewrite team | Closed (CP-1 controls in place) |
 | R-002 | Visual parity instability across GPU/browser combos | Medium | Medium | Snapshot tolerance policy + browser matrix CI | Snapshot flake rate exceeds threshold | TBD | Open |
 | R-003 | Scope creep from non-parity feature requests | High | Medium | Freeze parity backlog and enforce change control | New feature work enters critical path | TBD | Open |
 | R-004 | Local workspace bootstrap can fail in restricted/offline environments due npm registry DNS | Medium | Medium | Keep CI network install path and provide local fallback command wiring to preinstalled tools | `pnpm install --dir web` fails with registry lookup errors | Rewrite team | Open |
+| R-005 | Determinism replay runtime and fixture size may become expensive as scenarios grow per phase | Medium | Medium | Keep replay fixtures focused, track runtime budget per checkpoint, split long-run suite into required subset + nightly full set | `test:replay` exceeds CI target duration budget | Rewrite team | Open |
 
 ## Active next steps (must always be current)
 
 Current phase target:
-- Phase 0: Program setup and baselines (complete on 2026-02-11).
+- Phase 1: Deterministic simulation kernel (complete on 2026-02-12).
 
 Next actions:
-1. Lock repository branch protection to require `Web Rewrite Phase 0` workflow gates.
-2. Generate and commit `web/pnpm-lock.yaml` from a networked environment for fully standard workspace installs.
-3. Prepare Phase 1 test-first plan: scheduler/RNG/property tests and `1000+` tick deterministic replay target.
-4. Finalize supported browser/device matrix and measurable performance budgets before CP-1 execution.
-5. Hold Phase 0 checkpoint review and confirm explicit Phase 1 start authorization.
+1. Lock repository branch protection to require `Web Rewrite Phase 1` workflow gates.
+2. Hold CP-1 checkpoint review and explicitly authorize Phase 2 start.
+3. Prepare Phase 2 test-first plan and locked pathfinding correctness fixtures (CP-2 entry criteria).
+4. Add nightly/full replay split before replay fixture count expands further.
+5. Start CP-2 design notes for tile occupancy boundaries and deterministic tie-breaking.
 
 Definition of immediate success:
-- CP-0 closed with all gates green and evidence links captured.
+- CP-1 closed with all gates green and evidence links captured.
 
 ## Team cadence and accountability
 
@@ -538,6 +566,8 @@ pnpm test:visual
 pnpm bench
 pnpm dev
 pnpm phase0:check
+pnpm test:core-isolation
+pnpm phase1:check
 ```
 
 ## Appendix B: Acceptance checklist template for each subsystem
