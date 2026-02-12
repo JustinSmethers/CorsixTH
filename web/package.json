@@ -20,6 +20,7 @@
     "test:core-isolation": "bash scripts/check-core-isolation.sh",
     "test:e2e": "bash scripts/node-tool.sh @playwright/test/cli.js test --config playwright.config.mjs",
     "test:visual": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/renderer-webgl/test/renderer-visual.spec.ts --reporter=dot",
+    "test:renderer-perf": "bash scripts/node-tool.sh vitest/vitest.mjs run --config vitest.config.mjs packages/renderer-webgl/test/frame-profile.spec.ts --reporter=dot",
     "test:assets": "bash ../scripts/verify_theme_hospital_assets.sh",
     "bench": "bash scripts/node-tool.sh vitest/vitest.mjs bench --config vitest.config.mjs --run --reporter=dot",
     "replay": "pnpm run test:replay",
@@ -27,6 +28,7 @@
     "phase0:check": "bash scripts/phase0-check.sh",
     "phase1:check": "bash scripts/phase1-check.sh",
     "phase2:check": "bash scripts/phase2-check.sh",
+    "phase3:check": "bash scripts/phase3-check.sh",
     "ci:gates": "bash scripts/ci-required-gates.sh",
     "ci:assets": "bash scripts/ci-asset-preflight.sh"
   },
