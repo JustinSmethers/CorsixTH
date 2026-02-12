@@ -118,3 +118,6 @@ CorsixTH/corsix-th
 # JS/TS local tooling artifacts
 node_modules/
 .pnpm-store/
+/package.json
+/pnpm-lock.yaml
+/web/pnpm-lock.yaml
