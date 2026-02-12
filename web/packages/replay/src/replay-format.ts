@@ -42,6 +42,11 @@ export function parseReplayFixtureV0(value: unknown): ReplayFixtureV0 {
   if (!Array.isArray(value.expectedStepHashes) || value.expectedStepHashes.some((v) => typeof v !== "string")) {
     throw new Error("Replay fixture expectedStepHashes must be a string array");
   }
+  if (value.expectedStepHashes.length !== commands.length) {
+    throw new Error(
+      `Replay fixture expectedStepHashes length (${value.expectedStepHashes.length}) must match command count (${commands.length})`
+    );
+  }
 
   return {
     schemaVersion: "replay.v0",

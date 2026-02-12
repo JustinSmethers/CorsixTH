@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "replay.v0",
+  "id": "phase1-long-run",
+  "seed": 987654321,
+  "commands": [
+    { "type": "admit-patient", "severity": 2, "position": { "x": 1, "y": 1 } },
+    { "type": "schedule-admit-patient", "delay": 5, "severity": 1 },
+    { "type": "schedule-admit-patient", "delay": 120, "severity": 3 },
+    { "type": "tick", "count": 1200 },
+    { "type": "treat-patient" },
+    { "type": "tick", "count": 40 }
+  ],
+  "expectedStepHashes": [
+    "5e24210b",
+    "d115accc",
+    "11a14bb9",
+    "51de52d3",
+    "99e592cc",
+    "38c3d603"
+  ]
+}

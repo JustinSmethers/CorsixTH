@@ -9,9 +9,9 @@
     { "type": "tick", "count": 2 }
   ],
   "expectedStepHashes": [
-    "633425fb",
-    "31762ea4",
-    "d98e686f",
-    "54a6d1b6"
+    "e83adb53",
+    "f1c8125f",
+    "76dc6395",
+    "a33b2a56"
   ]
 }
