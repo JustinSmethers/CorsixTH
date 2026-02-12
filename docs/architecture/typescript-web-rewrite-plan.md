@@ -442,7 +442,7 @@ On every PR (Phase 1 minimum):
 5. Core isolation check: no DOM/WebGL/WebAudio/browser API dependencies in `packages/core` (required gate).
 
 On every PR (post-Phase 1 additions):
-1. `phase2:check` aggregate gate (lint, typecheck, unit, replay, pathfinding correctness, perf, core isolation) for CP-2 scope.
+1. `phase3:check` aggregate gate (lint, typecheck, unit, replay, pathfinding correctness, pathfinding perf, core isolation, visual snapshots, renderer frame profile) for CP-3 scope.
 2. Playwright E2E smoke subset.
 
 Nightly:
@@ -505,6 +505,8 @@ Use this format for every architecture/product decision.
 | D-008 | 2026-02-12 | Set CP-1 browser/device validation matrix and measurable kernel determinism budgets before checkpoint closeout | Defer matrix/budgets until rendering/app-shell phases | Avoids ambiguous acceptance criteria and prevents implicit CP-1 scope drift | docs, core, replay, CI | Re-baseline budgets after Phase 3 renderer integration | Rewrite team |
 | D-009 | 2026-02-12 | Implement deterministic tile map metadata, occupancy transitions, and pathfinding primitives in `packages/core` with explicit tie-break rules | Keep pathfinding logic embedded in app shell, defer occupancy model to Phase 3 | Keeps simulation-domain navigation deterministic, isolated, and testable before renderer migration | core, replay, testkit | Expand route consumers in Phase 3 renderer and Phase 7 gameplay slices | Rewrite team |
 | D-010 | 2026-02-12 | Lock CP-2 correctness/perf fixtures and enforce Phase 2 gate contract through `phase2:check` + `Web Rewrite Phase 2` workflow | Reuse Phase 1 gates without pathfinding-specific fixtures/perf checks | Makes map/occupancy/pathfinding validation explicit and blocks drift before Phase 3 | web scripts, CI workflow, core, replay, docs | Require `Web Rewrite Phase 2` status in branch protection before Phase 3 start | Rewrite team |
+| D-011 | 2026-02-12 | Implement CP-3 renderer as deterministic scene compiler + reference raster path (tile/sprite/depth/camera/debug overlays) in `packages/renderer-webgl` | Defer deterministic ordering until browser-only WebGL runtime, embed rendering directly in app shell | Locks rendering parity contracts early and keeps Phase 3 verification reproducible in CI without GPU variance | renderer-webgl, app, docs | Replace/augment reference raster path with browser WebGL backend while keeping fixture contracts stable | Rewrite team |
+| D-012 | 2026-02-12 | Lock CP-3 visual fixture schema `renderer-snapshot.v0` with default pixel threshold `0` and enforce via `phase3:check` + `Web Rewrite Phase 3` workflow | Non-deterministic screenshot-only baselines, relaxed threshold-first policy | Prevents hidden visual drift and makes renderer quality gates explicit before Phase 4 integration | renderer-webgl, web scripts, CI workflow, docs | Re-baseline thresholds only via checkpoint approval with evidence updates | Rewrite team |
 
 ## Checkpoint log (append-only)
 
@@ -515,32 +517,34 @@ Use this format at each checkpoint close.
 | CP-0 | 2026-02-11 | Complete | lint, typecheck, unit, replay-smoke, e2e-smoke, asset-preflight | - | `web/docs/milestone-reports/2026-02-11-cp0-validation.md`; `web/docs/parity-specs/phase-0-initial-parity-scenario-catalog.md`; `.github/workflows/web-rewrite-phase0.yml` | R-004 | - | Rewrite team |
 | CP-1 | 2026-02-12 | Complete | lint, typecheck, unit, replay-determinism (`1200` tick fixture), core-isolation, phase1-check aggregate | - | `web/docs/milestone-reports/2026-02-12-cp1-validation.md`; `web/packages/replay/fixtures/phase1-long-run.replay.json`; `.github/workflows/web-rewrite-phase1.yml` | R-005 | R-001 | Rewrite team |
 | CP-2 | 2026-02-12 | Complete | lint, typecheck, unit, replay-determinism (Phase 0/1 + CP-2 pathfinding fixture), pathfinding-golden, pathfinding-property, pathfinding-perf, core-isolation, phase2-check aggregate | - | `web/docs/milestone-reports/2026-02-12-cp2-validation.md`; `web/docs/milestone-reports/2026-02-12-cp2-design-notes.md`; `web/docs/parity-specs/phase-2-map-occupancy-pathfinding-scenarios.md`; `web/packages/replay/fixtures/phase2-pathfinding-golden.json`; `.github/workflows/web-rewrite-phase2.yml` | R-006 | - | Rewrite team |
+| CP-3 | 2026-02-12 | Complete | lint, typecheck, unit, replay-determinism, pathfinding-golden, pathfinding-property, pathfinding-perf, core-isolation, visual-snapshots, renderer-frame-profile, phase3-check aggregate | - | `web/docs/milestone-reports/2026-02-12-cp3-validation.md`; `web/docs/milestone-reports/2026-02-12-cp3-design-notes.md`; `web/docs/parity-specs/phase-3-rendering-webgl-scenarios.md`; `web/packages/renderer-webgl/fixtures/phase3-visual-snapshots.json`; `.github/workflows/web-rewrite-phase3.yml` | R-007 | - | Rewrite team |
 
 ## Risk register
 
 | ID | Risk | Probability | Impact | Mitigation | Trigger | Owner | Status |
 |---|---|---|---|---|---|---|---|
 | R-001 | Non-deterministic behavior from hidden browser timing dependencies | Medium | High | Strict core isolation + deterministic replay harness | Divergent state hashes with same seed/input | Rewrite team | Closed (CP-1 controls in place) |
-| R-002 | Visual parity instability across GPU/browser combos | Medium | Medium | Snapshot tolerance policy + browser matrix CI | Snapshot flake rate exceeds threshold | TBD | Open |
+| R-002 | Visual parity instability across GPU/browser combos | Medium | Medium | Locked fixture schema + threshold policy + browser matrix CI; require checkpoint-approved re-baseline for threshold changes | Snapshot flake rate exceeds threshold or browser matrix divergence appears | Rewrite team | Open |
 | R-003 | Scope creep from non-parity feature requests | High | Medium | Freeze parity backlog and enforce change control | New feature work enters critical path | TBD | Open |
 | R-004 | Local workspace bootstrap can fail in restricted/offline environments due npm registry DNS | Medium | Medium | Keep CI network install path and provide local fallback command wiring to preinstalled tools | `pnpm install --dir web` fails with registry lookup errors | Rewrite team | Open |
 | R-005 | Determinism replay runtime and fixture size may become expensive as scenarios grow per phase | Medium | Medium | Keep replay fixtures focused, track runtime budget per checkpoint, split long-run suite into required subset + nightly full set | `test:replay` exceeds CI target duration budget | Rewrite team | Open |
 | R-006 | Pathfinding behavior can drift if tie-break or neighbor-order logic changes during later system integrations | Medium | Medium | Keep CP-2 golden-route fixtures + replay fixture checks + explicit tie-break rule export in required gates | Golden fixture mismatch or replay fixture mismatch in CI | Rewrite team | Open |
+| R-007 | Renderer performance may regress as WebGL backend complexity increases beyond CP-3 reference raster path | Medium | Medium | Keep scripted frame-profile gate (`test:renderer-perf`) in required checks and track frame-time trend at each checkpoint | Frame profile drops below `60 FPS` target in required gate or nightly run | Rewrite team | Open |
 
 ## Active next steps (must always be current)
 
 Current phase target:
-- Phase 2: Map, occupancy, and pathfinding (complete on 2026-02-12).
+- Phase 3: Rendering pipeline (complete on 2026-02-12).
 
 Next actions:
-1. Lock repository branch protection to require `Web Rewrite Phase 2` workflow gates.
-2. Hold CP-2 checkpoint review and explicitly authorize Phase 3 start.
-3. Prepare Phase 3 test-first visual snapshot fixtures and pixel-threshold budgets before renderer implementation begins.
-4. Add nightly/full replay + perf split before replay/perf fixture count expands further.
-5. Track pathfinding perf budget trend on CI hardware and re-baseline only through checkpoint approval.
+1. Lock repository branch protection to require `Web Rewrite Phase 3` workflow gates.
+2. Hold CP-3 checkpoint review and explicitly authorize Phase 4 start (no implementation before approval).
+3. Add nightly renderer visual regression + renderer frame profile trend collection and archive reports.
+4. Re-baseline CP-1/CP-2 performance notes with renderer integration impact summary.
+5. Draft Phase 4 input/app-shell test matrix before implementation starts.
 
 Definition of immediate success:
-- CP-2 closed with all gates green and evidence links captured before any Phase 3 implementation work.
+- CP-3 closed with all gates green and evidence links captured before any Phase 4 implementation work.
 
 ## Team cadence and accountability
 
@@ -568,6 +572,7 @@ pnpm test:replay
 pnpm test:e2e
 pnpm test:assets
 pnpm test:visual
+pnpm test:renderer-perf
 pnpm bench
 pnpm dev
 pnpm phase0:check
@@ -576,6 +581,7 @@ pnpm phase1:check
 pnpm test:pathfinding
 pnpm test:pathfinding-perf
 pnpm phase2:check
+pnpm phase3:check
 ```
 
 ## Appendix B: Acceptance checklist template for each subsystem
