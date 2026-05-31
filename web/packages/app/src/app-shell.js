@@ -673,6 +673,12 @@ export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
         staff.skillLevel < telemetry.maxStaffSkillLevel &&
         telemetry.cash >= telemetry.staffTrainingCost;
 }
+export function canFireStaff(staff = null) {
+    return Boolean(staff);
+}
+export function canSellRoom(room = null) {
+    return Boolean(room);
+}
 export function canPrioritizePatient(patient = null) {
     return Boolean(patient && (patient.status === "queued" || patient.status === "awaiting-treatment"));
 }
@@ -2718,8 +2724,8 @@ export function mountAppShell(options) {
         moveSelectedStaffButton.disabled = resolved?.type !== "staff";
         restSelectedStaffButton.disabled = !(resolved?.type === "staff" && canRestStaffFromTelemetry(resolved.value));
         trainSelectedStaffButton.disabled = !(resolved?.type === "staff" && canTrainStaffFromTelemetry(resolved.value, telemetry));
-        fireSelectedStaffButton.disabled = resolved?.type !== "staff";
-        sellSelectedRoomButton.disabled = resolved?.type !== "room";
+        fireSelectedStaffButton.disabled = !(resolved?.type === "staff" && canFireStaff(resolved.value));
+        sellSelectedRoomButton.disabled = !(resolved?.type === "room" && canSellRoom(resolved.value));
         repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
         if (resolved?.type === "staff") {
             telemetryElements.staffBreakToggleButton.textContent = formatSelectedStaffBreakToggleLabel(resolved.value);
@@ -3134,13 +3140,16 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onFireSelectedStaff = () => {
-        if (selectedEntity?.type !== "staff") {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "staff" || !canFireStaff(resolved.value)) {
+            actionStatus.textContent = formatActionStatus("staff.fire-blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "fire-staff",
-            staffId: selectedEntity.id,
+            staffId: resolved.value.id,
             source: "ui:fire-selected-staff"
         }, renderRuntime);
         selectedEntity = null;
@@ -3148,13 +3157,16 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onSellSelectedRoom = () => {
-        if (selectedEntity?.type !== "room") {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "room" || !canSellRoom(resolved.value)) {
+            actionStatus.textContent = formatActionStatus("room.sell-blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "sell-room",
-            roomId: selectedEntity.id,
+            roomId: resolved.value.id,
             source: "ui:sell-selected-room"
         }, renderRuntime);
         selectedEntity = null;
