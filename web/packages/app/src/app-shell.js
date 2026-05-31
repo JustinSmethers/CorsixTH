@@ -642,6 +642,17 @@ export function canRepairRoomFromTelemetry(room, telemetry = null) {
     const needsRepair = room.wear > 0 || room.maintenanceRemainingTicks > 0;
     return needsRepair && telemetry.cash >= roomRepairCost(room.roomType);
 }
+export function canRestStaffFromTelemetry(staff = null) {
+    return Boolean(staff && staff.status === "on-break" && staff.trainingRemainingTicks === 0 && staff.stress > 0);
+}
+export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
+    if (!staff || !telemetry) {
+        return false;
+    }
+    return staff.trainingRemainingTicks === 0 &&
+        staff.skillLevel < telemetry.maxStaffSkillLevel &&
+        telemetry.cash >= telemetry.staffTrainingCost;
+}
 export function canStartEmergencyFromTelemetry(telemetry = null) {
     if (!telemetry || telemetry.emergencyActive) {
         return false;
@@ -2677,11 +2688,8 @@ export function mountAppShell(options) {
         giveDrinkSelectedPatientButton.disabled = !(resolved?.type === "patient" && canGiveDrinkToPatient(resolved.value, telemetry));
         sendSelectedPatientToiletButton.disabled = !(resolved?.type === "patient" && canSendPatientToilet(resolved.value, telemetry));
         moveSelectedStaffButton.disabled = resolved?.type !== "staff";
-        restSelectedStaffButton.disabled = !(resolved?.type === "staff" && resolved.value.status === "on-break" && resolved.value.stress > 0);
-        trainSelectedStaffButton.disabled = !(resolved?.type === "staff" &&
-            resolved.value.trainingRemainingTicks === 0 &&
-            resolved.value.skillLevel < telemetry.maxStaffSkillLevel &&
-            telemetry.cash >= telemetry.staffTrainingCost);
+        restSelectedStaffButton.disabled = !(resolved?.type === "staff" && canRestStaffFromTelemetry(resolved.value));
+        trainSelectedStaffButton.disabled = !(resolved?.type === "staff" && canTrainStaffFromTelemetry(resolved.value, telemetry));
         fireSelectedStaffButton.disabled = resolved?.type !== "staff";
         sellSelectedRoomButton.disabled = resolved?.type !== "room";
         repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
@@ -3024,7 +3032,9 @@ export function mountAppShell(options) {
     };
     const onRestSelectedStaff = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "staff") {
+        if (resolved?.type !== "staff" || !canRestStaffFromTelemetry(resolved.value)) {
+            actionStatus.textContent = formatActionStatus("staff.rest-blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
@@ -3039,7 +3049,9 @@ export function mountAppShell(options) {
     };
     const onTrainSelectedStaff = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "staff") {
+        if (resolved?.type !== "staff" || !canTrainStaffFromTelemetry(resolved.value, orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("training.blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
