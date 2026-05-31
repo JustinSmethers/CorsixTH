@@ -599,6 +599,41 @@ export function formatHireStaffButtonLabel(role, telemetry = null, languageSumma
     const wage = telemetry?.scenarioStaffWageOverrides?.[role] ?? staffWageCostPerTick(role);
     return `Hire ${name} (${hireCost}, wage ${wage})`;
 }
+export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
+    if (!telemetry) {
+        return true;
+    }
+    const availability = telemetry.roomAvailabilityStatus;
+    const roomAvailable = !availability ||
+        availability === "unrestricted" ||
+        availability.split(",").map((entry) => entry.trim()).includes(roomType);
+    const cost = telemetry.scenarioRoomCostOverrides?.[roomType] ?? roomBuildCost(roomType);
+    return roomAvailable && telemetry.cash >= cost;
+}
+function staffMarketRemainingForTelemetryRole(role, telemetry) {
+    if (!telemetry) {
+        return Number.POSITIVE_INFINITY;
+    }
+    if (role === "diagnostician") {
+        return telemetry.staffMarketDoctorsAvailable;
+    }
+    if (role === "nurse") {
+        return telemetry.staffMarketNursesAvailable;
+    }
+    if (role === "handyman") {
+        return telemetry.staffMarketHandymenAvailable;
+    }
+    if (role === "receptionist") {
+        return telemetry.staffMarketReceptionistsAvailable;
+    }
+    return Number.POSITIVE_INFINITY;
+}
+export function canHireStaffFromTelemetry(role, telemetry = null) {
+    if (!telemetry) {
+        return true;
+    }
+    return telemetry.cash >= staffHireCost(role) && staffMarketRemainingForTelemetryRole(role, telemetry) > 0;
+}
 export function formatMaintenanceStaffStatus(telemetry, languageSummary = null) {
     const base = `Handymen: ${telemetry.activeHandymen}/${telemetry.totalHandymen}, repairs ${telemetry.maintenanceStaffRepairEvents}, bonus ${telemetry.maintenanceStaffRepairBonusTicks} ticks`;
     const thresholds = telemetry.scenarioRoomWearThresholdOverrides ?? {};
@@ -2630,6 +2665,14 @@ export function mountAppShell(options) {
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
         hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
         hireReceptionistButton.textContent = formatHireStaffButtonLabel("receptionist", telemetry, hospitalView?.languageSummary ?? null);
+        buildDiagnosisRoomButton.disabled = !canBuildRoomFromTelemetry("diagnosis", telemetry);
+        buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
+        buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
+        buildSpecialistRoomButton.disabled = !canBuildRoomFromTelemetry("specialist", telemetry);
+        hireDiagnosticianButton.disabled = !canHireStaffFromTelemetry("diagnostician", telemetry);
+        hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
+        hireHandymanButton.disabled = !canHireStaffFromTelemetry("handyman", telemetry);
+        hireReceptionistButton.disabled = !canHireStaffFromTelemetry("receptionist", telemetry);
         renderHospital();
         renderSelectionControls();
         renderLevelControls();
@@ -3012,6 +3055,11 @@ export function mountAppShell(options) {
         ...(selectedEntity?.type === "room" ? { roomId: selectedEntity.id } : {})
     }, renderRuntime);
     const onBuildDiagnosisRoom = () => {
+        if (!canBuildRoomFromTelemetry("diagnosis", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "build-room",
             roomType: "diagnosis",
@@ -3024,6 +3072,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onBuildTreatmentRoom = () => {
+        if (!canBuildRoomFromTelemetry("treatment", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "build-room",
             roomType: "treatment",
@@ -3036,6 +3089,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onBuildPharmacyRoom = () => {
+        if (!canBuildRoomFromTelemetry("pharmacy", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "build-room",
             roomType: "pharmacy",
@@ -3048,6 +3106,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onBuildSpecialistRoom = () => {
+        if (!canBuildRoomFromTelemetry("specialist", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "build-room",
             roomType: "specialist",
@@ -3060,6 +3123,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onHireDiagnostician = () => {
+        if (!canHireStaffFromTelemetry("diagnostician", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("staff.hire-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "hire-staff",
             role: "diagnostician",
@@ -3072,6 +3140,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onHireNurse = () => {
+        if (!canHireStaffFromTelemetry("nurse", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("staff.hire-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "hire-staff",
             role: "nurse",
@@ -3084,6 +3157,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onHireHandyman = () => {
+        if (!canHireStaffFromTelemetry("handyman", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("staff.hire-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "hire-staff",
             role: "handyman",
@@ -3096,6 +3174,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onHireReceptionist = () => {
+        if (!canHireStaffFromTelemetry("receptionist", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("staff.hire-blocked");
+            renderRuntime();
+            return;
+        }
         placementAction = {
             action: "hire-staff",
             role: "receptionist",
