@@ -1,0 +1,33 @@
+{
+  "name": "@corsixth/web-workspace",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.29.3+sha512.498e1fb4cca5aa06c1dcf2611e6fafc50972ffe7189998c409e90de74566444298ffe43e6cd2acdc775ba1aa7cc5e092a8b7054c811ba8c5770f84693d33d2dc",
+  "scripts": {
+    "dev": "vite apps/game --config vite.config.js --host 127.0.0.1",
+    "build": "vite build apps/game --config vite.config.js",
+    "check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
+    "test": "vitest run --config vitest.config.js",
+    "test:unit": "vitest run --config vitest.config.js",
+    "test:e2e": "node scripts/run-playwright-e2e.js",
+    "test:e2e:compat": "node scripts/run-playwright-e2e.js apps/game/e2e/phase9-browser-compatibility.spec.js",
+    "test:e2e:phase10": "node scripts/run-playwright-e2e.js apps/game/e2e/phase10-release-safeguards.spec.js",
+    "inspect:game-data": "node scripts/inspect-game-data.js",
+    "phase0:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
+    "phase7:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
+    "phase8:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
+    "phase9:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
+    "phase10:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
+    "release:rc": "node scripts/release-checklist.js release-candidate",
+    "release:staging-dry-run": "node scripts/release-checklist.js staging-dry-run"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.58.2",
+    "eslint": "10.0.0",
+    "pixelmatch": "7.1.0",
+    "prettier": "3.8.1",
+    "typescript": "5.9.3",
+    "vite": "7.3.1",
+    "vitest": "4.0.18"
+  }
+}

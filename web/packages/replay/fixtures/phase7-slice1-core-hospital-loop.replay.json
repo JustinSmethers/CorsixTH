@@ -1,0 +1,46 @@
+{
+    "schemaVersion": "replay.v0",
+    "id": "phase7-slice1-core-hospital-loop",
+    "seed": 4242,
+    "commands": [
+        {
+            "type": "admit-patient",
+            "severity": 1,
+            "position": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "type": "admit-patient",
+            "severity": 3,
+            "position": {
+                "x": 2,
+                "y": 2
+            }
+        },
+        {
+            "type": "tick",
+            "count": 1
+        },
+        {
+            "type": "tick",
+            "count": 1
+        },
+        {
+            "type": "treat-patient"
+        },
+        {
+            "type": "tick",
+            "count": 2
+        }
+    ],
+    "expectedStepHashes": [
+        "5cd23d97",
+        "367ecf3a",
+        "7317d01d",
+        "3cf62f07",
+        "3f5f889b",
+        "a5f1f68b"
+    ]
+}

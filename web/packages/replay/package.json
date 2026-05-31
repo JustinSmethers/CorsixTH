@@ -1,0 +1,12 @@
+{
+  "name": "@corsixth/replay",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "dependencies": {
+    "@corsixth/core": "workspace:*",
+    "@corsixth/testkit": "workspace:*"
+  }
+}

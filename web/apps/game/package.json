@@ -1,0 +1,16 @@
+{
+  "name": "@corsixth/game",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build . --config ../../vite.config.js",
+    "dev": "vite . --config ../../vite.config.js --host 127.0.0.1",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@corsixth/app": "workspace:*",
+    "@corsixth/assets": "workspace:*",
+    "@corsixth/renderer-webgl": "workspace:*",
+    "@corsixth/testkit": "workspace:*"
+  }
+}

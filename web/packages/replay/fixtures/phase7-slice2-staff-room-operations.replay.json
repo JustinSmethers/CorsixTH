@@ -1,0 +1,72 @@
+{
+    "schemaVersion": "replay.v0",
+    "id": "phase7-slice2-staff-room-operations",
+    "seed": 7205,
+    "commands": [
+        {
+            "type": "admit-patient",
+            "severity": 2,
+            "position": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "type": "set-staff-status",
+            "staffId": 1,
+            "status": "on-break"
+        },
+        {
+            "type": "tick",
+            "count": 2
+        },
+        {
+            "type": "set-staff-status",
+            "staffId": 1,
+            "status": "active"
+        },
+        {
+            "type": "open-room",
+            "roomType": "diagnosis"
+        },
+        {
+            "type": "hire-staff",
+            "role": "diagnostician"
+        },
+        {
+            "type": "tick",
+            "count": 2
+        },
+        {
+            "type": "set-room-status",
+            "roomId": 2,
+            "status": "closed"
+        },
+        {
+            "type": "tick",
+            "count": 1
+        },
+        {
+            "type": "set-room-status",
+            "roomId": 2,
+            "status": "open"
+        },
+        {
+            "type": "tick",
+            "count": 1
+        }
+    ],
+    "expectedStepHashes": [
+        "8d08e0b5",
+        "c1fad9ae",
+        "6cb24ce7",
+        "ea7d6f04",
+        "4c33f552",
+        "7bf4ecd7",
+        "c2f36b17",
+        "571655d7",
+        "aa4adccc",
+        "e7d428cb",
+        "f69785bd"
+    ]
+}

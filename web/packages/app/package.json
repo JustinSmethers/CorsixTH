@@ -1,0 +1,16 @@
+{
+  "name": "@corsixth/app",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js",
+    "./*": "./src/*.js"
+  },
+  "dependencies": {
+    "@corsixth/assets": "workspace:*",
+    "@corsixth/audio-webaudio": "workspace:*",
+    "@corsixth/core": "workspace:*",
+    "@corsixth/persistence": "workspace:*",
+    "@corsixth/rules": "workspace:*"
+  }
+}

@@ -1,0 +1,3434 @@
+import {
+    decodeThemeHospitalAnimationSetFromBundle,
+    decodeThemeHospitalMapFromBundle,
+    decodeThemeHospitalPalette,
+    decodeThemeHospitalSpriteSheetFromBundle,
+    renderThemeHospitalMapScene,
+    renderThemeHospitalSprite
+} from "@corsixth/assets";
+import { createWebAudioMixer } from "@corsixth/audio-webaudio";
+import { createIndexedDbPersistenceAdapter } from "@corsixth/persistence";
+import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, staffHireCost, staffWageCostPerTick, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
+import { normalizeKeyboardEvent, normalizeMouseEvent, normalizeTouchEvent } from "./input-normalization";
+import { AppOrchestrator } from "./orchestrator";
+import { restoreOrchestratorFromSaveEnvelope, saveOrchestratorToSlot } from "./persistence";
+const HOSPITAL_CANVAS_WIDTH = 768;
+const HOSPITAL_CANVAS_HEIGHT = 480;
+const DEFAULT_TICK_RATE_HZ = 4;
+const DEFAULT_POINTER_TILE_SIZE = 16;
+const HOSPITAL_TILE_COLUMNS = 14;
+const HOSPITAL_TILE_ROWS = 12;
+const HOSPITAL_CAMERA_STEP = 4;
+const DEFAULT_SAVE_SLOT = "browser-autosave";
+const HOSPITAL_ISO_TILE_HALF_WIDTH = 32;
+const HOSPITAL_ISO_TILE_HALF_HEIGHT = 16;
+const PATIENT_STATUS_COLORS = {
+    queued: "#f3c74f",
+    "walking-to-diagnosis": "#c9e36a",
+    diagnosing: "#58a6ff",
+    "awaiting-treatment": "#ff8c42",
+    "walking-to-treatment": "#f0a05d",
+    treating: "#66d17a"
+};
+const ROOM_TYPE_COLORS = {
+    diagnosis: "#5fb3c8",
+    treatment: "#79c66a",
+    pharmacy: "#b894f6",
+    specialist: "#f08e67"
+};
+const STAFF_ROLE_COLORS = {
+    diagnostician: "#d8b55a",
+    nurse: "#d96c75",
+    handyman: "#7acb87"
+};
+const PLACEMENT_REASON_LABELS = {
+    "missing-position": "choose a tile",
+    "out-of-bounds": "out of bounds",
+    "invalid-terrain": "invalid terrain",
+    "non-buildable": "not buildable",
+    occupied: "occupied",
+    "insufficient-cash": "not enough cash",
+    "no-traversable-position": "no clear path",
+    "staff-market-empty": "no scenario staff available",
+    "room-unavailable": "room unavailable in scenario"
+};
+const ACTION_STATUS_LABELS = {
+    "admissions.opened": "Action: admissions open",
+    "admissions.closed": "Action: admissions closed",
+    "speed.changed": "Action: speed changed",
+    "admission-policy.changed": "Action: admission policy changed",
+    "pricing-policy.changed": "Action: pricing policy changed",
+    "pricing-policy.unchanged": "Action: pricing policy unchanged",
+    "loan.taken": "Action: loan taken",
+    "loan.take-blocked": "Action: loan blocked",
+    "loan.repaid": "Action: loan repaid",
+    "loan.repay-blocked": "Action: loan repayment blocked",
+    "finance.audit-run": "Action: finance audit run",
+    "finance.audit-blocked": "Action: finance audit blocked",
+    "marketing.launched": "Action: marketing campaign launched",
+    "marketing.blocked": "Action: marketing campaign blocked",
+    "insurance.started": "Action: insurance contract started",
+    "insurance.blocked": "Action: insurance contract blocked",
+    "awards.completed": "Action: awards completed",
+    "awards.blocked": "Action: awards blocked",
+    "awards.poor-blocked": "Action: awards poor criteria blocked",
+    "awards.penalty-applied": "Action: awards penalty applied",
+    "rat.killed": "Action: rat killed",
+    "rat.missed": "Action: rat missed",
+    "rat.blocked": "Action: rat blocked",
+    "plant.watered": "Action: plant watered",
+    "plant.neglected": "Action: plant neglected",
+    "plant.blocked": "Action: plant blocked",
+    "research.started": "Action: research started",
+    "research.blocked": "Action: research blocked",
+    "emergency.started": "Action: emergency started",
+    "emergency.blocked": "Action: emergency blocked",
+    "epidemic.started": "Action: epidemic started",
+    "epidemic.blocked": "Action: epidemic blocked",
+    "training.started": "Action: staff training started",
+    "training.blocked": "Action: staff training blocked",
+    "vip.started": "Action: VIP inspection started",
+    "vip.blocked": "Action: VIP inspection blocked",
+    "room.built": "Action: room built",
+    "room.build-blocked": "Action: room blocked",
+    "room.sold": "Action: room sold",
+    "room.sell-blocked": "Action: room sale blocked",
+    "room.repaired": "Action: room repaired",
+    "room.repair-blocked": "Action: room repair blocked",
+    "staff.hired": "Action: staff hired",
+    "staff.hire-blocked": "Action: staff blocked",
+    "staff.fired": "Action: staff fired",
+    "staff.fire-blocked": "Action: staff fire blocked",
+    "staff.moved": "Action: staff moved",
+    "staff.move-blocked": "Action: staff move blocked",
+    "staff.rested": "Action: staff rested",
+    "staff.rest-blocked": "Action: staff rest blocked",
+    "patient.admitted": "Action: patient admitted",
+    "patient.prioritized": "Action: patient prioritized",
+    "patient.prioritize-empty": "Action: patient cannot be prioritized",
+    "patient.sent-home": "Action: patient sent home",
+    "patient.send-home-empty": "Action: no patient selected",
+    "patient.treated.success": "Action: patient treated",
+    "patient.treated.empty": "Action: no patient selected",
+    "patient.drink-given": "Action: drink given",
+    "patient.drink-blocked": "Action: drink blocked",
+    "patient.toilet-used": "Action: toilet used",
+    "patient.toilet-blocked": "Action: toilet blocked"
+};
+function browserFrameClock() {
+    return {
+        requestFrame: (callback) => window.requestAnimationFrame(callback),
+        cancelFrame: (handle) => window.cancelAnimationFrame(handle),
+        now: () => window.performance.now()
+    };
+}
+function requiredElement(root, selector) {
+    const element = root.querySelector(selector);
+    if (!element) {
+        throw new Error(`Missing required app-shell element: ${selector}`);
+    }
+    return element;
+}
+export function formatScenarioResearchDetails(telemetry) {
+    const hasScenarioResearchDetails = telemetry.scenarioResearchStartRating !== null ||
+        telemetry.scenarioResearchPointsDivisor !== 1 ||
+        telemetry.scenarioResearchStartCost !== null ||
+        telemetry.scenarioResearchMinDrugCost !== null ||
+        telemetry.scenarioResearchDrugImproveRate !== null ||
+        telemetry.scenarioResearchImproveCostPercent !== null ||
+        telemetry.scenarioResearchImproveIncrementPercent !== null ||
+        telemetry.scenarioResearchMaxObjectStrength !== null ||
+        telemetry.scenarioResearchIncrement !== null ||
+        telemetry.scenarioAutopsyResearchPercent !== null ||
+        telemetry.scenarioAutopsyReputationHitPercent !== null ||
+        telemetry.treatmentResearchAutopsyTicks > 0 ||
+        telemetry.treatmentResearchAutopsyReputationPenalty > 0;
+    if (!hasScenarioResearchDetails) {
+        return "";
+    }
+    return `, scenario rating ${telemetry.scenarioResearchStartRating ?? "default"}, divisor ${telemetry.scenarioResearchPointsDivisor}, start cost ${telemetry.scenarioResearchStartCost ?? "default"}, min drug ${telemetry.scenarioResearchMinDrugCost ?? "default"}, improve ${telemetry.scenarioResearchDrugImproveRate ?? "default"}, improve cost ${telemetry.scenarioResearchImproveCostPercent ?? "default"}, improve increment ${telemetry.scenarioResearchImproveIncrementPercent ?? "default"}, object strength ${telemetry.scenarioResearchMaxObjectStrength ?? "default"}/${telemetry.scenarioResearchIncrement ?? "default"}, autopsy ${telemetry.scenarioAutopsyResearchPercent ?? "default"}%/-${telemetry.scenarioAutopsyReputationHitPercent ?? "default"}%, autopsy totals ${telemetry.treatmentResearchAutopsyTicks}/${telemetry.treatmentResearchAutopsyReputationPenalty}`;
+}
+export function formatResearchEffectStatus(telemetry) {
+    return `Research effect: +${telemetry.treatmentResearchSuccessBonus}% success, next ${telemetry.treatmentResearchProjectCost}/${telemetry.treatmentResearchProjectTicks} ticks, throughput ${telemetry.treatmentResearchTicksPerTick}x/${telemetry.treatmentResearchActiveResearchers} researchers${formatScenarioResearchDetails(telemetry)}`;
+}
+export function formatSeedStatus(telemetry) {
+    return `Seed: ${telemetry.seed}`;
+}
+export function formatTickStatus(telemetry) {
+    return `Tick: ${telemetry.tick}`;
+}
+export function formatSpeedStatus(telemetry) {
+    return `Speed: ${telemetry.speedMultiplier}x`;
+}
+export function formatPausedStatus(telemetry) {
+    return `Paused: ${telemetry.paused ? "yes" : "no"}`;
+}
+export function formatAudioStatus(audioStatus) {
+    return `Audio: ${audioStatus.initialization}`;
+}
+export function formatAudioVolumeStatus(audioStatus) {
+    return `Audio volume: ${Math.round(audioStatus.volume * 100)}% (${audioStatus.muted ? "muted" : "unmuted"})`;
+}
+export function formatStateHashStatus(telemetry) {
+    return `State hash: ${telemetry.stateHash}`;
+}
+export function formatPauseToggleLabel(telemetry) {
+    return telemetry.paused ? "Resume" : "Pause";
+}
+export function formatAdmissionsToggleLabel(telemetry) {
+    return telemetry.admissionsOpen ? "Close Admissions" : "Open Admissions";
+}
+export function formatStaffBreakToggleLabel(telemetry) {
+    return telemetry.onBreakStaff > 0 ? "Set Diagnostician Active" : "Set Diagnostician On Break";
+}
+export function formatSelectedStaffBreakToggleLabel(staff) {
+    return staff.status === "active" ? "Set Selected Staff On Break" : "Set Selected Staff Active";
+}
+export function formatTreatmentRoomToggleLabel(telemetry) {
+    return telemetry.openTreatmentRooms > 0 ? "Close Treatment Room" : "Open Treatment Room";
+}
+export function formatSelectedRoomToggleLabel(room) {
+    return room.status === "open" ? "Close Selected Room" : "Open Selected Room";
+}
+export function formatMuteToggleLabel(audioStatus) {
+    return audioStatus.muted ? "Unmute" : "Mute";
+}
+function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = null, scenario = null) {
+    const telemetry = orchestrator.telemetry();
+    const audioStatus = audioMixer.status();
+    elements.pauseToggleButton.textContent = formatPauseToggleLabel(telemetry);
+    elements.speedSelect.value = String(telemetry.speedMultiplier);
+    elements.admissionPolicySelect.value = telemetry.admissionPolicy;
+    elements.pricingPolicySelect.value = telemetry.treatmentPricingPolicy;
+    elements.admissionsToggleButton.textContent = formatAdmissionsToggleLabel(telemetry);
+    elements.staffBreakToggleButton.textContent = formatStaffBreakToggleLabel(telemetry);
+    elements.treatmentRoomToggleButton.textContent = formatTreatmentRoomToggleLabel(telemetry);
+    elements.muteToggleButton.textContent = formatMuteToggleLabel(audioStatus);
+    elements.volumeSlider.value = String(Math.round(audioStatus.volume * 100));
+    elements.takeLoanButton.disabled = telemetry.outstandingLoan >= telemetry.loanMaxOutstanding;
+    elements.repayLoanButton.disabled =
+        telemetry.outstandingLoan <= 0 || telemetry.cash < Math.min(telemetry.loanChunkAmount, telemetry.outstandingLoan);
+    elements.financeAuditButton.disabled = !telemetry.financeLedgerUnlocked || !telemetry.financeAuditReady;
+    elements.marketingCampaignButton.disabled = telemetry.cash < telemetry.marketingCampaignCost || telemetry.reputation >= 1000;
+    elements.insuranceContractButton.disabled = !telemetry.insuranceContractUnlocked || telemetry.insuranceContractActive;
+    elements.researchButton.disabled =
+        telemetry.treatmentResearchActive ||
+            telemetry.treatmentResearchLevel >= telemetry.treatmentResearchMaxLevel ||
+            telemetry.cash < telemetry.treatmentResearchProjectCost;
+    elements.emergencyButton.disabled = telemetry.emergencyActive;
+    elements.epidemicButton.disabled = telemetry.epidemicActive;
+    elements.vipInspectionButton.disabled = telemetry.vipInspectionActive;
+    elements.seedMetric.textContent = formatSeedStatus(telemetry);
+    elements.tickMetric.textContent = formatTickStatus(telemetry);
+    elements.speedStatusMetric.textContent = formatSpeedStatus(telemetry);
+    elements.treatedMetric.textContent = formatTreatedPatientsStatus(telemetry);
+    elements.waitingMetric.textContent = formatWaitingPatientsStatus(telemetry);
+    elements.queueMetric.textContent = formatQueuedPatientsStatus(telemetry);
+    elements.walkingToDiagnosisMetric.textContent = formatWalkingToDiagnosisPatientsStatus(telemetry);
+    elements.diagnosingMetric.textContent = formatDiagnosingPatientsStatus(telemetry);
+    elements.diagnosedMetric.textContent = formatDiagnosedPatientsStatus(telemetry);
+    elements.awaitingTreatmentMetric.textContent = formatAwaitingTreatmentPatientsStatus(telemetry);
+    elements.walkingToTreatmentMetric.textContent = formatWalkingToTreatmentPatientsStatus(telemetry);
+    elements.treatingMetric.textContent = formatTreatingPatientsStatus(telemetry);
+    elements.dischargedMetric.textContent = formatDischargedPatientsStatus(telemetry);
+    elements.treatmentFailuresMetric.textContent = formatTreatmentFailuresStatus(telemetry);
+    elements.researchStatusMetric.textContent = formatResearchStatus(telemetry);
+    elements.researchEffectMetric.textContent = formatResearchEffectStatus(telemetry);
+    elements.scenarioExpertiseMetric.textContent = formatScenarioExpertiseStatus(telemetry, languageSummary);
+    elements.scenarioOpponentsMetric.textContent = formatScenarioOpponentsStatus(telemetry);
+    elements.scenarioOpponentProgressMetric.textContent = formatScenarioOpponentProgressStatus(telemetry);
+    elements.scenarioNetworkCriteriaMetric.textContent = formatScenarioNetworkCriteriaStatus(telemetry);
+    elements.quakeStatusMetric.textContent = formatQuakeStatus(telemetry);
+    elements.emergencyStatusMetric.textContent = formatEmergencyStatus(telemetry, languageSummary);
+    elements.emergencyRewardMetric.textContent = formatEmergencyRewardStatus(telemetry);
+    elements.epidemicStatusMetric.textContent = formatEpidemicStatus(telemetry);
+    elements.epidemicRewardMetric.textContent = formatEpidemicTermsStatus(telemetry);
+    elements.vipInspectionStatusMetric.textContent = formatVipInspectionStatus(telemetry);
+    elements.vipInspectionRewardMetric.textContent = formatVipInspectionTermsStatus(telemetry);
+    elements.patientDeathsMetric.textContent = formatPatientDeathsStatus(telemetry);
+    elements.patientVomitsMetric.textContent = formatPatientVomitsStatus(telemetry);
+    elements.patientLitterMetric.textContent = formatPatientLitterStatus(telemetry);
+    elements.patientDrinksMetric.textContent = formatPatientDrinksStatus(telemetry);
+    elements.ratControlMetric.textContent = formatRatControlStatus(telemetry);
+    elements.plantCareMetric.textContent = formatPlantCareStatus(telemetry);
+    elements.patientsNeedingToiletMetric.textContent = formatPatientsNeedingToiletStatus(telemetry);
+    elements.patientBowelOverflowsMetric.textContent = formatPatientBowelOverflowStatus(telemetry);
+    elements.criticalPatientsMetric.textContent = formatCriticalPatientsStatus(telemetry);
+    elements.patientMoodMetric.textContent = formatPatientMoodStatus(telemetry);
+    elements.admissionsStatusMetric.textContent = formatAdmissionsStatus(telemetry);
+    elements.admissionPolicyStatusMetric.textContent = formatAdmissionPolicyStatus(telemetry);
+    elements.nextAdmissionMetric.textContent = formatNextAdmissionStatus(telemetry, languageSummary);
+    elements.admissionRulesMetric.textContent = formatAdmissionRulesStatus(telemetry);
+    elements.routingRulesMetric.textContent = formatRoutingRulesStatus(telemetry);
+    elements.frontDeskStatusMetric.textContent = formatFrontDeskStatus(telemetry);
+    elements.activeStaffMetric.textContent = formatActiveStaffStatus(telemetry);
+    elements.onBreakStaffMetric.textContent = formatOnBreakStaffStatus(telemetry);
+    elements.staffTrainingStatusMetric.textContent = formatStaffTrainingStatus(telemetry);
+    elements.staffSkillStatusMetric.textContent = formatStaffSkillStatus(telemetry);
+    elements.staffMarketStatusMetric.textContent = formatStaffMarketStatus(telemetry);
+    elements.maintenanceStaffStatusMetric.textContent = formatMaintenanceStaffStatus(telemetry, languageSummary);
+    elements.openDiagnosisRoomsMetric.textContent = formatOpenDiagnosisRoomsStatus(telemetry);
+    elements.openTreatmentRoomsMetric.textContent = formatOpenTreatmentRoomsStatus(telemetry);
+    elements.specializedTreatmentRoomsMetric.textContent = formatSpecializedTreatmentRoomsStatus(telemetry);
+    elements.roomAvailabilityMetric.textContent = formatRoomAvailabilityHudStatus(telemetry, languageSummary);
+    elements.objectAvailabilityMetric.textContent = formatObjectAvailabilityStatus(telemetry, scenario, languageSummary);
+    elements.specializedTreatmentQueueMetric.textContent = formatSpecializedTreatmentQueueStatus(telemetry);
+    elements.cashMetric.textContent = formatCashStatus(telemetry);
+    elements.reputationMetric.textContent = formatReputationStatus(telemetry);
+    elements.pricingPolicyStatusMetric.textContent = formatPricingPolicyStatus(telemetry);
+    elements.loanStatusMetric.textContent = formatLoanStatus(telemetry);
+    elements.loanInterestMetric.textContent = formatLoanInterestStatus(telemetry);
+    elements.financeLedgerMetric.textContent = formatFinanceLedgerStatus(telemetry);
+    elements.financeAuditMetric.textContent = formatFinanceAuditStatus(telemetry);
+    elements.marketingCampaignMetric.textContent = formatMarketingCampaignStatus(telemetry);
+    elements.insuranceContractStatusMetric.textContent = formatInsuranceContractStatus(telemetry);
+    elements.insuranceContractRewardMetric.textContent = formatInsuranceTermsStatus(telemetry);
+    elements.hospitalRatingMetric.textContent = formatHospitalRatingStatus(telemetry);
+    elements.hospitalAwardMetric.textContent = formatHospitalAwardStatus(telemetry);
+    elements.tickCashflowMetric.textContent = formatTickCashflowStatus(telemetry);
+    elements.cumulativeCashflowMetric.textContent = formatCumulativeCashflowStatus(telemetry);
+    elements.milestoneLevelMetric.textContent = formatMilestoneStatus(telemetry);
+    elements.unlocksMetric.textContent = formatUnlockStatus(telemetry);
+    elements.levelObjectiveStatusMetric.textContent = formatLevelObjectiveStatus(telemetry);
+    elements.levelObjectiveProgressMetric.textContent = formatLevelObjectiveProgress(telemetry);
+    elements.levelObjectiveSafetyMetric.textContent = formatLevelObjectiveSafety(telemetry);
+    elements.eventsMetric.textContent = formatEventRulesStatus(telemetry);
+    elements.lastEventMetric.textContent = formatLastEventStatus(telemetry);
+    elements.advisorStatusMetric.textContent = telemetry.advisorStatus;
+    elements.recentEventsMetric.textContent = formatRecentEventsStatus(telemetry);
+    elements.queuePressureMetric.textContent = formatQueuePressureValueStatus(telemetry);
+    elements.queuePressureStatusMetric.textContent = formatQueuePressureStatus(telemetry);
+    elements.stressedStaffMetric.textContent = formatStressedStaffStatus(telemetry);
+    elements.tiredStaffMetric.textContent = formatTiredStaffStatus(telemetry);
+    elements.veryTiredStaffMetric.textContent = formatVeryTiredStaffStatus(telemetry);
+    elements.salaryPressureMetric.textContent = formatSalaryPressureStatus(telemetry);
+    elements.autoBreakStaffMetric.textContent = formatAutoBreakStaffStatus(telemetry);
+    elements.roomsInMaintenanceMetric.textContent = formatRoomMaintenanceStatus(telemetry);
+    elements.queuePressureEventsMetric.textContent = formatQueuePressureEventsStatus(telemetry);
+    elements.staffBurnoutEventsMetric.textContent = formatStaffBurnoutEventsStatus(telemetry);
+    elements.staffRecoveryEventsMetric.textContent = formatStaffRecoveryEventsStatus(telemetry);
+    elements.roomMaintenanceStartEventsMetric.textContent = formatRoomMaintenanceStartEventsStatus(telemetry);
+    elements.roomMaintenanceCompleteEventsMetric.textContent = formatRoomMaintenanceCompleteEventsStatus(telemetry);
+    elements.hashMetric.textContent = formatStateHashStatus(telemetry);
+    elements.pausedMetric.textContent = formatPausedStatus(telemetry);
+    elements.audioStatusMetric.textContent = formatAudioStatus(audioStatus);
+    elements.audioVolumeMetric.textContent = formatAudioVolumeStatus(audioStatus);
+}
+function requestAudioInitialization(audioMixer, orchestrator, elements, afterRender) {
+    void audioMixer.initializeFromGesture().finally(() => {
+        afterRender?.();
+    });
+}
+function dispatchAndRender(orchestrator, elements, audioMixer, action, afterRender) {
+    if (!action) {
+        return [];
+    }
+    requestAudioInitialization(audioMixer, orchestrator, elements, afterRender);
+    const audioEvents = orchestrator.dispatch(action);
+    const paused = orchestrator.telemetry().paused;
+    if (!paused) {
+        void audioMixer.setPaused(false).finally(() => {
+            afterRender?.();
+        });
+    }
+    for (const event of audioEvents) {
+        audioMixer.trigger(event);
+    }
+    if (paused) {
+        void audioMixer.setPaused(true).finally(() => {
+            afterRender?.();
+        });
+    }
+    afterRender?.();
+    return audioEvents;
+}
+function clamp(value, min, max) {
+    if (!Number.isFinite(value)) {
+        return min;
+    }
+    if (value < min) {
+        return min;
+    }
+    if (value > max) {
+        return max;
+    }
+    return value;
+}
+function safeDecode(callback) {
+    try {
+        return callback();
+    }
+    catch {
+        return null;
+    }
+}
+function hashText32(value) {
+    let hash = 2166136261;
+    for (let index = 0; index < value.length; index += 1) {
+        hash ^= value.charCodeAt(index);
+        hash = Math.imul(hash, 16777619) >>> 0;
+    }
+    return hash.toString(16).padStart(8, "0");
+}
+function stringifyError(error) {
+    if (error instanceof Error) {
+        return error.message;
+    }
+    return String(error);
+}
+function escapeHtml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+}
+function placementReasonLabel(reason) {
+    return PLACEMENT_REASON_LABELS[reason] ?? reason ?? "blocked";
+}
+export function formatPlacementMode(placementAction, placementPreview) {
+    if (!placementAction) {
+        return "Placement: none";
+    }
+    if (!placementPreview) {
+        return `Placement: ${placementAction.label}`;
+    }
+    const position = placementPreview.requestedPosition ?? placementPreview.position;
+    const location = position ? ` at ${position.x},${position.y}` : "";
+    if (placementPreview.valid) {
+        return `Placement: ${placementAction.label}${location} (valid)`;
+    }
+    return `Placement: ${placementAction.label}${location} blocked: ${placementReasonLabel(placementPreview.reason)}`;
+}
+export function formatActionStatus(events, placementEvaluation) {
+    const event = events?.[0];
+    const base = ACTION_STATUS_LABELS[event];
+    if (!base) {
+        return null;
+    }
+    if ((event === "room.build-blocked" || event === "staff.hire-blocked" || event === "staff.move-blocked") && placementEvaluation?.reason) {
+        return `${base}: ${placementReasonLabel(placementEvaluation.reason)}`;
+    }
+    return base;
+}
+export function formatChoosePlacementActionStatus() {
+    return "Action: choose placement";
+}
+export function formatSelectedEntityActionStatus(entityType) {
+    return `Action: selected ${entityType}`;
+}
+export function formatSaveSlotsStatus(slotCount) {
+    return slotCount > 0 ? `Save: ${slotCount} slot${slotCount === 1 ? "" : "s"}` : "Save: no slots";
+}
+export function formatSaveLifecycleStatus(status) {
+    return `Save: ${status}`;
+}
+export function formatSaveSlotOptionsHtml(slots, activeSlot) {
+    const values = new Set(slots.map((slot) => slot.slot));
+    values.add(activeSlot);
+    return Array.from(values)
+        .sort((left, right) => left.localeCompare(right))
+        .map((slot) => `<option value="${escapeHtml(slot)}">${escapeHtml(slot)}</option>`)
+        .join("");
+}
+export function formatHospitalMapOptionsHtml(hospitalView) {
+    if (!hospitalView) {
+        return '<option value="">No imported map</option>';
+    }
+    return hospitalView.mapSummaries
+        .map((summary) => `<option value="${escapeHtml(summary.path)}">${escapeHtml(summary.path)}</option>`)
+        .join("");
+}
+export function formatSaveFailureStatus(action, message) {
+    return `${action} failed: ${message}`;
+}
+export function formatSaveTickStatus(tick, slot) {
+    return `Save: tick ${tick} (${slot})`;
+}
+export function formatLoadResultStatus(status, tick, slot) {
+    return status === "exact" ? `Save: loaded tick ${tick} (${slot})` : `Save: ${status}`;
+}
+export function formatMissingMapLoadStatus(mapPath) {
+    return `Load failed: missing map ${mapPath}`;
+}
+export function formatDeletedSaveSlotStatus(slot) {
+    return `Save: deleted ${slot}`;
+}
+export function formatNewMapStatus(mapPath) {
+    return `Save: new map ${mapPath}`;
+}
+export function formatRestartedLevelStatus(mapPath) {
+    return `Save: restarted ${mapPath}`;
+}
+export function formatNextLevelStatus(mapPath) {
+    return `Save: next level ${mapPath}`;
+}
+export function formatCampaignCompleteStatus() {
+    return "Save: campaign complete";
+}
+function titleCase(value) {
+    return `${value.slice(0, 1).toUpperCase()}${value.slice(1)}`;
+}
+function sameTile(left, right) {
+    return left.x === right.x && left.y === right.y;
+}
+function roomContainsTile(room, tile) {
+    return (room.tiles ?? [room.position]).some((roomTile) => sameTile(roomTile, tile));
+}
+function patientPosition(patient) {
+    return patientRenderPosition(patient);
+}
+function findSelectableEntityAtTile(state, tile) {
+    const patient = state.entities.waitingPatients.find((candidate) => sameTile(patientPosition(candidate), tile));
+    if (patient) {
+        return { type: "patient", id: patient.id };
+    }
+    const staff = state.entities.staff.find((candidate) => sameTile(candidate.position, tile));
+    if (staff) {
+        return { type: "staff", id: staff.id };
+    }
+    const rooms = [...state.entities.rooms].reverse();
+    const room = rooms.find((candidate) => roomContainsTile(candidate, tile));
+    if (room) {
+        return { type: "room", id: room.id };
+    }
+    return null;
+}
+function selectedEntityFromState(state, selectedEntity) {
+    if (!selectedEntity) {
+        return null;
+    }
+    if (selectedEntity.type === "staff") {
+        const staff = state.entities.staff.find((candidate) => candidate.id === selectedEntity.id);
+        return staff ? { type: "staff", value: staff } : null;
+    }
+    if (selectedEntity.type === "room") {
+        const room = state.entities.rooms.find((candidate) => candidate.id === selectedEntity.id);
+        return room ? { type: "room", value: room } : null;
+    }
+    const patient = state.entities.waitingPatients.find((candidate) => candidate.id === selectedEntity.id);
+    return patient ? { type: "patient", value: patient } : null;
+}
+function formatSelectionStatus(state, selectedEntity) {
+    return formatSelectionStatusWithLanguage(state, selectedEntity);
+}
+export function formatSelectionStatusWithLanguage(state, selectedEntity, languageSummary = null) {
+    const resolved = selectedEntityFromState(state, selectedEntity);
+    if (!resolved) {
+        return formatNoSelectionStatus();
+    }
+    if (resolved.type === "staff") {
+        const training = resolved.value.trainingRemainingTicks > 0 ? `, training ${resolved.value.trainingRemainingTicks}` : "";
+        return `Selection: ${staffRoleDisplayName(resolved.value.role, languageSummary)} #${resolved.value.id} (${resolved.value.status}, skill ${resolved.value.skillLevel}${training})`;
+    }
+    if (resolved.type === "room") {
+        const assignedPatients = state.entities.waitingPatients
+            .filter((patient) => patient.assignedRoomId === resolved.value.id)
+            .map((patient) => `#${patient.id}`)
+            .join("/");
+        const patientDetail = assignedPatients ? `, patients ${assignedPatients}` : "";
+        return `Selection: ${roomTypeDisplayName(resolved.value.roomType, languageSummary)} room #${resolved.value.id} (${resolved.value.status}, wear ${resolved.value.wear}, maintenance ${resolved.value.maintenanceRemainingTicks}${patientDetail})`;
+    }
+    const disease = resolved.value.diagnosisKnown ? patientDiseaseDisplayName(resolved.value, languageSummary) : "unknown disease";
+    const status = patientStatusDisplayName(resolved.value, languageSummary);
+    const treatmentNeed = resolved.value.diagnosisKnown && resolved.value.preferredTreatmentRoomType
+        ? `, needs ${roomTypeDisplayName(resolved.value.preferredTreatmentRoomType, languageSummary)}`
+        : "";
+    const assignment = resolved.value.assignedRoomId !== null && resolved.value.assignedRoomId !== undefined
+        ? `, room #${resolved.value.assignedRoomId}`
+        : "";
+    const prefix = Number.isInteger(resolved.value.emergencyWaveId)
+        ? "emergency "
+        : Number.isInteger(resolved.value.epidemicOutbreakId)
+            ? "epidemic "
+            : Number.isInteger(resolved.value.insuranceContractId)
+                ? "insurance "
+                : "";
+    return `Selection: ${prefix}patient #${resolved.value.id} (${status}, ${disease}${treatmentNeed}${assignment}, health ${resolved.value.health}/${resolved.value.maxHealth})`;
+}
+export function formatNoSelectionStatus() {
+    return "Selection: none";
+}
+function formatCasebook(state) {
+    return formatCasebookWithLanguage(state);
+}
+export function formatCasebookWithLanguage(state, languageSummary = null) {
+    const patients = state.entities.waitingPatients;
+    if (patients.length === 0) {
+        return "Casebook: no active patients";
+    }
+    return `Casebook: ${patients.slice(0, 4).map((patient) => {
+        const disease = patient.diagnosisKnown ? patientDiseaseDisplayName(patient, languageSummary) : "unknown disease";
+        const status = patientStatusDisplayName(patient, languageSummary);
+        const treatmentNeed = patient.diagnosisKnown && patient.preferredTreatmentRoomType
+            ? `>${roomTypeDisplayName(patient.preferredTreatmentRoomType, languageSummary)}`
+            : "";
+        const prefix = Number.isInteger(patient.emergencyWaveId)
+            ? "E"
+            : Number.isInteger(patient.epidemicOutbreakId)
+                ? "P"
+                : Number.isInteger(patient.insuranceContractId)
+                    ? "I"
+                    : "#";
+        return `${prefix}${patient.id} ${status} ${disease}${treatmentNeed} H${patient.health}/${patient.maxHealth}`;
+    }).join("; ")}`;
+}
+function patientDiseaseDisplayName(patient, languageSummary) {
+    const importedName = languageSummary?.diseaseNames?.[patient.diseaseId];
+    return typeof importedName === "string" && importedName.length > 0 ? importedName : patient.diseaseName;
+}
+function staffRoleDisplayName(role, languageSummary) {
+    if (role === "diagnostician") {
+        return languageSummary?.staffRoles?.doctor ?? "Diagnostician";
+    }
+    const importedName = languageSummary?.staffRoles?.[role];
+    return typeof importedName === "string" && importedName.length > 0 ? importedName : titleCase(role);
+}
+function roomTypeDisplayName(roomType, languageSummary) {
+    const importedName = languageSummary?.roomNames?.[roomType];
+    return typeof importedName === "string" && importedName.length > 0 ? importedName : titleCase(roomType);
+}
+export function formatBuildRoomButtonLabel(roomType, telemetry = null, languageSummary = null) {
+    const name = roomTypeDisplayName(roomType, languageSummary);
+    const cost = telemetry?.scenarioRoomCostOverrides?.[roomType] ?? roomBuildCost(roomType);
+    return `Build ${name} (${cost})`;
+}
+export function formatHireStaffButtonLabel(role, telemetry = null, languageSummary = null) {
+    const name = staffRoleDisplayName(role, languageSummary);
+    const hireCost = staffHireCost(role);
+    const wage = telemetry?.scenarioStaffWageOverrides?.[role] ?? staffWageCostPerTick(role);
+    return `Hire ${name} (${hireCost}, wage ${wage})`;
+}
+export function formatMaintenanceStaffStatus(telemetry, languageSummary = null) {
+    const base = `Handymen: ${telemetry.activeHandymen}/${telemetry.totalHandymen}, repairs ${telemetry.maintenanceStaffRepairEvents}, bonus ${telemetry.maintenanceStaffRepairBonusTicks} ticks`;
+    const thresholds = telemetry.scenarioRoomWearThresholdOverrides ?? {};
+    const thresholdEntries = Object.entries(thresholds);
+    if (thresholdEntries.length === 0 && telemetry.scenarioRoomWearResearchMaxStrength === null) {
+        return base;
+    }
+    const thresholdText = thresholdEntries.length > 0
+        ? thresholdEntries
+            .sort(([left], [right]) => left.localeCompare(right))
+            .map(([roomType, value]) => `${roomTypeDisplayName(roomType, languageSummary)} ${value}`)
+            .join(", ")
+        : "none";
+    return `${base}; scenario wear ${thresholdText}, max ${telemetry.scenarioRoomWearResearchMaxStrength ?? "default"}`;
+}
+export function formatStaffTrainingStatus(telemetry) {
+    const base = `Training: ${telemetry.trainingStaff} active, ${telemetry.staffTrainingStarted} started, ${telemetry.staffTrainingCompleted} complete`;
+    const hasScenarioTrainingDetails = telemetry.scenarioTrainingRate !== null ||
+        telemetry.scenarioTrainingValueCount > 0 ||
+        telemetry.scenarioTrainingAbilityThresholdCount > 0 ||
+        telemetry.scenarioPromotionDoctorMonths !== null ||
+        telemetry.scenarioPromotionConsultantMonths !== null ||
+        telemetry.scenarioDoctorThreshold !== null ||
+        telemetry.scenarioConsultantThreshold !== null;
+    if (!hasScenarioTrainingDetails) {
+        return base;
+    }
+    const abilityThresholds = telemetry.scenarioTrainingAbilityThresholds
+        ? ` (${telemetry.scenarioTrainingAbilityThresholds})`
+        : "";
+    return `${base}; scenario rate ${telemetry.scenarioTrainingRate ?? "default"}, values ${telemetry.scenarioTrainingValueCount}, abilities ${telemetry.scenarioTrainingAbilityThresholdCount}${abilityThresholds}, promo ${telemetry.scenarioPromotionDoctorMonths ?? "default"}/${telemetry.scenarioPromotionConsultantMonths ?? "default"}, thresholds ${telemetry.scenarioDoctorThreshold ?? "default"}/${telemetry.scenarioConsultantThreshold ?? "default"}`;
+}
+export function formatStaffSkillStatus(telemetry) {
+    const staffCapacity = telemetry.maxStaffSkillLevel * Math.max(1, telemetry.activeStaff + telemetry.onBreakStaff);
+    return `Staff skill: ${telemetry.totalStaffSkillLevel}/${staffCapacity}, trained ${telemetry.trainedStaff}, next ${telemetry.staffTrainingCost}/${telemetry.staffTrainingTicks} ticks`;
+}
+export function formatResearchStatus(telemetry) {
+    const active = telemetry.treatmentResearchActive ? ` (${telemetry.treatmentResearchRemainingTicks} ticks)` : "";
+    return `Research: treatment ${telemetry.treatmentResearchLevel}/${telemetry.treatmentResearchMaxLevel}${active}, invested ${telemetry.treatmentResearchTotalInvestment}`;
+}
+export function formatCumulativeCashflowStatus(telemetry) {
+    return `Cumulative cashflow: ${telemetry.cumulativeIncome} - ${telemetry.cumulativeExpenses} = ${telemetry.cumulativeNetCashflow}`;
+}
+export function formatTickCashflowStatus(telemetry) {
+    const polarity = telemetry.tickNetCashflow > 0
+        ? "positive"
+        : telemetry.tickNetCashflow < 0
+            ? "negative"
+            : "balanced";
+    return `Tick cashflow: ${telemetry.tickIncome} - ${telemetry.tickExpenses} = ${telemetry.tickNetCashflow} (${polarity})`;
+}
+export function formatMilestoneStatus(telemetry) {
+    return `Milestones: ${telemetry.milestoneLevel}${telemetry.nextMilestone ? `, next ${telemetry.nextMilestone} in ${telemetry.remainingDischargesToNextMilestone} discharges` : ", complete"}`;
+}
+export function formatUnlockStatus(telemetry) {
+    const unlockedIds = telemetry.unlockedSystemIds ? ` (${telemetry.unlockedSystemIds})` : "";
+    const nextUnlock = telemetry.nextMilestone
+        ? `, next unlock in ${telemetry.remainingDischargesToNextMilestone} discharges`
+        : ", all milestones complete";
+    return `Unlocks: ${telemetry.unlockedSystems}${unlockedIds}, income +${telemetry.recurringIncomeBonus ?? 0}${nextUnlock}`;
+}
+export function formatEmergencyStatus(telemetry, languageSummary = null) {
+    const waitingForScenarioEmergency = !telemetry.emergencyActive &&
+        telemetry.scenarioEmergencyScheduleSize > 0 &&
+        telemetry.scenarioEmergencyActiveIndex === null &&
+        telemetry.scenarioNextEmergencyIndex !== null;
+    const nextEmergencyDisease = formatScenarioEmergencyDisease(telemetry.scenarioNextEmergencyDiseaseId, telemetry.scenarioNextEmergencyIllnessCode, languageSummary);
+    const readyEmergencyDisease = formatScenarioEmergencyDisease(telemetry.scenarioEmergencyActiveDiseaseId || telemetry.emergencyDiseaseId, telemetry.scenarioEmergencyActiveIllnessCode, languageSummary);
+    const activeEmergencyDisease = formatScenarioEmergencyDisease(telemetry.emergencyDiseaseId, null, languageSummary);
+    const base = waitingForScenarioEmergency
+        ? `Emergency: scheduled next ${telemetry.scenarioNextEmergencyIndex} months ${telemetry.scenarioNextEmergencyStartMonth}-${telemetry.scenarioNextEmergencyEndMonth} (${telemetry.scenarioNextEmergencyMinPatients}-${telemetry.scenarioNextEmergencyMaxPatients} patients, need ${telemetry.scenarioNextEmergencyPercentToWin}%${nextEmergencyDisease})`
+        : telemetry.emergencyActive
+        ? `Emergency: wave ${telemetry.emergencyWaveId} ${telemetry.emergencyTreatedPatients}/${telemetry.emergencyTotalPatients} saved, need ${telemetry.emergencyRequiredTreatedPatients} (${telemetry.emergencyRemainingTicks} ticks${activeEmergencyDisease})`
+        : `Emergency: ready (${telemetry.emergencyPatientCount} patients/${telemetry.emergencyDurationTicks} ticks, need ${telemetry.emergencyRequiredTreatedPatients} / ${telemetry.emergencyPercentToWin}%${readyEmergencyDisease})`;
+    const scenarioParts = [];
+    if (telemetry.scenarioEmergencyScheduleSize > 0) {
+        scenarioParts.push(`scheduled ${telemetry.scenarioEmergencyScheduleSize}`);
+        scenarioParts.push(`active ${telemetry.scenarioEmergencyActiveIndex ?? "none"}`);
+    }
+    if (telemetry.scenarioDisasterLaunch !== null) {
+        scenarioParts.push(`disaster ${telemetry.scenarioDisasterLaunch} ticks`);
+    }
+    return scenarioParts.length > 0
+        ? `${base}; scenario ${scenarioParts.join(", ")}`
+        : base;
+}
+function formatScenarioEmergencyDisease(diseaseId, illnessCode, languageSummary) {
+    const diseaseName = diseaseId
+        ? languageSummary?.diseaseNames?.[diseaseId]
+        : null;
+    if (typeof diseaseName === "string" && diseaseName.length > 0) {
+        return `, ${diseaseName}`;
+    }
+    if (diseaseId) {
+        return `, ${diseaseId}`;
+    }
+    if (Number.isInteger(illnessCode)) {
+        return `, illness ${illnessCode}`;
+    }
+    return "";
+}
+export function formatEmergencyRewardStatus(telemetry) {
+    const activeFailures = telemetry.emergencyActive && telemetry.emergencyFailedPatients > 0
+        ? `, failed patients ${telemetry.emergencyFailedPatients}`
+        : "";
+    return `Emergency reward: ${telemetry.emergencyRewardCash} cash, +${telemetry.emergencyRewardReputation} reputation, won ${telemetry.emergencySuccessfulWaves}/${telemetry.emergencyWavesStarted}, failed ${telemetry.emergencyFailedWaves}, saved ${telemetry.emergencySuccessPercent ?? 100}%${activeFailures}`;
+}
+export function formatScenarioExpertiseStatus(telemetry, languageSummary = null) {
+    const base = `Scenario expertise: ${telemetry.scenarioKnownExpertiseCount}/${telemetry.scenarioExpertiseCount} known, ${telemetry.scenarioResearchRequiredExpertiseCount} research-required`;
+    const details = telemetry.scenarioDiagnosisCapability === null || telemetry.scenarioDiagnosableExpertiseCount === null
+        ? base
+        : `${base}, diagnosable ${telemetry.scenarioDiagnosableExpertiseCount}, capability ${telemetry.scenarioDiagnosisCapability}`;
+    return telemetry.scenarioNextResearchRequired === null || telemetry.scenarioNextResearchRequired === undefined
+        ? details
+        : `${details}, next research ${telemetry.scenarioNextResearchRequired}${formatScenarioNextResearchTarget(telemetry, languageSummary)}`;
+}
+function formatScenarioNextResearchTarget(telemetry, languageSummary) {
+    const diseaseName = telemetry.scenarioNextResearchDiseaseId
+        ? languageSummary?.diseaseNames?.[telemetry.scenarioNextResearchDiseaseId]
+        : null;
+    if (typeof diseaseName === "string" && diseaseName.length > 0) {
+        return ` ${diseaseName}`;
+    }
+    if (telemetry.scenarioNextResearchToken) {
+        return ` ${telemetry.scenarioNextResearchToken.replace(/^I_/u, "").replace(/_/gu, " ")}`;
+    }
+    if (telemetry.scenarioNextResearchCategory) {
+        return ` ${telemetry.scenarioNextResearchCategory}`;
+    }
+    return "";
+}
+export function formatScenarioOpponentsStatus(telemetry) {
+    const names = telemetry.scenarioOpponentNames ? ` (${telemetry.scenarioOpponentNames})` : "";
+    return `Scenario opponents: ${telemetry.scenarioActiveOpponentCount}/${telemetry.scenarioOpponentCount} active${names}`;
+}
+export function formatScenarioOpponentProgressStatus(telemetry) {
+    if (!telemetry.scenarioOpponentLeaderName) {
+        return "Rival leader: none";
+    }
+    const objectiveLeader = telemetry.scenarioOpponentObjectiveLeaderName
+        ? `; objective rival ${telemetry.scenarioOpponentObjectiveLeaderName}`
+        : "";
+    const standings = Array.isArray(telemetry.scenarioOpponentStandings) && telemetry.scenarioOpponentStandings.length > 0
+        ? `; standings ${telemetry.scenarioOpponentStandings.slice(0, 3).map((entry) => `${entry.name} ${entry.cures}/${entry.value}/${entry.reputation}`).join(", ")}`
+        : "";
+    return `Rival leader: ${telemetry.scenarioOpponentLeaderName}, ${telemetry.scenarioOpponentLeaderCures} cures, value ${telemetry.scenarioOpponentLeaderValue}, reputation ${telemetry.scenarioOpponentLeaderReputation}${objectiveLeader}${standings}`;
+}
+export function formatScenarioNetworkCriteriaStatus(telemetry) {
+    if ((telemetry.scenarioNetworkCriteriaCount ?? 0) <= 0) {
+        return "Network criteria: none";
+    }
+    const statusCounts = telemetry.scenarioNetworkCriteriaMetCount !== undefined
+        ? `; met ${telemetry.scenarioNetworkCriteriaMetCount}, active ${telemetry.scenarioNetworkCriteriaActiveCount ?? 0}, missed ${telemetry.scenarioNetworkCriteriaMissedCount ?? 0}`
+        : "";
+    const statusDetails = formatScenarioNetworkCriteriaStatusDetails(telemetry.scenarioNetworkCriteriaStatuses);
+    return `Network criteria: ${telemetry.scenarioNetworkCriteriaCount} (${telemetry.scenarioNetworkCriteriaSummary})${statusCounts}${statusDetails}`;
+}
+function formatScenarioNetworkCriteriaStatusDetails(statuses) {
+    if (!Array.isArray(statuses) || statuses.length === 0) {
+        return "";
+    }
+    return `; ${statuses.map((criterion) => `${criterion.metric} ${criterion.currentValue}/${criterion.value} ${criterion.status} by month ${criterion.deadlineMonth}`).join("; ")}`;
+}
+export function formatQuakeStatus(telemetry) {
+    if ((telemetry.scenarioQuakeScheduleSize ?? 0) <= 0) {
+        return "Quake: none";
+    }
+    const next = telemetry.scenarioQuakeActiveIndex === null && telemetry.scenarioNextQuakeIndex !== null
+        ? `, next ${telemetry.scenarioNextQuakeIndex} months ${telemetry.scenarioNextQuakeStartMonth}-${telemetry.scenarioNextQuakeEndMonth} severity ${telemetry.scenarioNextQuakeSeverity}`
+        : "";
+    return `Quake: scheduled ${telemetry.scenarioQuakeScheduleSize}, active ${telemetry.scenarioQuakeActiveIndex ?? "none"}, severity ${telemetry.scenarioQuakeSeverity}, triggered ${telemetry.scenarioQuakesTriggered}${next}`;
+}
+export function formatEpidemicTermsStatus(telemetry) {
+    const base = `Epidemic terms: spread ${telemetry.epidemicSpreadIntervalTicks} ticks/${telemetry.epidemicMaxSpreadPatients} max, vacc ${telemetry.epidemicVaccinationCost}/${telemetry.epidemicTotalVaccinationCosts}, reward ${telemetry.epidemicRewardCash}/+${telemetry.epidemicRewardReputation}, penalty ${telemetry.epidemicPenaltyCash}/-${telemetry.epidemicPenaltyReputation}, contained ${telemetry.epidemicContainedOutbreaks}/${telemetry.epidemicOutbreaksStarted}, failed ${telemetry.epidemicFailedOutbreaks}`;
+    const hasScenarioEpidemicDetails = telemetry.scenarioEpidemicHowContagious !== null ||
+        telemetry.scenarioEpidemicContagiousSpreadFactor !== null ||
+        telemetry.scenarioEpidemicReduceContagiousMonths !== null ||
+        telemetry.scenarioEpidemicReduceContagiousPeepCount !== null ||
+        telemetry.scenarioEpidemicReduceContagiousRate !== null ||
+        telemetry.scenarioEpidemicFine !== null ||
+        telemetry.scenarioEpidemicCompensationLow !== null ||
+        telemetry.scenarioEpidemicCompensationHigh !== null;
+    if (!hasScenarioEpidemicDetails) {
+        return base;
+    }
+    return `${base}; scenario contagious ${telemetry.scenarioEpidemicHowContagious ?? "default"}/${telemetry.scenarioEpidemicContagiousSpreadFactor ?? "default"}, reduce ${telemetry.scenarioEpidemicReduceContagiousMonths ?? "default"}m/${telemetry.scenarioEpidemicReduceContagiousPeepCount ?? "default"}/${telemetry.scenarioEpidemicReduceContagiousRate ?? "default"}, fine ${telemetry.scenarioEpidemicFine ?? "default"}, comp ${telemetry.scenarioEpidemicCompensationLow ?? "default"}-${telemetry.scenarioEpidemicCompensationHigh ?? "default"}`;
+}
+export function formatEpidemicStatus(telemetry) {
+    if (!telemetry.epidemicActive) {
+        return `Epidemic: ready (${telemetry.epidemicPatientCount} patients/${telemetry.epidemicDurationTicks} ticks)`;
+    }
+    const nextSpread = telemetry.epidemicNextSpreadTick === null || telemetry.epidemicNextSpreadTick === undefined
+        ? "none"
+        : telemetry.epidemicNextSpreadTick;
+    return `Epidemic: outbreak ${telemetry.epidemicOutbreakId} ${telemetry.epidemicTreatedPatients}/${telemetry.epidemicTotalPatients} contained, failed ${telemetry.epidemicFailedPatients}, spread ${telemetry.epidemicSpreadPatients}/${telemetry.epidemicOutbreakSpreadPatients} (${telemetry.epidemicRemainingSpreadPatients} left, next ${nextSpread}) (${telemetry.epidemicRemainingTicks} ticks)`;
+}
+export function formatVipInspectionTermsStatus(telemetry) {
+    const base = `VIP terms: queue <= ${telemetry.vipInspectionMaxQueuePressure}, reputation >= ${telemetry.vipInspectionMinReputation}, reward ${telemetry.vipInspectionRewardCash}/+${telemetry.vipInspectionRewardReputation}, penalty ${telemetry.vipInspectionPenaltyCash}/-${telemetry.vipInspectionPenaltyReputation}, pass ${telemetry.vipInspectionPassedVisits}/${telemetry.vipInspectionVisitsStarted}, fail ${telemetry.vipInspectionFailedVisits}`;
+    return telemetry.scenarioMayorLaunch === null
+        ? base
+        : `${base}; scenario mayor ${telemetry.scenarioMayorLaunch} ticks`;
+}
+export function formatVipInspectionStatus(telemetry) {
+    if (!telemetry.vipInspectionActive) {
+        return `VIP: ready (${telemetry.vipInspectionDurationTicks} ticks)`;
+    }
+    return `VIP: visit ${telemetry.vipInspectionVisitId} (${telemetry.vipInspectionRemainingTicks} ticks), queue ${telemetry.vipInspectionCurrentQueuePressure}/${telemetry.vipInspectionMaxQueuePressure}, rooms ${telemetry.vipInspectionCurrentOpenRooms}`;
+}
+export function formatSalaryPressureStatus(telemetry) {
+    const base = `Salary pressure: underpaid ${telemetry.underpaidStaff}, overpaid ${telemetry.overpaidStaff}`;
+    const hasScenarioSalaryDetails = telemetry.scenarioSalaryAbilityDivisor !== null ||
+        telemetry.scenarioSalaryTooLow !== null ||
+        telemetry.scenarioSalaryTooHigh !== null ||
+        telemetry.scenarioSalaryAddCount > 0;
+    if (!hasScenarioSalaryDetails) {
+        return base;
+    }
+    return `${base}; scenario divisor ${telemetry.scenarioSalaryAbilityDivisor ?? "default"}, low ${telemetry.scenarioSalaryTooLow ?? "default"}, high ${telemetry.scenarioSalaryTooHigh ?? "default"}, bands ${telemetry.scenarioSalaryAddCount}`;
+}
+export function formatPatientMoodStatus(telemetry) {
+    const base = `Mood: happy ${telemetry.happyPatients}, unhappy ${telemetry.unhappyPatients}, very ${telemetry.veryUnhappyPatients}, peep happy ${telemetry.peepHappinessPercent ?? 100}%`;
+    const hasScenarioPatientDetails = telemetry.scenarioPatientHappy !== null ||
+        telemetry.scenarioPatientUnhappy !== null ||
+        telemetry.scenarioPatientVeryUnhappy !== null ||
+        telemetry.scenarioPatientLeaveMax !== null ||
+        telemetry.scenarioPatientLitterDrop !== null ||
+        telemetry.scenarioPatientLitterRandom !== null ||
+        telemetry.scenarioPatientBowelFull !== null ||
+        telemetry.scenarioPatientBowelOverflows !== null ||
+        telemetry.scenarioPatientVomitLimit !== null ||
+        telemetry.scenarioPatientDrinkHappy !== null ||
+        telemetry.scenarioPatientToiletHappy !== null;
+    if (!hasScenarioPatientDetails) {
+        return base;
+    }
+    return `${base}; scenario mood ${telemetry.scenarioPatientHappy ?? "default"}/${telemetry.scenarioPatientUnhappy ?? "default"}/${telemetry.scenarioPatientVeryUnhappy ?? "default"}, leave ${telemetry.scenarioPatientLeaveMax ?? "default"}, litter ${telemetry.scenarioPatientLitterDrop ?? "default"}/${telemetry.scenarioPatientLitterRandom ?? "default"}, bowel ${telemetry.scenarioPatientBowelFull ?? "default"}/${telemetry.scenarioPatientBowelOverflows ?? "default"}, vomit ${telemetry.scenarioPatientVomitLimit ?? "default"}, comfort ${telemetry.scenarioPatientDrinkHappy ?? "default"}/${telemetry.scenarioPatientToiletHappy ?? "default"}`;
+}
+export function formatTreatedPatientsStatus(telemetry) {
+    return `Treated: ${telemetry.treatedPatients}`;
+}
+export function formatWaitingPatientsStatus(telemetry) {
+    return `Waiting: ${telemetry.patientsWaiting}`;
+}
+export function formatQueuedPatientsStatus(telemetry) {
+    return `Queue: ${telemetry.queuedPatients}`;
+}
+export function formatWalkingToDiagnosisPatientsStatus(telemetry) {
+    return `Walking to diagnosis: ${telemetry.walkingToDiagnosisPatients}`;
+}
+export function formatDiagnosingPatientsStatus(telemetry) {
+    return `Diagnosing: ${telemetry.diagnosingPatients}`;
+}
+export function formatDiagnosedPatientsStatus(telemetry) {
+    return `Diagnosed: ${telemetry.diagnosedPatients}`;
+}
+export function formatAwaitingTreatmentPatientsStatus(telemetry) {
+    return `Awaiting treatment: ${telemetry.awaitingTreatmentPatients}`;
+}
+export function formatWalkingToTreatmentPatientsStatus(telemetry) {
+    return `Walking to treatment: ${telemetry.walkingToTreatmentPatients}`;
+}
+export function formatTreatingPatientsStatus(telemetry) {
+    return `Treating: ${telemetry.treatingPatients}`;
+}
+export function formatDischargedPatientsStatus(telemetry) {
+    return `Discharged: ${telemetry.dischargedPatients}`;
+}
+export function formatPatientLitterStatus(telemetry) {
+    return `Patient litter: ${telemetry.patientLitter}, active ${telemetry.currentPatientLitter ?? 0}, cleaned ${telemetry.patientLitterCleaned ?? 0}, cleanliness ${telemetry.cleanlinessLitterPercent ?? 0}%`;
+}
+export function formatPatientDrinksStatus(telemetry) {
+    const drinkTarget = telemetry.scenarioAwardCriteria?.cansofCoke;
+    const awardProgress = Number.isFinite(drinkTarget)
+        ? `, award ${telemetry.patientDrinks}/${drinkTarget}`
+        : "";
+    return `Drinks served: ${telemetry.patientDrinks}${awardProgress}`;
+}
+export function formatPatientVomitsStatus(telemetry) {
+    const limit = telemetry.scenarioPatientVomitLimit === null || telemetry.scenarioPatientVomitLimit === undefined
+        ? "default"
+        : telemetry.scenarioPatientVomitLimit;
+    return `Patient vomits: ${telemetry.patientVomits}, limit ${limit}`;
+}
+export function formatPatientsNeedingToiletStatus(telemetry) {
+    const threshold = telemetry.scenarioPatientBowelFull === null || telemetry.scenarioPatientBowelFull === undefined
+        ? "default"
+        : telemetry.scenarioPatientBowelFull;
+    return `Need toilet: ${telemetry.patientsNeedingToilet}, threshold ${threshold}`;
+}
+export function formatPatientBowelOverflowStatus(telemetry) {
+    const threshold = telemetry.scenarioPatientBowelOverflows === null || telemetry.scenarioPatientBowelOverflows === undefined
+        ? "default"
+        : telemetry.scenarioPatientBowelOverflows;
+    return `Bowel overflows: ${telemetry.patientBowelOverflows}, threshold ${threshold}`;
+}
+export function formatRatControlStatus(telemetry) {
+    return `Rats: ${telemetry.ratKills}/${telemetry.ratSightings}, accuracy ${telemetry.ratKillPercentage}%`;
+}
+export function formatPlantCareStatus(telemetry) {
+    return `Plants: ${telemetry.plantsWatered}/${telemetry.plantWaterChecks}, watered ${telemetry.plantWateredPercentage}%`;
+}
+export function formatCriticalPatientsStatus(telemetry) {
+    const lowestHealth = telemetry.lowestPatientHealth === null || telemetry.lowestPatientHealth === undefined
+        ? "none"
+        : telemetry.lowestPatientHealth;
+    return `Critical patients: ${telemetry.criticalPatients}, lowest health ${lowestHealth}`;
+}
+function formatSeverityPenaltyTable(cashForSeverity, reputationForSeverity) {
+    return [1, 2, 3]
+        .map((severity) => `s${severity} ${cashForSeverity(severity)}/-${reputationForSeverity(severity)}`)
+        .join(", ");
+}
+export function formatPatientDeathsStatus(telemetry) {
+    const deathPenalties = formatSeverityPenaltyTable(patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity);
+    const sendHomePenalties = formatSeverityPenaltyTable(patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity);
+    return `Deaths: ${telemetry.patientDeaths}, walkouts ${telemetry.patientWalkouts} (${telemetry.waitingTimesWalkoutPercent}%), abductions ${telemetry.patientAbductions}; death penalties ${deathPenalties}; send-home ${sendHomePenalties}`;
+}
+export function formatTreatmentFailuresStatus(telemetry) {
+    const failurePenalties = formatSeverityPenaltyTable(treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity);
+    return `Treatment failures: ${telemetry.treatmentFailures}; penalties ${failurePenalties}`;
+}
+export function formatQueuePressureStatus(telemetry) {
+    return `Queue pressure status: ${telemetry.queuePressureStatus}, high >= ${QUEUE_PRESSURE_HIGH_THRESHOLD}, reputation -${QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK}/tick`;
+}
+export function formatQueuePressureValueStatus(telemetry) {
+    return `Queue pressure: ${telemetry.queuePressure}`;
+}
+export function formatQueuePressureEventsStatus(telemetry) {
+    return `Queue pressure events: ${telemetry.queuePressureEvents}`;
+}
+export function formatRoomMaintenanceStatus(telemetry) {
+    return `Rooms in maintenance: ${telemetry.roomsInMaintenance}, worn ${telemetry.wornRoomPercent ?? 0}%`;
+}
+export function formatRoomMaintenanceStartEventsStatus(telemetry) {
+    return `Room maintenance starts: ${telemetry.roomMaintenanceStartEvents}`;
+}
+export function formatRoomMaintenanceCompleteEventsStatus(telemetry) {
+    return `Room maintenance completes: ${telemetry.roomMaintenanceCompleteEvents}`;
+}
+export function formatOpenDiagnosisRoomsStatus(telemetry) {
+    return `Open diagnosis rooms: ${telemetry.openDiagnosisRooms}`;
+}
+export function formatOpenTreatmentRoomsStatus(telemetry) {
+    return `Open treatment rooms: ${telemetry.openTreatmentRooms}`;
+}
+export function formatSpecializedTreatmentRoomsStatus(telemetry) {
+    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}`;
+}
+export function formatSpecializedTreatmentQueueStatus(telemetry) {
+    return `Specialty queue: ${telemetry.awaitingSpecializedTreatmentPatients}`;
+}
+export function formatStressedStaffStatus(telemetry) {
+    const base = `Stressed staff: ${telemetry.stressedStaff}, staff happy ${telemetry.staffHappinessPercent ?? 100}%`;
+    if (telemetry.scenarioStaffWorkLight === null && telemetry.scenarioStaffModifyFrequency === null && telemetry.scenarioStaffResignMax === null) {
+        return base;
+    }
+    return `${base}; scenario work ${telemetry.scenarioStaffWorkLight ?? "default"}, modify ${telemetry.scenarioStaffModifyFrequency ?? "default"}, resign ${telemetry.scenarioStaffResignMax ?? "default"}`;
+}
+export function formatStaffBurnoutEventsStatus(telemetry) {
+    return `Staff burnout events: ${telemetry.staffBurnoutEvents}`;
+}
+export function formatStaffRecoveryEventsStatus(telemetry) {
+    return `Staff recovery events: ${telemetry.staffRecoveryEvents}`;
+}
+export function formatAutoBreakStaffStatus(telemetry) {
+    return `Auto-break staff: ${telemetry.autoBreakStaff}`;
+}
+export function formatActiveStaffStatus(telemetry) {
+    return `Active staff: ${telemetry.activeStaff}`;
+}
+export function formatOnBreakStaffStatus(telemetry) {
+    return `On-break staff: ${telemetry.onBreakStaff}`;
+}
+export function formatTiredStaffStatus(telemetry) {
+    const base = `Tired staff: ${telemetry.tiredStaff}`;
+    if (telemetry.scenarioStaffNotTired === null && telemetry.scenarioStaffTired === null && telemetry.scenarioStaffVeryTired === null && telemetry.scenarioStaffFatigueCrackUpTired === null) {
+        return base;
+    }
+    return `${base}; scenario thresholds ${telemetry.scenarioStaffNotTired ?? "default"}/${telemetry.scenarioStaffTired ?? "default"}/${telemetry.scenarioStaffVeryTired ?? "default"}/${telemetry.scenarioStaffFatigueCrackUpTired ?? "default"}`;
+}
+export function formatVeryTiredStaffStatus(telemetry) {
+    const base = `Very tired staff: ${telemetry.veryTiredStaff}`;
+    if (telemetry.scenarioStaffRestStanding === null &&
+        telemetry.scenarioStaffRestSofa === null &&
+        telemetry.scenarioStaffRestGame === null &&
+        telemetry.scenarioStaffRestSnooker === null &&
+        telemetry.scenarioStaffRecoveryFactor === null &&
+        telemetry.scenarioStaffFatigueRecoveryMinimum === null) {
+        return base;
+    }
+    return `${base}; scenario rest ${telemetry.scenarioStaffRestStanding ?? "default"}/${telemetry.scenarioStaffRestSofa ?? "default"}/${telemetry.scenarioStaffRestGame ?? "default"}/${telemetry.scenarioStaffRestSnooker ?? "default"}, recovery ${telemetry.scenarioStaffRecoveryFactor ?? "default"}/${telemetry.scenarioStaffFatigueRecoveryMinimum ?? "default"}`;
+}
+export function formatNextAdmissionStatus(telemetry, languageSummary = null) {
+    const base = telemetry.nextAdmissionInTicks === null
+        ? "Next arrival: closed"
+        : `Next arrival: ${telemetry.nextAdmissionInTicks} ticks`;
+    const hasScenarioAllocationDetails = telemetry.scenarioIllnessRate !== null ||
+        telemetry.scenarioPopulationChange !== 0 ||
+        (telemetry.scenarioDiseasePoolSize ?? 0) > 0 ||
+        telemetry.scenarioAllocationRandomWeight !== null ||
+        telemetry.scenarioAllocationTotalReputationWeight !== null ||
+        telemetry.scenarioAllocationIllnessReputationWeight !== null ||
+        telemetry.scenarioAllocationDelayMonths !== null ||
+        telemetry.autoAdmissionIntervalTicks !== null ||
+        telemetry.autoAdmissionWaitingCap !== null;
+    if (!hasScenarioAllocationDetails) {
+        return base;
+    }
+    const diseaseAvailability = telemetry.scenarioAvailableDiseaseCount === undefined
+        ? `${telemetry.scenarioDiseasePoolSize ?? 0}`
+        : `${telemetry.scenarioAvailableDiseaseCount}/${telemetry.scenarioDiseasePoolSize ?? 0}`;
+    const nextDiseaseName = scenarioNextDiseaseDisplayName(telemetry, languageSummary);
+    const nextDisease = nextDiseaseName ? `, next ${nextDiseaseName}` : "";
+    return `${base}; scenario illness ${telemetry.scenarioIllnessRate ?? "default"}, pop ${telemetry.scenarioPopulationChange}, pool ${diseaseAvailability}${nextDisease}, allocation ${telemetry.scenarioAllocationRandomWeight ?? "default"}/${telemetry.scenarioAllocationTotalReputationWeight ?? "default"}/${telemetry.scenarioAllocationIllnessReputationWeight ?? "default"}, delay ${telemetry.scenarioAllocationDelayMonths ?? "default"}m/${telemetry.scenarioAllocationDelayTicks} ticks, auto ${telemetry.autoAdmissionIntervalTicks ?? "default"} ticks/cap ${telemetry.autoAdmissionWaitingCap ?? "default"}`;
+}
+function scenarioNextDiseaseDisplayName(telemetry, languageSummary) {
+    if (!telemetry.scenarioNextDiseaseId) {
+        return "";
+    }
+    const importedName = languageSummary?.diseaseNames?.[telemetry.scenarioNextDiseaseId];
+    return typeof importedName === "string" && importedName.length > 0
+        ? importedName
+        : telemetry.scenarioNextDiseaseId;
+}
+export function formatAdmissionsStatus(telemetry) {
+    return `Admissions: ${telemetry.admissionsOpen ? "open" : "closed"}`;
+}
+export function formatAdmissionPolicyStatus(telemetry) {
+    return `Admission policy: ${telemetry.admissionPolicy}`;
+}
+export function formatAdmissionRulesStatus(telemetry) {
+    return `Scenario holds: visual ${telemetry.scenarioHoldVisualMonths} months/${telemetry.scenarioHoldVisualPeepCount} patients`;
+}
+export function formatRoutingRulesStatus(telemetry) {
+    return `Scenario routing: queue ${telemetry.scenarioRoutingQueuePoints ?? 0}, distance ${telemetry.scenarioRoutingDistancePoints ?? 0}, no-staff ${telemetry.scenarioRoutingNoStaffPoints ?? 0} (+${telemetry.scenarioRoutingNoStaffAdmissionPenaltyTicks} ticks)`;
+}
+export function formatFrontDeskStatus(telemetry) {
+    return `Front desk: ${telemetry.activeReceptionists} active receptionists, capacity ${telemetry.frontDeskCapacity}, intake cap ${telemetry.autoAdmissionWaitingCap ?? "default"}`;
+}
+export function formatEventRulesStatus(telemetry) {
+    const base = `Events: ${telemetry.totalEvents}`;
+    const hasScenarioEventDetails = telemetry.scenarioScoreMaxIncrease !== null ||
+        telemetry.scenarioVaccinationCost !== null ||
+        telemetry.scenarioRemoveRatHoleChance !== null ||
+        telemetry.scenarioMinimumAbductionYears !== null ||
+        telemetry.scenarioAbductionsPerYear !== null ||
+        telemetry.scenarioMayorLaunch !== null ||
+        telemetry.scenarioDisasterLaunch !== null;
+    if (!hasScenarioEventDetails) {
+        return base;
+    }
+    return `${base}; scenario score ${telemetry.scenarioScoreMaxIncrease ?? "default"}, vacc ${telemetry.scenarioVaccinationCost ?? "default"}, rats ${telemetry.scenarioRemoveRatHoleChance ?? "default"}, abduct ${telemetry.scenarioMinimumAbductionYears ?? "default"}y/${telemetry.scenarioAbductionsPerYear ?? "default"} (${telemetry.scenarioAbductionsTriggered ?? 0} triggered), mayor ${telemetry.scenarioMayorLaunch ?? "default"}, disaster ${telemetry.scenarioDisasterLaunch ?? "default"}`;
+}
+export function formatLastEventStatus(telemetry) {
+    return `Last event: ${telemetry.lastEventType ?? "none"}`;
+}
+export function formatRecentEventsStatus(telemetry) {
+    return `Recent events: ${telemetry.recentEventFeed || "none"}`;
+}
+export function formatLoanInterestStatus(telemetry) {
+    const base = `Loan interest: ${telemetry.loanInterestExpense} tick, ${telemetry.cumulativeLoanInterest} total`;
+    return telemetry.scenarioLoanInterestPerChunk === null
+        ? base
+        : `${base}; scenario ${telemetry.scenarioLoanInterestPerChunk}/chunk`;
+}
+export function formatLoanStatus(telemetry) {
+    const nextLoanAmount = Math.max(0, Math.min(telemetry.loanChunkAmount, telemetry.loanMaxOutstanding - telemetry.outstandingLoan));
+    const nextRepaymentAmount = Math.max(0, Math.min(telemetry.loanChunkAmount, telemetry.outstandingLoan, telemetry.cash));
+    return `Loan: ${telemetry.outstandingLoan}/${telemetry.loanMaxOutstanding}, chunk ${telemetry.loanChunkAmount}, available ${nextLoanAmount}, repay ${nextRepaymentAmount}`;
+}
+export function formatFinanceLedgerStatus(telemetry) {
+    if (!telemetry.financeLedgerUnlocked) {
+        return "Finance ledger: locked";
+    }
+    const auditStatus = !telemetry.financeAuditReady && telemetry.financeAuditCooldownRemainingTicks > 0
+        ? `audit cooldown ${telemetry.financeAuditCooldownRemainingTicks} ticks`
+        : telemetry.financeAuditReady
+            ? "audit ready"
+            : "audit unavailable";
+    return `Finance ledger: ${auditStatus}, audits ${telemetry.financeAuditsRun}, recovered ${telemetry.financeAuditTotalRecoveredCash}`;
+}
+export function formatFinanceAuditStatus(telemetry) {
+    return `Finance audit: recover ${telemetry.financeAuditCashRecovery} cash, cooldown ${telemetry.financeAuditCooldownTicks} ticks, recovered ${telemetry.financeAuditTotalRecoveredCash}/${telemetry.financeAuditsRun}`;
+}
+export function formatPricingPolicyStatus(telemetry) {
+    const multiplierPercent = Math.round(treatmentPricingCashMultiplier(telemetry.treatmentPricingPolicy) * 100);
+    const reputationDelta = treatmentPricingReputationDelta(telemetry.treatmentPricingPolicy);
+    const reputationText = reputationDelta >= 0 ? `+${reputationDelta}` : `${reputationDelta}`;
+    return `Pricing: ${telemetry.treatmentPricingPolicy}, cash ${multiplierPercent}%, reputation ${reputationText}/cure`;
+}
+export function formatReputationStatus(telemetry) {
+    return `Reputation: ${telemetry.reputation}`;
+}
+export function formatInsuranceTermsStatus(telemetry) {
+    return `Insurance terms: severity ${telemetry.insuranceContractSeverity}, reward ${telemetry.insuranceContractRewardCash}/+${telemetry.insuranceContractRewardReputation}, penalty ${telemetry.insuranceContractPenaltyCash}/-${telemetry.insuranceContractPenaltyReputation}, completed ${telemetry.insuranceContractsCompleted}/${telemetry.insuranceContractsStarted}, failed ${telemetry.insuranceContractsFailed}`;
+}
+export function formatInsuranceContractStatus(telemetry) {
+    if (!telemetry.insuranceContractUnlocked) {
+        return "Insurance: locked";
+    }
+    if (!telemetry.insuranceContractActive) {
+        return `Insurance: ready (${telemetry.insuranceContractPatientCount} patients/${telemetry.insuranceContractDurationTicks} ticks)`;
+    }
+    return `Insurance: contract ${telemetry.insuranceContractId} ${telemetry.insuranceContractCompletedPatients}/${telemetry.insuranceContractTotalPatients} claims, failed ${telemetry.insuranceContractFailedPatients}, remaining ${telemetry.insuranceContractRemainingPatients} (${telemetry.insuranceContractRemainingTicks} ticks)`;
+}
+export function formatMarketingCampaignStatus(telemetry) {
+    const projectedReputation = Math.min(1000, telemetry.reputation + telemetry.marketingCampaignReputationGain);
+    const status = telemetry.reputation >= 1000
+        ? "blocked max reputation"
+        : telemetry.cash < telemetry.marketingCampaignCost
+            ? `blocked need ${telemetry.marketingCampaignCost - telemetry.cash} cash`
+            : "ready";
+    return `Marketing: ${telemetry.marketingCampaignCost} => +${telemetry.marketingCampaignReputationGain} reputation (${telemetry.reputation}->${projectedReputation}), ${status}`;
+}
+export function formatHospitalRatingStatus(telemetry) {
+    return `Rating: ${telemetry.hospitalRatingScore}/100 (${telemetry.hospitalRatingTier}), award ${telemetry.hospitalAwardRewardCash}/+${telemetry.hospitalAwardRewardReputation}`;
+}
+export function formatHospitalAwardStatus(telemetry) {
+    const totalReputation = telemetry.hospitalAwardTotalReputationReward >= 0
+        ? `+${telemetry.hospitalAwardTotalReputationReward}`
+        : `${telemetry.hospitalAwardTotalReputationReward}`;
+    const totals = `, totals ${telemetry.hospitalAwardTotalCashReward}/${totalReputation}`;
+    return telemetry.hospitalAwardLastTier
+        ? `Awards: ${telemetry.hospitalAwardLastTier} ${telemetry.hospitalAwardLastScore}/100, ceremonies ${telemetry.hospitalAwardCeremoniesRun}${totals}${formatScenarioAwardSuffix(telemetry)}`
+        : `Awards: ready, reward ${telemetry.hospitalAwardRewardCash}/+${telemetry.hospitalAwardRewardReputation}${totals}${formatScenarioAwardSuffix(telemetry)}`;
+}
+export function formatCashStatus(telemetry) {
+    const scenarioParts = [];
+    if (telemetry.scenarioInitialCash !== null && telemetry.scenarioInitialCash !== undefined) {
+        scenarioParts.push(`start ${telemetry.scenarioInitialCash}`);
+    }
+    if (telemetry.scenarioLandCostPerTile !== null && telemetry.scenarioLandCostPerTile !== undefined) {
+        scenarioParts.push(`land ${telemetry.scenarioLandCostPerTile}/tile`);
+    }
+    return scenarioParts.length === 0
+        ? `Cash: ${telemetry.cash}`
+        : `Cash: ${telemetry.cash}; scenario ${scenarioParts.join(", ")}`;
+}
+function patientStatusDisplayName(patient, languageSummary) {
+    const importedName = languageSummary?.patientStatusNames?.[patient.status];
+    if (typeof importedName !== "string" || importedName.length === 0) {
+        return patient.status;
+    }
+    if (importedName.includes("%s")) {
+        const target = patient.diagnosisKnown && patient.preferredTreatmentRoomType
+            ? roomTypeDisplayName(patient.preferredTreatmentRoomType, languageSummary)
+            : "";
+        return importedName.replace("%s", target).trim();
+    }
+    return importedName;
+}
+function createImportedHospitalView(assetBundle) {
+    const mapSummaries = createCampaignMapSummaries(assetBundle?.manifest?.mapSummaries ?? []);
+    if (!assetBundle || mapSummaries.length === 0) {
+        return null;
+    }
+    const paletteRecord = assetBundle.filesByPath.get("DATA/MPALETTE.DAT");
+    if (!paletteRecord) {
+        return null;
+    }
+    const palette = safeDecode(() => decodeThemeHospitalPalette(paletteRecord.bytes));
+    const blockSheet = safeDecode(() => decodeThemeHospitalSpriteSheetFromBundle(assetBundle, "DATA/VBLK-0"));
+    if (!palette || !blockSheet) {
+        return null;
+    }
+    const spriteSheet = safeDecode(() => decodeThemeHospitalSpriteSheetFromBundle(assetBundle, "DATA/VSPR-0"));
+    const animationSet = spriteSheet ? safeDecode(() => decodeThemeHospitalAnimationSetFromBundle(assetBundle)) : null;
+    const originalUiSpriteSheetSummary = selectOriginalUiSpriteSheetSummary(assetBundle?.manifest?.uiSpriteSheets ?? [], assetBundle?.manifest?.qDataSpriteSheets ?? []);
+    const originalUiSpriteSheet = safeDecode(() => originalUiSpriteSheetSummary ? decodeThemeHospitalSpriteSheetFromBundle(assetBundle, originalUiSpriteSheetSummary.path) : null);
+    const view = {
+        assetBundle,
+        mapSummaries,
+        palette,
+        blockSheet,
+        spriteSheet,
+        animationSet,
+        originalUiSpriteSheet,
+        originalUiSpriteSheetPath: originalUiSpriteSheetSummary?.path ?? "",
+        languageSummary: assetBundle.manifest.languageSummary ?? null,
+        mapPath: "",
+        map: null,
+        startX: 0,
+        startY: 0,
+        tileColumns: HOSPITAL_TILE_COLUMNS,
+        tileRows: HOSPITAL_TILE_ROWS,
+        originX: Math.floor(HOSPITAL_CANVAS_WIDTH / 2),
+        originY: 18
+    };
+    return setHospitalViewMap(view, mapSummaries[0].path) ? view : null;
+}
+const ORIGINAL_UI_SPRITE_SHEET_PREFERENCE = [
+    "DATA/PANEL02V",
+    "DATA/PANEL04V",
+    "DATA/MONEY01V",
+    "DATA/WATCH01V",
+    "DATA/PULLDV",
+    "DATA/MPOINTER"
+];
+export function selectOriginalUiSpriteSheetSummary(uiSpriteSheets, qDataSpriteSheets) {
+    const visibleUiSheets = Array.isArray(uiSpriteSheets)
+        ? uiSpriteSheets.filter((summary) => summary?.visibleSpriteCount > 0)
+        : [];
+    for (const preferredPath of ORIGINAL_UI_SPRITE_SHEET_PREFERENCE) {
+        const summary = visibleUiSheets.find((candidate) => candidate.path === preferredPath);
+        if (summary) {
+            return summary;
+        }
+    }
+    return visibleUiSheets[0] ?? selectQDataUiSpriteSheetSummary(qDataSpriteSheets);
+}
+export function selectQDataUiSpriteSheetSummary(qDataSpriteSheets) {
+    if (!Array.isArray(qDataSpriteSheets)) {
+        return null;
+    }
+    return qDataSpriteSheets.find((summary) => summary?.visibleSpriteCount > 0) ?? null;
+}
+export function createCampaignMapSummaries(mapSummaries) {
+    if (!Array.isArray(mapSummaries)) {
+        return [];
+    }
+    const scenarioMaps = mapSummaries.filter((summary) => summary?.scenario);
+    return scenarioMaps.length > 0 ? scenarioMaps : mapSummaries;
+}
+function setHospitalViewMap(view, mapPath) {
+    const decodedMap = safeDecode(() => decodeThemeHospitalMapFromBundle(view.assetBundle, mapPath));
+    if (!decodedMap || !Array.isArray(decodedMap.tiles)) {
+        return false;
+    }
+    view.mapPath = mapPath;
+    view.map = decodedMap;
+    const camera = decodedMap.cameras?.[0] ?? { x: 0, y: 0 };
+    view.startX = clamp(Math.floor(camera.x - view.tileColumns / 2), 0, Math.max(0, decodedMap.width - view.tileColumns));
+    view.startY = clamp(Math.floor(camera.y - view.tileRows / 2), 0, Math.max(0, decodedMap.height - view.tileRows));
+    return true;
+}
+function createSimulationTerrainFromHospitalView(view) {
+    if (!view?.map || !Array.isArray(view.map.tiles)) {
+        return undefined;
+    }
+    let passableTileCount = 0;
+    let buildableTileCount = 0;
+    let travelMaskInput = "";
+    const tiles = view.map.tiles.map((tile) => {
+        const flags = tile.flags ?? {};
+        const buildable = flags.hospital === true && flags.buildable === true;
+        const passable = flags.passable === true || buildable;
+        const travelMask = passable
+            ? ((flags.canTravelN !== false ? 1 : 0) |
+                (flags.canTravelE !== false ? 2 : 0) |
+                (flags.canTravelS !== false ? 4 : 0) |
+                (flags.canTravelW !== false ? 8 : 0))
+            : 0;
+        passableTileCount += passable ? 1 : 0;
+        buildableTileCount += buildable ? 1 : 0;
+        travelMaskInput += travelMask.toString(16);
+        return {
+            passable,
+            buildable,
+            canTravelN: flags.canTravelN !== false,
+            canTravelE: flags.canTravelE !== false,
+            canTravelS: flags.canTravelS !== false,
+            canTravelW: flags.canTravelW !== false
+        };
+    });
+    return {
+        width: view.map.width,
+        height: view.map.height,
+        signature: `${view.mapPath}:${view.map.width}x${view.map.height}:p${passableTileCount}:b${buildableTileCount}:t${hashText32(travelMaskInput)}`,
+        tiles
+    };
+}
+function createAdmissionPointsFromHospitalView(view) {
+    if (!view?.map) {
+        return undefined;
+    }
+    const seen = new Set();
+    const points = [];
+    for (const heliport of view.map.heliports ?? []) {
+        if (!Number.isInteger(heliport.x) ||
+            !Number.isInteger(heliport.y) ||
+            (heliport.x === 0 && heliport.y === 0) ||
+            heliport.x < 0 ||
+            heliport.y < 0 ||
+            heliport.x >= view.map.width ||
+            heliport.y >= view.map.height) {
+            continue;
+        }
+        const key = `${heliport.x},${heliport.y}`;
+        if (seen.has(key)) {
+            continue;
+        }
+        seen.add(key);
+        points.push({ x: heliport.x, y: heliport.y });
+    }
+    return points.length > 0 ? points : undefined;
+}
+function createHospitalMapViewSnapshot(view) {
+    if (!view?.mapPath) {
+        return undefined;
+    }
+    return {
+        mapPath: view.mapPath,
+        startX: view.startX,
+        startY: view.startY
+    };
+}
+function restoreHospitalMapViewSnapshot(view, mapView) {
+    if (!view || !mapView) {
+        return true;
+    }
+    if (!setHospitalViewMap(view, mapView.mapPath)) {
+        return false;
+    }
+    view.startX = clamp(mapView.startX, 0, Math.max(0, view.map.width - view.tileColumns));
+    view.startY = clamp(mapView.startY, 0, Math.max(0, view.map.height - view.tileRows));
+    return true;
+}
+function nextHospitalMapPath(view) {
+    if (!view?.mapPath || !Array.isArray(view.mapSummaries) || view.mapSummaries.length === 0) {
+        return null;
+    }
+    const index = view.mapSummaries.findIndex((summary) => summary.path === view.mapPath);
+    if (index < 0 || index + 1 >= view.mapSummaries.length) {
+        return null;
+    }
+    return view.mapSummaries[index + 1].path;
+}
+function campaignLevelIndex(view) {
+    if (!view?.mapPath || !Array.isArray(view.mapSummaries) || view.mapSummaries.length === 0) {
+        return 0;
+    }
+    const index = view.mapSummaries.findIndex((summary) => summary.path === view.mapPath);
+    return index >= 0 ? index : 0;
+}
+function campaignMapSummaryAt(view, index) {
+    if (!Array.isArray(view?.mapSummaries) || view.mapSummaries.length === 0) {
+        return null;
+    }
+    return view.mapSummaries[Math.max(0, Math.min(view.mapSummaries.length - 1, index))] ?? null;
+}
+function positiveDelta(current, baseline, key) {
+    const currentValue = current?.[key];
+    const baselineValue = baseline?.[key];
+    if (!Number.isFinite(currentValue) || !Number.isFinite(baselineValue)) {
+        return 0;
+    }
+    return Math.max(0, currentValue - baselineValue);
+}
+export function createCampaignLevelObjectiveFromHospitalView(view) {
+    const index = campaignLevelIndex(view);
+    const currentMap = campaignMapSummaryAt(view, index);
+    const scenarioObjective = createScenarioLevelObjective(currentMap?.scenario);
+    if (scenarioObjective) {
+        return scenarioObjective;
+    }
+    const firstMap = campaignMapSummaryAt(view, 0) ?? currentMap;
+    const parcelDelta = positiveDelta(currentMap, firstMap, "parcelCount");
+    const objectDelta = positiveDelta(currentMap, firstMap, "objectCount");
+    const buildableDelta = positiveDelta(currentMap, firstMap, "buildableTileCount");
+    const complexityDischarges = Math.min(6, Math.floor(parcelDelta / 2) + Math.floor(objectDelta / 25) + Math.floor(buildableDelta / 1200));
+    const complexityCash = (parcelDelta * 100) + (Math.floor(objectDelta / 5) * 50) + (Math.floor(buildableDelta / 1000) * 250);
+    const complexityReputation = (parcelDelta * 2) + (Math.floor(objectDelta / 25) * 3) + (Math.floor(buildableDelta / 1500) * 2);
+    return {
+        requiredDischarges: 3 + Math.min(7, index) + complexityDischarges,
+        minimumCash: Math.min(10_000, (index * 250) + complexityCash),
+        minimumReputation: 1 + Math.min(300, (index * 5) + complexityReputation)
+    };
+}
+function createScenarioLevelObjective(scenario) {
+    if (!scenario || !Array.isArray(scenario.winCriteria)) {
+        return null;
+    }
+    const requiredDischarges = scenarioWinCriterionValue(scenario, "cures");
+    const minimumCash = scenarioWinCriterionValue(scenario, "balance");
+    const minimumReputation = scenarioWinCriterionValue(scenario, "reputation");
+    const minimumTreatmentPercentage = scenarioWinCriterionValue(scenario, "percentage-treated");
+    const minimumHospitalValue = scenarioWinCriterionValue(scenario, "hospital-value");
+    const bankruptcyCashThreshold = scenarioLoseCriterionValue(scenario, "balance");
+    const reputationFailureThreshold = scenarioLoseCriterionValue(scenario, "reputation");
+    const maximumDeaths = scenarioLoseCriterionValue(scenario, "deaths");
+    if (requiredDischarges === null &&
+        minimumCash === null &&
+        minimumReputation === null &&
+        minimumTreatmentPercentage === null &&
+        minimumHospitalValue === null &&
+        bankruptcyCashThreshold === null &&
+        reputationFailureThreshold === null &&
+        maximumDeaths === null) {
+        return null;
+    }
+    return {
+        requiredDischarges: Math.max(0, requiredDischarges ?? 0),
+        minimumCash: Math.max(0, minimumCash ?? 0),
+        minimumReputation: Math.max(1, minimumReputation ?? 1),
+        minimumTreatmentPercentage: clamp(minimumTreatmentPercentage ?? 0, 0, 100),
+        minimumHospitalValue: Math.max(0, minimumHospitalValue ?? 0),
+        bankruptcyCashThreshold: bankruptcyCashThreshold ?? 0,
+        reputationFailureThreshold: Math.max(0, reputationFailureThreshold ?? 0),
+        maximumDeaths: maximumDeaths ?? Number.POSITIVE_INFINITY
+    };
+}
+function scenarioWinCriterionValue(scenario, metric) {
+    const criterion = scenario.winCriteria.find((entry) => entry.metric === metric && entry.comparison === "at-least");
+    return Number.isFinite(criterion?.value) ? criterion.value : null;
+}
+function scenarioLoseCriterionValue(scenario, metric) {
+    const criterion = scenario.loseCriteria.find((entry) => entry.metric === metric);
+    return Number.isFinite(criterion?.value) ? criterion.value : null;
+}
+export function formatLevelObjectiveSafety(telemetry) {
+    const parts = [
+        `cash > ${telemetry.levelObjectiveBankruptcyCashThreshold ?? telemetry.levelObjectiveMinimumCash}`,
+        `reputation >= ${telemetry.levelObjectiveMinimumReputation}`
+    ];
+    if ((telemetry.levelObjectiveMinimumCash ?? 0) > 0) {
+        parts.push(`target cash ${telemetry.levelObjectiveMinimumCash}`);
+    }
+    if ((telemetry.levelObjectiveReputationFailureThreshold ?? 0) > 0) {
+        parts.push(`reputation > ${telemetry.levelObjectiveReputationFailureThreshold}`);
+    }
+    if ((telemetry.levelObjectiveMinimumTreatmentPercentage ?? 0) > 0) {
+        parts.push(`treated ${telemetry.levelObjectiveCurrentTreatmentPercentage}/${telemetry.levelObjectiveMinimumTreatmentPercentage}%`);
+    }
+    if ((telemetry.levelObjectiveMinimumHospitalValue ?? 0) > 0) {
+        parts.push(`value ${telemetry.levelObjectiveCurrentHospitalValue}/${telemetry.levelObjectiveMinimumHospitalValue}`);
+    }
+    if (Number.isFinite(telemetry.levelObjectiveMaximumDeaths)) {
+        parts.push(`deaths <= ${telemetry.levelObjectiveMaximumDeaths} (${telemetry.levelObjectiveRemainingDeaths} left)`);
+    }
+    return `Safety: ${parts.join(", ")}`;
+}
+export function formatLevelObjectiveStatus(telemetry) {
+    return `Level status: ${telemetry.levelObjectiveStatus}`;
+}
+export function formatLevelObjectiveProgress(telemetry) {
+    const completedDischarges = Math.max(0, telemetry.levelObjectiveRequiredDischarges - telemetry.levelObjectiveRemainingDischarges);
+    const parts = [`discharge ${completedDischarges}/${telemetry.levelObjectiveRequiredDischarges}`];
+    if ((telemetry.levelObjectiveMinimumCash ?? 0) > 0) {
+        parts.push(`cash ${telemetry.cash}/${telemetry.levelObjectiveMinimumCash}`);
+    }
+    if ((telemetry.levelObjectiveMinimumReputation ?? 0) > 1 || telemetry.scenarioInitialCash !== null && telemetry.scenarioInitialCash !== undefined) {
+        parts.push(`reputation ${telemetry.reputation}/${telemetry.levelObjectiveMinimumReputation}`);
+    }
+    if ((telemetry.levelObjectiveMinimumTreatmentPercentage ?? 0) > 0) {
+        parts.push(`treated ${telemetry.levelObjectiveCurrentTreatmentPercentage}/${telemetry.levelObjectiveMinimumTreatmentPercentage}%`);
+    }
+    if ((telemetry.levelObjectiveMinimumHospitalValue ?? 0) > 0) {
+        parts.push(`value ${telemetry.levelObjectiveCurrentHospitalValue}/${telemetry.levelObjectiveMinimumHospitalValue}`);
+    }
+    return `Objective: ${parts.join(", ")}`;
+}
+function formatStaffMarketCount(value) {
+    return value === Number.POSITIVE_INFINITY ? "unlimited" : String(value);
+}
+export function formatStaffMarketStatus(telemetry) {
+    const doctorMix = telemetry.scenarioStaffMarketConsultantRate !== null || telemetry.scenarioStaffMarketJuniorRate !== null
+        ? `, consultants ${telemetry.scenarioStaffMarketConsultantRate ?? "n/a"}, juniors ${telemetry.scenarioStaffMarketJuniorRate ?? "n/a"}`
+        : "";
+    const receptionistMix = telemetry.staffMarketReceptionistsAvailable !== Number.POSITIVE_INFINITY
+        ? `, receptionists ${formatStaffMarketCount(telemetry.staffMarketReceptionistsAvailable)}`
+        : "";
+    const specialtyMix = telemetry.scenarioStaffMarketShrinkRate !== null || telemetry.scenarioStaffMarketSurgeonRate !== null || telemetry.scenarioStaffMarketResearcherRate !== null
+        ? `, psych ${telemetry.scenarioStaffMarketShrinkRate ?? "n/a"}, surgeons ${telemetry.scenarioStaffMarketSurgeonRate ?? "n/a"}, researchers ${telemetry.scenarioStaffMarketResearcherRate ?? "n/a"}`
+        : "";
+    const scenarioSchedule = telemetry.scenarioStaffMarketMonth !== null || telemetry.scenarioStaffMarketSeed !== null
+        ? `; scenario staff month ${telemetry.scenarioStaffMarketMonth ?? "default"}, seed ${telemetry.scenarioStaffMarketSeed ?? "default"}`
+        : "";
+    const scenarioReceptionists = telemetry.scenarioStaffMarketReceptionists !== null && telemetry.scenarioStaffMarketReceptionists !== undefined
+        ? `, receptionists target ${telemetry.scenarioStaffMarketReceptionists}`
+        : "";
+    return `Staff market: doctors ${formatStaffMarketCount(telemetry.staffMarketDoctorsAvailable)}, nurses ${formatStaffMarketCount(telemetry.staffMarketNursesAvailable)}, handymen ${formatStaffMarketCount(telemetry.staffMarketHandymenAvailable)}${receptionistMix}${doctorMix}${specialtyMix}${scenarioReceptionists}${scenarioSchedule}`;
+}
+export function formatRoomAvailabilityStatus(value, languageSummary = null) {
+    if (value === "unrestricted") {
+        return "unrestricted";
+    }
+    return value.split(",").map((roomType) => roomTypeDisplayName(roomType.trim(), languageSummary)).join(", ");
+}
+export function formatRoomAvailabilityHudStatus(telemetry, languageSummary = null) {
+    return `Room availability: ${formatRoomAvailabilityStatus(telemetry.roomAvailabilityStatus, languageSummary)}`;
+}
+export function formatObjectAvailabilityStatus(telemetry, scenario = null, languageSummary = null) {
+    const base = `Object availability: ${telemetry.scenarioObjectAvailableCount}/${telemetry.scenarioObjectAvailabilityCount} available, locked ${telemetry.scenarioObjectLockedCount}, disabled ${telemetry.scenarioObjectDisabledCount}, research ${telemetry.scenarioObjectResearchLockedCount}`;
+    const details = scenarioObjectAvailabilityDetails(scenario, languageSummary, telemetry);
+    return details ? `${base}; ${details}` : base;
+}
+function scenarioObjectAvailabilityDetails(scenario, languageSummary, telemetry = {}) {
+    const objectAvailability = scenario?.objectAvailability;
+    if (!Array.isArray(objectAvailability) || objectAvailability.length === 0) {
+        return "";
+    }
+    const available = [];
+    const locked = [];
+    const research = [];
+    const disabled = [];
+    const diagnosisResearchRequired = scenarioDiagnosisResearchRequired(scenario);
+    const showResearchLocked = (telemetry.scenarioObjectResearchLockedCount ?? 0) > 0;
+    const availableIndices = scenarioObjectIndexSet(telemetry.scenarioObjectAvailableIndices);
+    const lockedIndices = scenarioObjectIndexSet(telemetry.scenarioObjectLockedIndices);
+    const disabledIndices = scenarioObjectIndexSet(telemetry.scenarioObjectDisabledIndices);
+    const researchLockedIndices = scenarioObjectIndexSet(telemetry.scenarioObjectResearchLockedIndices);
+    const hasTelemetryBuckets = availableIndices !== null || lockedIndices !== null || disabledIndices !== null || researchLockedIndices !== null;
+    const orderedObjects = [
+        ...objectAvailability.filter((object) => typeof object.roomType === "string" && object.roomType.length > 0),
+        ...objectAvailability.filter((object) => !(typeof object.roomType === "string" && object.roomType.length > 0))
+    ];
+    for (const object of orderedObjects) {
+        const name = scenarioObjectDisplayName(object, languageSummary);
+        if (hasTelemetryBuckets && disabledIndices?.has(object.index)) {
+            disabled.push(name);
+        }
+        else if (hasTelemetryBuckets && availableIndices?.has(object.index)) {
+            available.push(name);
+        }
+        else if (hasTelemetryBuckets && researchLockedIndices?.has(object.index)) {
+            research.push(name);
+        }
+        else if (hasTelemetryBuckets && lockedIndices?.has(object.index)) {
+            locked.push(name);
+        }
+        else if (object.availableForLevel === false) {
+            disabled.push(name);
+        }
+        else if (object.startAvailable === true) {
+            available.push(name);
+        }
+        else if (showResearchLocked &&
+            object.roomType === "diagnosis" &&
+            diagnosisResearchRequired !== null) {
+            research.push(name);
+        }
+        else {
+            locked.push(name);
+        }
+    }
+    return [
+        objectAvailabilityNameList("available", available),
+        objectAvailabilityNameList("locked", locked),
+        objectAvailabilityNameList("research", research),
+        objectAvailabilityNameList("disabled", disabled)
+    ].filter(Boolean).join("; ");
+}
+function scenarioObjectIndexSet(indices) {
+    if (!Array.isArray(indices)) {
+        return null;
+    }
+    return new Set(indices.filter((index) => Number.isInteger(index)));
+}
+function objectAvailabilityNameList(label, names) {
+    if (names.length === 0) {
+        return "";
+    }
+    const visibleNames = names.slice(0, 3).join(", ");
+    const remaining = names.length > 3 ? ` +${names.length - 3}` : "";
+    return `${label}: ${visibleNames}${remaining}`;
+}
+function scenarioObjectDisplayName(object, languageSummary) {
+    if (typeof object?.name === "string" && object.name.length > 0) {
+        return object.name;
+    }
+    const importedName = Number.isInteger(object?.index) ? languageSummary?.objectNames?.[object.index] : null;
+    if (typeof importedName === "string" && importedName.length > 0) {
+        return importedName;
+    }
+    return Number.isInteger(object?.index) ? `object ${object.index}` : "object";
+}
+function formatScenarioAwardSuffix(telemetry) {
+    if (!telemetry.scenarioAwardCriteriaSummary || telemetry.scenarioAwardCriteriaSummary === "none") {
+        return "";
+    }
+    const pending = telemetry.scenarioAwardCriteriaMet ? "" : `, pending ${telemetry.scenarioAwardCriteriaUnmetSummary}`;
+    const poorThresholds = telemetry.scenarioAwardPoorCriteriaSummary && telemetry.scenarioAwardPoorCriteriaSummary !== "none"
+        ? `, poor thresholds ${telemetry.scenarioAwardPoorCriteriaSummary}`
+        : "";
+    const poor = telemetry.scenarioAwardPoorCriteriaTriggered
+        ? `, poor ${telemetry.scenarioAwardPoorCriteriaTriggeredSummary}`
+        : "";
+    return `, scenario ${telemetry.scenarioAwardCriteriaSummary}${pending}${poorThresholds}${poor}`;
+}
+function formatCampaignProgress(view, telemetry = null) {
+    const total = Array.isArray(view?.mapSummaries) && view.mapSummaries.length > 0 ? view.mapSummaries.length : 1;
+    const scenarioName = telemetry?.scenarioLevelName ? ` (${telemetry.scenarioLevelName})` : "";
+    return `Campaign: level ${campaignLevelIndex(view) + 1}/${total}${scenarioName}`;
+}
+function bestStaffRestType(telemetry) {
+    const options = [
+        ["snooker", telemetry.scenarioStaffRestSnooker],
+        ["game", telemetry.scenarioStaffRestGame],
+        ["sofa", telemetry.scenarioStaffRestSofa],
+        ["standing", telemetry.scenarioStaffRestStanding]
+    ];
+    return options.find(([, value]) => Number.isInteger(value) && value > 0)?.[0] ?? "standing";
+}
+function createInitialCashFromScenario(scenario) {
+    const startCash = scenario?.financialSettings?.startCash;
+    return Number.isFinite(startCash) ? startCash : null;
+}
+function createScenarioLevelNameFromScenario(scenario) {
+    const title = scenario?.title;
+    if (typeof title === "string" && title.trim().length > 0) {
+        return title.trim();
+    }
+    const name = scenario?.financialSettings?.name;
+    return typeof name === "string" && name.trim().length > 0 ? name.trim() : null;
+}
+function createLoanInterestPerChunkFromScenario(scenario) {
+    const interestRate = scenario?.financialSettings?.interestRate;
+    return Number.isFinite(interestRate) ? Math.max(0, Math.round(interestRate / 100)) : null;
+}
+function createScenarioIllnessRateFromScenario(scenario) {
+    const illnessRate = scenario?.financialSettings?.illnessRate;
+    return Number.isFinite(illnessRate) ? illnessRate : null;
+}
+function createRestoreOptionsFromHospitalView(view) {
+    const terrain = createSimulationTerrainFromHospitalView(view);
+    const admissionPoints = createAdmissionPointsFromHospitalView(view);
+    const currentMap = campaignMapSummaryAt(view, campaignLevelIndex(view));
+    const initialCash = createInitialCashFromScenario(currentMap?.scenario);
+    const scenarioLevelName = createScenarioLevelNameFromScenario(currentMap?.scenario);
+    const loanInterestPerChunk = createLoanInterestPerChunkFromScenario(currentMap?.scenario);
+    const scenarioIllnessRate = createScenarioIllnessRateFromScenario(currentMap?.scenario);
+    const populationSchedule = currentMap?.scenario?.populationSchedule;
+    const diseasePool = currentMap?.scenario?.diseasePool;
+    const staffMarketSchedule = currentMap?.scenario?.staffLevels;
+    const roomAvailability = createRoomAvailabilityFromScenario(currentMap?.scenario);
+    const roomAvailabilitySchedule = createRoomAvailabilityScheduleFromScenario(currentMap?.scenario);
+    const roomCostOverrides = currentMap?.scenario?.roomCostOverrides;
+    const roomWearThresholdOverrides = createRoomWearThresholdOverridesFromScenario(currentMap?.scenario);
+    const staffWageOverrides = currentMap?.scenario?.staffWageOverrides;
+    const admissionRules = currentMap?.scenario?.admissionRules;
+    const researchSettings = currentMap?.scenario?.researchSettings;
+    const trainingSettings = currentMap?.scenario?.trainingSettings;
+    const epidemicSettings = currentMap?.scenario?.epidemicSettings;
+    const landSettings = currentMap?.scenario?.landSettings;
+    const staffFatigueSettings = currentMap?.scenario?.staffFatigueSettings;
+    const patientBehaviorSettings = currentMap?.scenario?.patientBehaviorSettings;
+    const salarySettings = currentMap?.scenario?.salarySettings;
+    const allocationSettings = currentMap?.scenario?.allocationSettings;
+    const routingSettings = currentMap?.scenario?.routingSettings;
+    const eventSettings = currentMap?.scenario?.eventSettings;
+    const awardCriteria = currentMap?.scenario?.awardCriteria;
+    const emergencySchedule = currentMap?.scenario?.emergencySchedule;
+    const quakeSchedule = currentMap?.scenario?.quakeSchedule;
+    const expertise = currentMap?.scenario?.expertise;
+    const scenarioOpponents = currentMap?.scenario?.scenarioOpponents;
+    const networkCriteria = currentMap?.scenario?.networkCriteria;
+    return {
+        ...(terrain ? { terrain } : {}),
+        ...(admissionPoints ? { admissionPoints } : {}),
+        ...(initialCash !== null ? { initialCash } : {}),
+        ...(scenarioLevelName !== null ? { scenarioLevelName } : {}),
+        ...(loanInterestPerChunk !== null ? { loanInterestPerChunk } : {}),
+        ...(scenarioIllnessRate !== null ? { scenarioIllnessRate } : {}),
+        levelObjective: createCampaignLevelObjectiveFromHospitalView(view),
+        ...(Array.isArray(populationSchedule) && populationSchedule.length > 0 ? { populationSchedule } : {}),
+        ...(Array.isArray(diseasePool) && diseasePool.length > 0 ? { diseasePool } : {}),
+        ...(Array.isArray(staffMarketSchedule) && staffMarketSchedule.length > 0 ? { staffMarketSchedule } : {}),
+        ...(Array.isArray(roomAvailability) && roomAvailability.length > 0 ? { roomAvailability } : {}),
+        ...(Array.isArray(roomAvailabilitySchedule) && roomAvailabilitySchedule.length > 0 ? { roomAvailabilitySchedule } : {}),
+        ...(roomCostOverrides && Object.keys(roomCostOverrides).length > 0 ? { roomCostOverrides } : {}),
+        ...(roomWearThresholdOverrides && Object.keys(roomWearThresholdOverrides).length > 0 ? { roomWearThresholdOverrides } : {}),
+        ...(staffWageOverrides && Object.keys(staffWageOverrides).length > 0 ? { staffWageOverrides } : {}),
+        ...(admissionRules && Object.keys(admissionRules).length > 0 ? { admissionRules } : {}),
+        ...(researchSettings && Object.keys(researchSettings).length > 0 ? { researchSettings } : {}),
+        ...(trainingSettings && Object.keys(trainingSettings).length > 0 ? { trainingSettings } : {}),
+        ...(epidemicSettings && Object.keys(epidemicSettings).length > 0 ? { epidemicSettings } : {}),
+        ...(landSettings && Object.keys(landSettings).length > 0 ? { landSettings } : {}),
+        ...(staffFatigueSettings && Object.keys(staffFatigueSettings).length > 0 ? { staffFatigueSettings } : {}),
+        ...(patientBehaviorSettings && Object.keys(patientBehaviorSettings).length > 0 ? { patientBehaviorSettings } : {}),
+        ...(salarySettings && Object.keys(salarySettings).length > 0 ? { salarySettings } : {}),
+        ...(allocationSettings && Object.keys(allocationSettings).length > 0 ? { allocationSettings } : {}),
+        ...(routingSettings && Object.keys(routingSettings).length > 0 ? { routingSettings } : {}),
+        ...(eventSettings && Object.keys(eventSettings).length > 0 ? { eventSettings } : {}),
+        ...(awardCriteria && Object.keys(awardCriteria).length > 0 ? { awardCriteria } : {}),
+        ...(Array.isArray(emergencySchedule) && emergencySchedule.length > 0 ? { emergencySchedule } : {}),
+        ...(Array.isArray(quakeSchedule) && quakeSchedule.length > 0 ? { quakeSchedule } : {}),
+        ...(Array.isArray(expertise) && expertise.length > 0 ? { expertise } : {}),
+        ...(Array.isArray(scenarioOpponents) && scenarioOpponents.length > 0 ? { scenarioOpponents } : {}),
+        ...(Array.isArray(networkCriteria) && networkCriteria.length > 0 ? { networkCriteria } : {})
+    };
+}
+export function createRoomAvailabilityFromScenario(scenario) {
+    const objectAvailability = scenario?.objectAvailability;
+    if (!Array.isArray(objectAvailability) || objectAvailability.length === 0) {
+        return null;
+    }
+    const roomTypes = [];
+    for (const object of objectAvailability) {
+        if (object.availableForLevel !== false && object.startAvailable === true && typeof object.roomType === "string" && !roomTypes.includes(object.roomType)) {
+            roomTypes.push(object.roomType);
+        }
+    }
+    return roomTypes;
+}
+export function createRoomAvailabilityScheduleFromScenario(scenario) {
+    const objectAvailability = scenario?.objectAvailability;
+    if (!Array.isArray(objectAvailability) || objectAvailability.length === 0) {
+        return [];
+    }
+    const diagnosisResearchRequired = scenarioDiagnosisResearchRequired(scenario);
+    return objectAvailability
+        .filter((object) => typeof object.roomType === "string")
+        .map((object) => ({
+        index: object.index,
+        roomType: object.roomType,
+        startAvailable: object.startAvailable === true,
+        whenAvailable: Number.isInteger(object.whenAvailable) ? object.whenAvailable : 0,
+        availableForLevel: object.availableForLevel !== false,
+        ...(object.roomType === "diagnosis" && object.startAvailable !== true && diagnosisResearchRequired !== null
+            ? { researchRequired: diagnosisResearchRequired, expertiseCategory: "DIAGNOSIS" }
+            : {})
+    }));
+}
+function scenarioDiagnosisResearchRequired(scenario) {
+    const expertise = scenario?.expertise;
+    if (!Array.isArray(expertise)) {
+        return null;
+    }
+    const requirements = expertise
+        .filter((entry) => entry.category === "DIAGNOSIS" && entry.known !== true && Number.isInteger(entry.researchRequired) && entry.researchRequired > 0)
+        .map((entry) => entry.researchRequired);
+    return requirements.length === 0 ? null : Math.min(...requirements);
+}
+export function createRoomWearThresholdOverridesFromScenario(scenario) {
+    const objectAvailability = scenario?.objectAvailability;
+    if (!Array.isArray(objectAvailability) || objectAvailability.length === 0) {
+        return {};
+    }
+    const maxObjectStrength = scenario?.researchSettings?.maxObjectStrength;
+    const overrides = {};
+    for (const object of objectAvailability) {
+        if (object.availableForLevel === false || typeof object.roomType !== "string" || !Number.isInteger(object.startStrength) || object.startStrength <= 0) {
+            continue;
+        }
+        const strength = Number.isInteger(maxObjectStrength) && maxObjectStrength > 0
+            ? Math.min(object.startStrength, maxObjectStrength)
+            : object.startStrength;
+        const current = overrides[object.roomType];
+        overrides[object.roomType] = current === undefined ? strength : Math.min(current, strength);
+    }
+    return overrides;
+}
+function moveHospitalCamera(view, deltaX, deltaY) {
+    if (!view?.map) {
+        return;
+    }
+    view.startX = clamp(view.startX + deltaX, 0, Math.max(0, view.map.width - view.tileColumns));
+    view.startY = clamp(view.startY + deltaY, 0, Math.max(0, view.map.height - view.tileRows));
+}
+function tileToHospitalScreen(view, tile) {
+    const localX = tile.x - view.startX;
+    const localY = tile.y - view.startY;
+    return {
+        x: Math.round(view.originX + (localX - localY) * HOSPITAL_ISO_TILE_HALF_WIDTH),
+        y: Math.round(view.originY + (localX + localY) * HOSPITAL_ISO_TILE_HALF_HEIGHT + HOSPITAL_ISO_TILE_HALF_HEIGHT)
+    };
+}
+function isTileVisible(view, tile) {
+    return (tile.x >= view.startX &&
+        tile.y >= view.startY &&
+        tile.x < view.startX + view.tileColumns &&
+        tile.y < view.startY + view.tileRows);
+}
+function resolveHospitalTileFromCanvasPoint(view, point) {
+    if (!view?.map) {
+        return null;
+    }
+    const isoX = (point.x - view.originX) / HOSPITAL_ISO_TILE_HALF_WIDTH;
+    const isoY = (point.y - view.originY) / HOSPITAL_ISO_TILE_HALF_HEIGHT;
+    const localX = Math.floor((isoY + isoX) / 2);
+    const localY = Math.floor((isoY - isoX) / 2);
+    const x = clamp(view.startX + localX, 0, view.map.width - 1);
+    const y = clamp(view.startY + localY, 0, view.map.height - 1);
+    return { x, y };
+}
+function canvasPointerFromEvent(event, canvas) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+        x: Math.round((event.clientX - rect.left) * canvas.width / rect.width),
+        y: Math.round((event.clientY - rect.top) * canvas.height / rect.height)
+    };
+}
+function drawDiamond(context, center, color) {
+    context.save();
+    context.strokeStyle = color;
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(center.x, center.y - HOSPITAL_ISO_TILE_HALF_HEIGHT);
+    context.lineTo(center.x + HOSPITAL_ISO_TILE_HALF_WIDTH, center.y);
+    context.lineTo(center.x, center.y + HOSPITAL_ISO_TILE_HALF_HEIGHT);
+    context.lineTo(center.x - HOSPITAL_ISO_TILE_HALF_WIDTH, center.y);
+    context.closePath();
+    context.stroke();
+    context.restore();
+}
+function drawIsoTileOverlay(context, center, color, fillAlpha = 0.26) {
+    context.save();
+    context.fillStyle = color;
+    context.strokeStyle = color;
+    context.globalAlpha = fillAlpha;
+    context.beginPath();
+    context.moveTo(center.x, center.y - HOSPITAL_ISO_TILE_HALF_HEIGHT);
+    context.lineTo(center.x + HOSPITAL_ISO_TILE_HALF_WIDTH, center.y);
+    context.lineTo(center.x, center.y + HOSPITAL_ISO_TILE_HALF_HEIGHT);
+    context.lineTo(center.x - HOSPITAL_ISO_TILE_HALF_WIDTH, center.y);
+    context.closePath();
+    context.fill();
+    context.globalAlpha = 0.95;
+    context.lineWidth = 2;
+    context.stroke();
+    context.restore();
+}
+function drawPlacementPreview(context, placementPreview, view) {
+    if (!placementPreview) {
+        return;
+    }
+    const color = placementPreview.valid ? "#57d68d" : "#e46161";
+    const tiles = placementPreview.tiles?.length
+        ? placementPreview.tiles
+        : placementPreview.position
+            ? [placementPreview.position]
+            : [];
+    for (const tile of tiles) {
+        if (!isTileVisible(view, tile)) {
+            continue;
+        }
+        drawIsoTileOverlay(context, tileToHospitalScreen(view, tile), color, placementPreview.valid ? 0.24 : 0.32);
+    }
+    if ((placementPreview.action === "hire-staff" || placementPreview.action === "move-staff") &&
+        placementPreview.position &&
+        isTileVisible(view, placementPreview.position)) {
+        drawStaffMarker(context, {
+            role: placementPreview.role,
+            status: placementPreview.valid ? "active" : "blocked"
+        }, tileToHospitalScreen(view, placementPreview.position));
+    }
+}
+function drawSelectionOverlay(context, selectedEntity, state, view) {
+    const resolved = selectedEntityFromState(state, selectedEntity);
+    if (!resolved) {
+        return;
+    }
+    if (resolved.type === "room") {
+        for (const tile of resolved.value.tiles ?? [resolved.value.position]) {
+            if (!isTileVisible(view, tile)) {
+                continue;
+            }
+            drawIsoTileOverlay(context, tileToHospitalScreen(view, tile), "#f5f0a3", 0.12);
+        }
+        return;
+    }
+    const position = resolved.type === "staff" ? resolved.value.position : patientPosition(resolved.value);
+    if (isTileVisible(view, position)) {
+        drawDiamond(context, tileToHospitalScreen(view, position), "#f5f0a3");
+    }
+}
+function drawPatientMarker(context, patient, center) {
+    const color = PATIENT_STATUS_COLORS[patient.status] ?? "#ffffff";
+    const critical = Number.isFinite(patient.health) && Number.isFinite(patient.maxHealth) && patient.health <= Math.max(1, Math.floor(patient.maxHealth * 0.25));
+    const emergency = Number.isInteger(patient.emergencyWaveId);
+    const epidemic = Number.isInteger(patient.epidemicOutbreakId);
+    const insurance = Number.isInteger(patient.insuranceContractId);
+    context.save();
+    context.fillStyle = color;
+    context.strokeStyle = emergency ? "#ffdf5d" : epidemic ? "#72f2c2" : insurance ? "#7eb6ff" : critical ? "#ff4f5e" : "#102027";
+    context.lineWidth = emergency || epidemic || insurance || critical ? 3 : 2;
+    context.beginPath();
+    context.arc(center.x, center.y - 14, 7, 0, Math.PI * 2);
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#ffffff";
+    context.font = "11px system-ui, sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(String(patient.severity), center.x, center.y - 14);
+    context.restore();
+}
+function drawPatientRoute(context, patient, view) {
+    const path = patient.movement?.path ?? [];
+    if (path.length < 2) {
+        return;
+    }
+    context.save();
+    context.strokeStyle = PATIENT_STATUS_COLORS[patient.status] ?? "#ffffff";
+    context.globalAlpha = 0.72;
+    context.lineWidth = 2;
+    context.beginPath();
+    path.forEach((tile, index) => {
+        const center = tileToHospitalScreen(view, tile);
+        if (index === 0) {
+            context.moveTo(center.x, center.y - 14);
+            return;
+        }
+        context.lineTo(center.x, center.y - 14);
+    });
+    context.stroke();
+    context.restore();
+}
+function drawRoomMarker(context, room, view) {
+    const color = ROOM_TYPE_COLORS[room.roomType] ?? "#ffffff";
+    context.save();
+    context.globalAlpha = room.status === "open" ? 0.72 : 0.36;
+    context.fillStyle = color;
+    context.strokeStyle = room.status === "open" ? "#ffffff" : "#8c969a";
+    context.lineWidth = 2;
+    for (const tile of room.tiles ?? [room.position]) {
+        if (!isTileVisible(view, tile)) {
+            continue;
+        }
+        const center = tileToHospitalScreen(view, tile);
+        context.beginPath();
+        context.moveTo(center.x, center.y - HOSPITAL_ISO_TILE_HALF_HEIGHT);
+        context.lineTo(center.x + HOSPITAL_ISO_TILE_HALF_WIDTH, center.y);
+        context.lineTo(center.x, center.y + HOSPITAL_ISO_TILE_HALF_HEIGHT);
+        context.lineTo(center.x - HOSPITAL_ISO_TILE_HALF_WIDTH, center.y);
+        context.closePath();
+        context.fill();
+        context.stroke();
+    }
+    context.restore();
+}
+function drawStaffMarker(context, staff, center) {
+    const color = STAFF_ROLE_COLORS[staff.role] ?? "#ffffff";
+    context.save();
+    context.fillStyle = color;
+    context.strokeStyle = staff.trainingRemainingTicks > 0 ? "#ffdf5d" : staff.status === "active" ? "#102027" : "#9b3131";
+    context.lineWidth = staff.trainingRemainingTicks > 0 ? 3 : 2;
+    context.beginPath();
+    context.rect(center.x - 6, center.y - 30, 12, 12);
+    context.fill();
+    context.stroke();
+    context.restore();
+}
+function patientRenderPosition(patient) {
+    return patient.position;
+}
+export function formatHospitalCanvasSummary(view, state, frameStats) {
+    return `${view.mapPath} viewport ${view.startX},${view.startY}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
+}
+export function formatOriginalUiStripSummary(view, visibleSpriteCount) {
+    const sheetPath = view.originalUiSpriteSheetPath || "imported sheet";
+    if (visibleSpriteCount === 0) {
+        return `Original UI: ${sheetPath} ${view.originalUiSpriteSheet.spriteCount} sprites, none visible`;
+    }
+    return `Original UI: ${sheetPath} ${view.originalUiSpriteSheet.spriteCount} sprites, showing ${visibleSpriteCount}`;
+}
+export function formatCanvasUnavailableStatus() {
+    return "Canvas unavailable";
+}
+export function formatImportedMapUnavailableStatus() {
+    return "Imported map renderer unavailable";
+}
+export function formatOriginalUiCanvasUnavailableStatus() {
+    return "Original UI: canvas unavailable";
+}
+export function formatOriginalUiNoSpritesStatus() {
+    return "Original UI: no imported sprites";
+}
+function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placementPreview, selectedEntity) {
+    const context = canvas.getContext("2d");
+    if (!context) {
+        return formatCanvasUnavailableStatus();
+    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    if (!view?.map) {
+        context.fillStyle = "#1f2a2e";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        return formatImportedMapUnavailableStatus();
+    }
+    const state = orchestrator.getState();
+    const frame = renderThemeHospitalMapScene({
+        map: view.map,
+        palette: view.palette,
+        blockSheet: view.blockSheet,
+        ...(view.spriteSheet ? { spriteSheet: view.spriteSheet } : {}),
+        ...(view.animationSet ? { animationSet: view.animationSet } : {}),
+        viewportWidth: canvas.width,
+        viewportHeight: canvas.height,
+        originX: view.originX,
+        originY: view.originY,
+        startX: view.startX,
+        startY: view.startY,
+        tileColumns: view.tileColumns,
+        tileRows: view.tileRows,
+        animationFrameStep: state.tick
+    });
+    context.putImageData(new ImageData(frame.pixels, frame.width, frame.height), 0, 0);
+    if (selectedTile && isTileVisible(view, selectedTile)) {
+        drawDiamond(context, tileToHospitalScreen(view, selectedTile), "#f3c74f");
+    }
+    for (const room of state.entities.rooms) {
+        drawRoomMarker(context, room, view);
+    }
+    drawPlacementPreview(context, placementPreview, view);
+    for (const staff of state.entities.staff) {
+        if (!isTileVisible(view, staff.position)) {
+            continue;
+        }
+        drawStaffMarker(context, staff, tileToHospitalScreen(view, staff.position));
+    }
+    for (const patient of state.entities.waitingPatients) {
+        drawPatientRoute(context, patient, view);
+        const position = patientRenderPosition(patient);
+        if (!isTileVisible(view, position)) {
+            continue;
+        }
+        drawPatientMarker(context, patient, tileToHospitalScreen(view, position));
+    }
+    drawSelectionOverlay(context, selectedEntity, state, view);
+    return formatHospitalCanvasSummary(view, state, frame.stats);
+}
+function renderOriginalUiStrip(canvas, view) {
+    const context = canvas.getContext("2d");
+    if (!context) {
+        return formatOriginalUiCanvasUnavailableStatus();
+    }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#050708";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    if (!view?.originalUiSpriteSheet) {
+        return formatOriginalUiNoSpritesStatus();
+    }
+    const visibleSprites = view.originalUiSpriteSheet.sprites.filter((sprite) => sprite.width > 0 && sprite.height > 0 && sprite.indices.length > 0).slice(0, 8);
+    if (visibleSprites.length === 0) {
+        return formatOriginalUiStripSummary(view, 0);
+    }
+    const pixels = new Uint8ClampedArray(canvas.width * canvas.height * 4);
+    let targetX = 6;
+    for (const sprite of visibleSprites) {
+        const image = renderThemeHospitalSprite(sprite, view.palette);
+        const targetY = Math.max(0, Math.floor((canvas.height - image.height) / 2));
+        blitSpriteImage(pixels, canvas.width, canvas.height, image, targetX, targetY);
+        targetX += image.width + 6;
+        if (targetX >= canvas.width) {
+            break;
+        }
+    }
+    context.putImageData(new ImageData(pixels, canvas.width, canvas.height), 0, 0);
+    return formatOriginalUiStripSummary(view, visibleSprites.length);
+}
+function blitSpriteImage(targetPixels, targetWidth, targetHeight, image, targetX, targetY) {
+    for (let sourceY = 0; sourceY < image.height; sourceY += 1) {
+        const y = targetY + sourceY;
+        if (y < 0 || y >= targetHeight) {
+            continue;
+        }
+        for (let sourceX = 0; sourceX < image.width; sourceX += 1) {
+            const x = targetX + sourceX;
+            if (x < 0 || x >= targetWidth) {
+                continue;
+            }
+            const sourceOffset = (sourceY * image.width + sourceX) * 4;
+            const alpha = image.pixels[sourceOffset + 3];
+            if (alpha === 0) {
+                continue;
+            }
+            const targetOffset = (y * targetWidth + x) * 4;
+            targetPixels[targetOffset] = image.pixels[sourceOffset];
+            targetPixels[targetOffset + 1] = image.pixels[sourceOffset + 1];
+            targetPixels[targetOffset + 2] = image.pixels[sourceOffset + 2];
+            targetPixels[targetOffset + 3] = alpha;
+        }
+    }
+}
+export function mountAppShell(options) {
+    const frameClock = options.frameClock ?? browserFrameClock();
+    const audioMixer = options.audioMixer ?? createWebAudioMixer();
+    const hospitalView = createImportedHospitalView(options.assetBundle);
+    const mapOptions = formatHospitalMapOptionsHtml(hospitalView);
+    options.root.innerHTML = `
+    <section
+      data-testid="phase7-shell"
+      style="font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #e7edf0; background: #11181b; min-height: 100vh; padding: 16px; box-sizing: border-box;"
+    >
+      <header style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:12px;">
+        <div>
+          <h1 style="font-size:24px; line-height:1.2; margin:0 0 4px;">CorsixTH Browser Hospital</h1>
+          <p data-testid="hospital-canvas-summary" style="margin:0; color:#a9b7bd; font-size:13px;"></p>
+          <p data-testid="hospital-placement-mode" style="margin:2px 0 0; color:#d3c16a; font-size:13px;">Placement: none</p>
+        </div>
+        <div data-testid="controls" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end;">
+          <button type="button" data-testid="pause-toggle">Pause</button>
+          <button type="button" data-testid="step">Step</button>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            Speed
+            <select data-testid="speed-select" aria-label="Simulation speed">
+              <option value="0.5">0.5x</option>
+              <option value="1">1x</option>
+              <option value="2">2x</option>
+              <option value="4">4x</option>
+            </select>
+          </label>
+          <button type="button" data-testid="admissions-toggle">Open Admissions</button>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            Policy
+            <select data-testid="admission-policy" aria-label="Automatic admission policy">
+              <option value="conservative">Conservative</option>
+              <option value="standard" selected>Standard</option>
+              <option value="aggressive">Aggressive</option>
+            </select>
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            Pricing
+            <select data-testid="pricing-policy" aria-label="Treatment pricing policy">
+              <option value="discount">Discount</option>
+              <option value="standard" selected>Standard</option>
+              <option value="premium">Premium</option>
+            </select>
+          </label>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            Severity
+            <select data-testid="admission-severity" aria-label="Manual admission severity">
+              <option value="1">1</option>
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+            </select>
+          </label>
+          <button type="button" data-testid="admit">Admit</button>
+          <button type="button" data-testid="treat">Treat</button>
+          <button type="button" data-testid="start-research">Fund Research</button>
+          <button type="button" data-testid="start-emergency-wave">Emergency</button>
+          <button type="button" data-testid="start-epidemic-outbreak">Epidemic</button>
+          <button type="button" data-testid="start-vip-inspection">VIP Visit</button>
+          <button type="button" data-testid="run-marketing-campaign">Run Marketing</button>
+          <button type="button" data-testid="start-insurance-contract">Insurance</button>
+          <button type="button" data-testid="run-awards-ceremony">Awards</button>
+          <button type="button" data-testid="run-finance-audit">Run Audit</button>
+          <button type="button" data-testid="take-loan">Take Loan</button>
+          <button type="button" data-testid="repay-loan">Repay Loan</button>
+          <button type="button" data-testid="prioritize-selected-patient">Prioritize</button>
+          <button type="button" data-testid="send-selected-patient-home">Send Home</button>
+          <button type="button" data-testid="give-drink-selected-patient">Give Drink</button>
+          <button type="button" data-testid="send-selected-patient-toilet">Toilet</button>
+          <button type="button" data-testid="shoot-rat">Shoot Rat</button>
+          <button type="button" data-testid="water-plant">Water Plant</button>
+          <button type="button" data-testid="staff-break-toggle">Set Diagnostician On Break</button>
+          <button type="button" data-testid="treatment-room-toggle">Close Treatment Room</button>
+          <button type="button" data-testid="move-selected-staff">Move Staff</button>
+          <button type="button" data-testid="rest-selected-staff">Rest Staff</button>
+          <button type="button" data-testid="train-selected-staff">Train Staff</button>
+          <button type="button" data-testid="fire-selected-staff">Fire Staff</button>
+          <button type="button" data-testid="sell-selected-room">Sell Room</button>
+          <button type="button" data-testid="repair-selected-room">Repair Room</button>
+          <button type="button" data-testid="build-diagnosis-room">Build Diagnosis</button>
+          <button type="button" data-testid="build-treatment-room">Build Treatment</button>
+          <button type="button" data-testid="build-pharmacy-room">Build Pharmacy</button>
+          <button type="button" data-testid="build-specialist-room">Build Specialist</button>
+          <button type="button" data-testid="hire-diagnostician">Hire Diagnostician</button>
+          <button type="button" data-testid="hire-nurse">Hire Nurse</button>
+          <button type="button" data-testid="hire-handyman">Hire Handyman</button>
+          <button type="button" data-testid="hire-receptionist">Hire Receptionist</button>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            Slot
+            <input
+              type="text"
+              value="${DEFAULT_SAVE_SLOT}"
+              data-testid="save-slot-name"
+              style="width:150px;"
+            />
+          </label>
+          <select data-testid="save-slot-select" aria-label="Saved slots">
+            <option value="${DEFAULT_SAVE_SLOT}">${DEFAULT_SAVE_SLOT}</option>
+          </select>
+          <button type="button" data-testid="save-game">Save</button>
+          <button type="button" data-testid="load-game">Load</button>
+          <button type="button" data-testid="refresh-save-slots">Refresh Slots</button>
+          <button type="button" data-testid="delete-save-slot">Delete Slot</button>
+          <button type="button" data-testid="audio-mute-toggle">Mute</button>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            Volume
+          <input type="range" min="0" max="100" step="1" value="100" data-testid="audio-volume" />
+          </label>
+          <span data-testid="save-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">Save: idle</span>
+          <span data-testid="action-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">Action: idle</span>
+          <span data-testid="selection-status" style="min-width:160px; color:#d8dca5; font-size:13px;">Selection: none</span>
+        </div>
+      </header>
+      <p data-testid="casebook-summary" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
+      <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
+        <section>
+          <canvas
+            data-testid="original-ui-strip-canvas"
+            width="320"
+            height="40"
+            style="display:block; width:320px; max-width:100%; height:40px; margin:0 0 8px; image-rendering:pixelated; border:1px solid #2f444b; background:#050708;"
+          ></canvas>
+          <p data-testid="original-ui-strip-summary" style="margin:0 0 8px; color:#a9b7bd; font-size:13px;"></p>
+          <div
+            data-testid="playfield"
+            tabindex="0"
+            style="background:#050708; border:1px solid #2f444b; width:100%; max-width:${HOSPITAL_CANVAS_WIDTH}px; user-select:none; overflow:hidden;"
+          >
+            <canvas
+              data-testid="hospital-map-canvas"
+              width="${HOSPITAL_CANVAS_WIDTH}"
+              height="${HOSPITAL_CANVAS_HEIGHT}"
+              style="display:block; width:100%; height:auto; image-rendering:pixelated;"
+            ></canvas>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px;">
+            <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+              Map
+              <select data-testid="hospital-map-select">${mapOptions}</select>
+            </label>
+            <button type="button" data-testid="hospital-camera-west">West</button>
+            <button type="button" data-testid="hospital-camera-east">East</button>
+            <button type="button" data-testid="hospital-camera-north">North</button>
+            <button type="button" data-testid="hospital-camera-south">South</button>
+          </div>
+        </section>
+        <section data-testid="telemetry" style="display:grid; grid-template-columns:1fr 1fr; gap:2px 10px; align-content:start; font-size:13px;">
+          <p data-testid="seed" style="margin:0;"></p>
+          <p data-testid="tick" style="margin:0;"></p>
+          <p data-testid="speed-status" style="margin:0;"></p>
+          <p data-testid="treated" style="margin:0;"></p>
+          <p data-testid="waiting" style="margin:0;"></p>
+          <p data-testid="queue-size" style="margin:0;"></p>
+          <p data-testid="walking-to-diagnosis-size" style="margin:0;"></p>
+          <p data-testid="diagnosing-size" style="margin:0;"></p>
+          <p data-testid="diagnosed-size" style="margin:0;"></p>
+          <p data-testid="awaiting-treatment-size" style="margin:0;"></p>
+          <p data-testid="walking-to-treatment-size" style="margin:0;"></p>
+          <p data-testid="treating-size" style="margin:0;"></p>
+          <p data-testid="discharged" style="margin:0;"></p>
+          <p data-testid="treatment-failures" style="margin:0;"></p>
+          <p data-testid="research-status" style="margin:0;"></p>
+          <p data-testid="research-effect" style="margin:0;"></p>
+          <p data-testid="scenario-expertise" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="scenario-opponents" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="scenario-opponent-progress" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="scenario-network-criteria" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="quake-status" style="margin:0;"></p>
+          <p data-testid="emergency-status" style="margin:0;"></p>
+          <p data-testid="emergency-reward" style="margin:0;"></p>
+          <p data-testid="epidemic-status" style="margin:0;"></p>
+          <p data-testid="epidemic-reward" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="vip-inspection-status" style="margin:0;"></p>
+          <p data-testid="vip-inspection-reward" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="patient-deaths" style="margin:0;"></p>
+          <p data-testid="patient-vomits" style="margin:0;"></p>
+          <p data-testid="patient-litter" style="margin:0;"></p>
+          <p data-testid="patient-drinks" style="margin:0;"></p>
+          <p data-testid="rat-control" style="margin:0;"></p>
+          <p data-testid="plant-care" style="margin:0;"></p>
+          <p data-testid="patients-needing-toilet" style="margin:0;"></p>
+          <p data-testid="patient-bowel-overflows" style="margin:0;"></p>
+          <p data-testid="critical-patients" style="margin:0;"></p>
+          <p data-testid="patient-mood" style="margin:0;"></p>
+          <p data-testid="admissions-status" style="margin:0;"></p>
+          <p data-testid="admission-policy-status" style="margin:0;"></p>
+          <p data-testid="next-admission" style="margin:0;"></p>
+          <p data-testid="admission-rules" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="routing-rules" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="front-desk-status" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="active-staff" style="margin:0;"></p>
+          <p data-testid="on-break-staff" style="margin:0;"></p>
+          <p data-testid="staff-training-status" style="margin:0;"></p>
+          <p data-testid="staff-skill-status" style="margin:0;"></p>
+          <p data-testid="staff-market-status" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="maintenance-staff-status" style="margin:0;"></p>
+          <p data-testid="open-diagnosis-rooms" style="margin:0;"></p>
+          <p data-testid="open-treatment-rooms" style="margin:0;"></p>
+          <p data-testid="specialized-treatment-rooms" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="room-availability" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="object-availability" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="specialized-treatment-queue" style="margin:0;"></p>
+          <p data-testid="cash" style="margin:0;"></p>
+          <p data-testid="reputation" style="margin:0;"></p>
+          <p data-testid="pricing-policy-status" style="margin:0;"></p>
+          <p data-testid="loan-status" style="margin:0;"></p>
+          <p data-testid="loan-interest" style="margin:0;"></p>
+          <p data-testid="finance-ledger" style="margin:0;"></p>
+          <p data-testid="finance-audit" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="marketing-campaign" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="insurance-contract-status" style="margin:0;"></p>
+          <p data-testid="insurance-contract-reward" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="hospital-rating" style="margin:0;"></p>
+          <p data-testid="hospital-awards" style="margin:0;"></p>
+          <p data-testid="cashflow-net" style="margin:0;"></p>
+          <p data-testid="cashflow-cumulative" style="margin:0;"></p>
+          <p data-testid="milestone-level" style="margin:0;"></p>
+          <p data-testid="unlocks" style="margin:0;"></p>
+          <p data-testid="campaign-progress" style="margin:0;"></p>
+          <p data-testid="level-objective-status" style="margin:0;"></p>
+          <p data-testid="level-objective-progress" style="margin:0;"></p>
+          <p data-testid="level-objective-safety" style="margin:0; grid-column:1 / -1;"></p>
+          <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; margin:2px 0;">
+            <button type="button" data-testid="restart-level">Restart Level</button>
+            <button type="button" data-testid="next-level">Next Level</button>
+          </div>
+          <p data-testid="event-count" style="margin:0;"></p>
+          <p data-testid="last-event" style="margin:0;"></p>
+          <p data-testid="advisor-status" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="recent-events" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="queue-pressure" style="margin:0;"></p>
+          <p data-testid="queue-pressure-status" style="margin:0;"></p>
+          <p data-testid="stressed-staff" style="margin:0;"></p>
+          <p data-testid="tired-staff" style="margin:0;"></p>
+          <p data-testid="very-tired-staff" style="margin:0;"></p>
+          <p data-testid="salary-pressure" style="margin:0;"></p>
+          <p data-testid="auto-break-staff" style="margin:0;"></p>
+          <p data-testid="rooms-in-maintenance" style="margin:0;"></p>
+          <p data-testid="queue-pressure-events" style="margin:0;"></p>
+          <p data-testid="staff-burnout-events" style="margin:0;"></p>
+          <p data-testid="staff-recovery-events" style="margin:0;"></p>
+          <p data-testid="room-maintenance-start-events" style="margin:0;"></p>
+          <p data-testid="room-maintenance-complete-events" style="margin:0;"></p>
+          <p data-testid="hash" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="paused" style="margin:0;"></p>
+          <p data-testid="audio-status" style="margin:0;"></p>
+          <p data-testid="audio-volume-metric" style="margin:0; grid-column:1 / -1;"></p>
+        </section>
+      </div>
+    </section>
+  `;
+    const telemetryElements = {
+        pauseToggleButton: requiredElement(options.root, "[data-testid='pause-toggle']"),
+        speedSelect: requiredElement(options.root, "[data-testid='speed-select']"),
+        admissionPolicySelect: requiredElement(options.root, "[data-testid='admission-policy']"),
+        pricingPolicySelect: requiredElement(options.root, "[data-testid='pricing-policy']"),
+        admissionsToggleButton: requiredElement(options.root, "[data-testid='admissions-toggle']"),
+        staffBreakToggleButton: requiredElement(options.root, "[data-testid='staff-break-toggle']"),
+        treatmentRoomToggleButton: requiredElement(options.root, "[data-testid='treatment-room-toggle']"),
+        muteToggleButton: requiredElement(options.root, "[data-testid='audio-mute-toggle']"),
+        volumeSlider: requiredElement(options.root, "[data-testid='audio-volume']"),
+        takeLoanButton: requiredElement(options.root, "[data-testid='take-loan']"),
+        repayLoanButton: requiredElement(options.root, "[data-testid='repay-loan']"),
+        financeAuditButton: requiredElement(options.root, "[data-testid='run-finance-audit']"),
+        marketingCampaignButton: requiredElement(options.root, "[data-testid='run-marketing-campaign']"),
+        insuranceContractButton: requiredElement(options.root, "[data-testid='start-insurance-contract']"),
+        awardsButton: requiredElement(options.root, "[data-testid='run-awards-ceremony']"),
+        researchButton: requiredElement(options.root, "[data-testid='start-research']"),
+        emergencyButton: requiredElement(options.root, "[data-testid='start-emergency-wave']"),
+        epidemicButton: requiredElement(options.root, "[data-testid='start-epidemic-outbreak']"),
+        vipInspectionButton: requiredElement(options.root, "[data-testid='start-vip-inspection']"),
+        seedMetric: requiredElement(options.root, "[data-testid='seed']"),
+        tickMetric: requiredElement(options.root, "[data-testid='tick']"),
+        speedStatusMetric: requiredElement(options.root, "[data-testid='speed-status']"),
+        treatedMetric: requiredElement(options.root, "[data-testid='treated']"),
+        waitingMetric: requiredElement(options.root, "[data-testid='waiting']"),
+        queueMetric: requiredElement(options.root, "[data-testid='queue-size']"),
+        walkingToDiagnosisMetric: requiredElement(options.root, "[data-testid='walking-to-diagnosis-size']"),
+        diagnosingMetric: requiredElement(options.root, "[data-testid='diagnosing-size']"),
+        diagnosedMetric: requiredElement(options.root, "[data-testid='diagnosed-size']"),
+        awaitingTreatmentMetric: requiredElement(options.root, "[data-testid='awaiting-treatment-size']"),
+        walkingToTreatmentMetric: requiredElement(options.root, "[data-testid='walking-to-treatment-size']"),
+        treatingMetric: requiredElement(options.root, "[data-testid='treating-size']"),
+        dischargedMetric: requiredElement(options.root, "[data-testid='discharged']"),
+        treatmentFailuresMetric: requiredElement(options.root, "[data-testid='treatment-failures']"),
+        researchStatusMetric: requiredElement(options.root, "[data-testid='research-status']"),
+        researchEffectMetric: requiredElement(options.root, "[data-testid='research-effect']"),
+        scenarioExpertiseMetric: requiredElement(options.root, "[data-testid='scenario-expertise']"),
+        scenarioOpponentsMetric: requiredElement(options.root, "[data-testid='scenario-opponents']"),
+        scenarioOpponentProgressMetric: requiredElement(options.root, "[data-testid='scenario-opponent-progress']"),
+        scenarioNetworkCriteriaMetric: requiredElement(options.root, "[data-testid='scenario-network-criteria']"),
+        quakeStatusMetric: requiredElement(options.root, "[data-testid='quake-status']"),
+        emergencyStatusMetric: requiredElement(options.root, "[data-testid='emergency-status']"),
+        emergencyRewardMetric: requiredElement(options.root, "[data-testid='emergency-reward']"),
+        epidemicStatusMetric: requiredElement(options.root, "[data-testid='epidemic-status']"),
+        epidemicRewardMetric: requiredElement(options.root, "[data-testid='epidemic-reward']"),
+        vipInspectionStatusMetric: requiredElement(options.root, "[data-testid='vip-inspection-status']"),
+        vipInspectionRewardMetric: requiredElement(options.root, "[data-testid='vip-inspection-reward']"),
+        patientDeathsMetric: requiredElement(options.root, "[data-testid='patient-deaths']"),
+        patientVomitsMetric: requiredElement(options.root, "[data-testid='patient-vomits']"),
+        patientLitterMetric: requiredElement(options.root, "[data-testid='patient-litter']"),
+        patientDrinksMetric: requiredElement(options.root, "[data-testid='patient-drinks']"),
+        ratControlMetric: requiredElement(options.root, "[data-testid='rat-control']"),
+        plantCareMetric: requiredElement(options.root, "[data-testid='plant-care']"),
+        patientsNeedingToiletMetric: requiredElement(options.root, "[data-testid='patients-needing-toilet']"),
+        patientBowelOverflowsMetric: requiredElement(options.root, "[data-testid='patient-bowel-overflows']"),
+        criticalPatientsMetric: requiredElement(options.root, "[data-testid='critical-patients']"),
+        patientMoodMetric: requiredElement(options.root, "[data-testid='patient-mood']"),
+        admissionsStatusMetric: requiredElement(options.root, "[data-testid='admissions-status']"),
+        admissionPolicyStatusMetric: requiredElement(options.root, "[data-testid='admission-policy-status']"),
+        nextAdmissionMetric: requiredElement(options.root, "[data-testid='next-admission']"),
+        admissionRulesMetric: requiredElement(options.root, "[data-testid='admission-rules']"),
+        routingRulesMetric: requiredElement(options.root, "[data-testid='routing-rules']"),
+        frontDeskStatusMetric: requiredElement(options.root, "[data-testid='front-desk-status']"),
+        activeStaffMetric: requiredElement(options.root, "[data-testid='active-staff']"),
+        onBreakStaffMetric: requiredElement(options.root, "[data-testid='on-break-staff']"),
+        staffTrainingStatusMetric: requiredElement(options.root, "[data-testid='staff-training-status']"),
+        staffSkillStatusMetric: requiredElement(options.root, "[data-testid='staff-skill-status']"),
+        staffMarketStatusMetric: requiredElement(options.root, "[data-testid='staff-market-status']"),
+        maintenanceStaffStatusMetric: requiredElement(options.root, "[data-testid='maintenance-staff-status']"),
+        openDiagnosisRoomsMetric: requiredElement(options.root, "[data-testid='open-diagnosis-rooms']"),
+        openTreatmentRoomsMetric: requiredElement(options.root, "[data-testid='open-treatment-rooms']"),
+        specializedTreatmentRoomsMetric: requiredElement(options.root, "[data-testid='specialized-treatment-rooms']"),
+        roomAvailabilityMetric: requiredElement(options.root, "[data-testid='room-availability']"),
+        objectAvailabilityMetric: requiredElement(options.root, "[data-testid='object-availability']"),
+        specializedTreatmentQueueMetric: requiredElement(options.root, "[data-testid='specialized-treatment-queue']"),
+        cashMetric: requiredElement(options.root, "[data-testid='cash']"),
+        reputationMetric: requiredElement(options.root, "[data-testid='reputation']"),
+        pricingPolicyStatusMetric: requiredElement(options.root, "[data-testid='pricing-policy-status']"),
+        loanStatusMetric: requiredElement(options.root, "[data-testid='loan-status']"),
+        loanInterestMetric: requiredElement(options.root, "[data-testid='loan-interest']"),
+        financeLedgerMetric: requiredElement(options.root, "[data-testid='finance-ledger']"),
+        financeAuditMetric: requiredElement(options.root, "[data-testid='finance-audit']"),
+        marketingCampaignMetric: requiredElement(options.root, "[data-testid='marketing-campaign']"),
+        insuranceContractStatusMetric: requiredElement(options.root, "[data-testid='insurance-contract-status']"),
+        insuranceContractRewardMetric: requiredElement(options.root, "[data-testid='insurance-contract-reward']"),
+        hospitalRatingMetric: requiredElement(options.root, "[data-testid='hospital-rating']"),
+        hospitalAwardMetric: requiredElement(options.root, "[data-testid='hospital-awards']"),
+        tickCashflowMetric: requiredElement(options.root, "[data-testid='cashflow-net']"),
+        cumulativeCashflowMetric: requiredElement(options.root, "[data-testid='cashflow-cumulative']"),
+        milestoneLevelMetric: requiredElement(options.root, "[data-testid='milestone-level']"),
+        unlocksMetric: requiredElement(options.root, "[data-testid='unlocks']"),
+        campaignProgressMetric: requiredElement(options.root, "[data-testid='campaign-progress']"),
+        levelObjectiveStatusMetric: requiredElement(options.root, "[data-testid='level-objective-status']"),
+        levelObjectiveProgressMetric: requiredElement(options.root, "[data-testid='level-objective-progress']"),
+        levelObjectiveSafetyMetric: requiredElement(options.root, "[data-testid='level-objective-safety']"),
+        eventsMetric: requiredElement(options.root, "[data-testid='event-count']"),
+        lastEventMetric: requiredElement(options.root, "[data-testid='last-event']"),
+        advisorStatusMetric: requiredElement(options.root, "[data-testid='advisor-status']"),
+        recentEventsMetric: requiredElement(options.root, "[data-testid='recent-events']"),
+        queuePressureMetric: requiredElement(options.root, "[data-testid='queue-pressure']"),
+        queuePressureStatusMetric: requiredElement(options.root, "[data-testid='queue-pressure-status']"),
+        stressedStaffMetric: requiredElement(options.root, "[data-testid='stressed-staff']"),
+        tiredStaffMetric: requiredElement(options.root, "[data-testid='tired-staff']"),
+        veryTiredStaffMetric: requiredElement(options.root, "[data-testid='very-tired-staff']"),
+        salaryPressureMetric: requiredElement(options.root, "[data-testid='salary-pressure']"),
+        autoBreakStaffMetric: requiredElement(options.root, "[data-testid='auto-break-staff']"),
+        roomsInMaintenanceMetric: requiredElement(options.root, "[data-testid='rooms-in-maintenance']"),
+        queuePressureEventsMetric: requiredElement(options.root, "[data-testid='queue-pressure-events']"),
+        staffBurnoutEventsMetric: requiredElement(options.root, "[data-testid='staff-burnout-events']"),
+        staffRecoveryEventsMetric: requiredElement(options.root, "[data-testid='staff-recovery-events']"),
+        roomMaintenanceStartEventsMetric: requiredElement(options.root, "[data-testid='room-maintenance-start-events']"),
+        roomMaintenanceCompleteEventsMetric: requiredElement(options.root, "[data-testid='room-maintenance-complete-events']"),
+        hashMetric: requiredElement(options.root, "[data-testid='hash']"),
+        pausedMetric: requiredElement(options.root, "[data-testid='paused']"),
+        audioStatusMetric: requiredElement(options.root, "[data-testid='audio-status']"),
+        audioVolumeMetric: requiredElement(options.root, "[data-testid='audio-volume-metric']")
+    };
+    const playfield = requiredElement(options.root, "[data-testid='playfield']");
+    const hospitalCanvas = requiredElement(options.root, "[data-testid='hospital-map-canvas']");
+    const hospitalCanvasSummary = requiredElement(options.root, "[data-testid='hospital-canvas-summary']");
+    const hospitalPlacementMode = requiredElement(options.root, "[data-testid='hospital-placement-mode']");
+    const originalUiStripCanvas = requiredElement(options.root, "[data-testid='original-ui-strip-canvas']");
+    const originalUiStripSummary = requiredElement(options.root, "[data-testid='original-ui-strip-summary']");
+    const hospitalMapSelect = requiredElement(options.root, "[data-testid='hospital-map-select']");
+    const cameraWestButton = requiredElement(options.root, "[data-testid='hospital-camera-west']");
+    const cameraEastButton = requiredElement(options.root, "[data-testid='hospital-camera-east']");
+    const cameraNorthButton = requiredElement(options.root, "[data-testid='hospital-camera-north']");
+    const cameraSouthButton = requiredElement(options.root, "[data-testid='hospital-camera-south']");
+    const restartLevelButton = requiredElement(options.root, "[data-testid='restart-level']");
+    const nextLevelButton = requiredElement(options.root, "[data-testid='next-level']");
+    const stepButton = requiredElement(options.root, "[data-testid='step']");
+    const admitButton = requiredElement(options.root, "[data-testid='admit']");
+    const admissionSeveritySelect = requiredElement(options.root, "[data-testid='admission-severity']");
+    const treatButton = requiredElement(options.root, "[data-testid='treat']");
+    const researchButton = requiredElement(options.root, "[data-testid='start-research']");
+    const emergencyButton = requiredElement(options.root, "[data-testid='start-emergency-wave']");
+    const epidemicButton = requiredElement(options.root, "[data-testid='start-epidemic-outbreak']");
+    const vipInspectionButton = requiredElement(options.root, "[data-testid='start-vip-inspection']");
+    const marketingCampaignButton = requiredElement(options.root, "[data-testid='run-marketing-campaign']");
+    const insuranceContractButton = requiredElement(options.root, "[data-testid='start-insurance-contract']");
+    const awardsButton = requiredElement(options.root, "[data-testid='run-awards-ceremony']");
+    const financeAuditButton = requiredElement(options.root, "[data-testid='run-finance-audit']");
+    const takeLoanButton = requiredElement(options.root, "[data-testid='take-loan']");
+    const repayLoanButton = requiredElement(options.root, "[data-testid='repay-loan']");
+    const prioritizeSelectedPatientButton = requiredElement(options.root, "[data-testid='prioritize-selected-patient']");
+    const sendSelectedPatientHomeButton = requiredElement(options.root, "[data-testid='send-selected-patient-home']");
+    const giveDrinkSelectedPatientButton = requiredElement(options.root, "[data-testid='give-drink-selected-patient']");
+    const sendSelectedPatientToiletButton = requiredElement(options.root, "[data-testid='send-selected-patient-toilet']");
+    const shootRatButton = requiredElement(options.root, "[data-testid='shoot-rat']");
+    const waterPlantButton = requiredElement(options.root, "[data-testid='water-plant']");
+    const moveSelectedStaffButton = requiredElement(options.root, "[data-testid='move-selected-staff']");
+    const restSelectedStaffButton = requiredElement(options.root, "[data-testid='rest-selected-staff']");
+    const trainSelectedStaffButton = requiredElement(options.root, "[data-testid='train-selected-staff']");
+    const fireSelectedStaffButton = requiredElement(options.root, "[data-testid='fire-selected-staff']");
+    const sellSelectedRoomButton = requiredElement(options.root, "[data-testid='sell-selected-room']");
+    const repairSelectedRoomButton = requiredElement(options.root, "[data-testid='repair-selected-room']");
+    const buildDiagnosisRoomButton = requiredElement(options.root, "[data-testid='build-diagnosis-room']");
+    const buildTreatmentRoomButton = requiredElement(options.root, "[data-testid='build-treatment-room']");
+    const buildPharmacyRoomButton = requiredElement(options.root, "[data-testid='build-pharmacy-room']");
+    const buildSpecialistRoomButton = requiredElement(options.root, "[data-testid='build-specialist-room']");
+    const hireDiagnosticianButton = requiredElement(options.root, "[data-testid='hire-diagnostician']");
+    const hireNurseButton = requiredElement(options.root, "[data-testid='hire-nurse']");
+    const hireHandymanButton = requiredElement(options.root, "[data-testid='hire-handyman']");
+    const hireReceptionistButton = requiredElement(options.root, "[data-testid='hire-receptionist']");
+    const saveSlotNameInput = requiredElement(options.root, "[data-testid='save-slot-name']");
+    const saveSlotSelect = requiredElement(options.root, "[data-testid='save-slot-select']");
+    const saveGameButton = requiredElement(options.root, "[data-testid='save-game']");
+    const loadGameButton = requiredElement(options.root, "[data-testid='load-game']");
+    const refreshSaveSlotsButton = requiredElement(options.root, "[data-testid='refresh-save-slots']");
+    const deleteSaveSlotButton = requiredElement(options.root, "[data-testid='delete-save-slot']");
+    const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
+    const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
+    const selectionStatus = requiredElement(options.root, "[data-testid='selection-status']");
+    const casebookSummary = requiredElement(options.root, "[data-testid='casebook-summary']");
+    const createOrchestratorOptions = () => {
+        const restoreOptions = createRestoreOptionsFromHospitalView(hospitalView);
+        return {
+            seed: options.seed,
+            ...(options.tickRateHz !== undefined ? { tickRateHz: options.tickRateHz } : {}),
+            ...(options.pointerTileSize !== undefined ? { pointerTileSize: options.pointerTileSize } : {}),
+            ...(hospitalView?.map ? { bounds: { width: hospitalView.map.width, height: hospitalView.map.height } } : {}),
+            ...restoreOptions,
+            ...(options.scenarioCommands !== undefined ? { bootstrapCommands: options.scenarioCommands } : {})
+        };
+    };
+    const persistenceAdapter = options.persistenceAdapter ?? createIndexedDbPersistenceAdapter({
+        databaseName: "corsixth-browser-runtime",
+        storeName: "save-slots"
+    });
+    let orchestrator = new AppOrchestrator(createOrchestratorOptions());
+    let selectedTile = null;
+    let selectedEntity = null;
+    let placementAction = null;
+    let placementPreview = null;
+    let lastPlacementEvaluation = null;
+    const resetInteractionState = () => {
+        selectedTile = null;
+        selectedEntity = null;
+        placementAction = null;
+        placementPreview = null;
+        lastPlacementEvaluation = null;
+    };
+    const resetOrchestratorForActiveMap = () => {
+        orchestrator = new AppOrchestrator(createOrchestratorOptions());
+        resetInteractionState();
+    };
+    const renderHospital = () => {
+        hospitalCanvasSummary.textContent = renderHospitalCanvas(hospitalCanvas, hospitalView, orchestrator, selectedTile, placementPreview, selectedEntity);
+        hospitalPlacementMode.textContent = formatPlacementMode(placementAction, placementPreview);
+    };
+    const renderCasebook = () => {
+        casebookSummary.textContent = formatCasebookWithLanguage(orchestrator.getState(), hospitalView?.languageSummary ?? null);
+    };
+    const renderLevelControls = () => {
+        const telemetry = orchestrator.telemetry();
+        telemetryElements.campaignProgressMetric.textContent = formatCampaignProgress(hospitalView, telemetry);
+        restartLevelButton.disabled = !hospitalView?.map;
+        nextLevelButton.disabled = telemetry.levelObjectiveStatus !== "won" || nextHospitalMapPath(hospitalView) === null;
+    };
+    const renderSelectionControls = () => {
+        const state = orchestrator.getState();
+        const resolved = selectedEntityFromState(state, selectedEntity);
+        selectionStatus.textContent = formatSelectionStatusWithLanguage(state, selectedEntity, hospitalView?.languageSummary ?? null);
+        if (selectedEntity && !resolved) {
+            selectedEntity = null;
+            selectionStatus.textContent = formatNoSelectionStatus();
+        }
+        prioritizeSelectedPatientButton.disabled = !(resolved?.type === "patient" &&
+            (resolved.value.status === "queued" || resolved.value.status === "awaiting-treatment"));
+        sendSelectedPatientHomeButton.disabled = resolved?.type !== "patient";
+        giveDrinkSelectedPatientButton.disabled = resolved?.type !== "patient";
+        sendSelectedPatientToiletButton.disabled = resolved?.type !== "patient";
+        moveSelectedStaffButton.disabled = resolved?.type !== "staff";
+        restSelectedStaffButton.disabled = !(resolved?.type === "staff" && resolved.value.status === "on-break" && resolved.value.stress > 0);
+        const telemetry = orchestrator.telemetry();
+        trainSelectedStaffButton.disabled = !(resolved?.type === "staff" &&
+            resolved.value.trainingRemainingTicks === 0 &&
+            resolved.value.skillLevel < telemetry.maxStaffSkillLevel &&
+            telemetry.cash >= telemetry.staffTrainingCost);
+        fireSelectedStaffButton.disabled = resolved?.type !== "staff";
+        sellSelectedRoomButton.disabled = resolved?.type !== "room";
+        repairSelectedRoomButton.disabled = resolved?.type !== "room";
+        if (resolved?.type === "staff") {
+            telemetryElements.staffBreakToggleButton.textContent = formatSelectedStaffBreakToggleLabel(resolved.value);
+        }
+        if (resolved?.type === "room") {
+            telemetryElements.treatmentRoomToggleButton.textContent = formatSelectedRoomToggleLabel(resolved.value);
+        }
+    };
+    const renderRuntime = () => {
+        const currentMap = campaignMapSummaryAt(hospitalView, campaignLevelIndex(hospitalView));
+        renderTelemetry(telemetryElements, orchestrator, audioMixer, hospitalView?.languageSummary ?? null, currentMap?.scenario ?? null);
+        const telemetry = orchestrator.telemetry();
+        buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
+        buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
+        buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
+        buildSpecialistRoomButton.textContent = formatBuildRoomButtonLabel("specialist", telemetry, hospitalView?.languageSummary ?? null);
+        hireDiagnosticianButton.textContent = formatHireStaffButtonLabel("diagnostician", telemetry, hospitalView?.languageSummary ?? null);
+        hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
+        hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
+        hireReceptionistButton.textContent = formatHireStaffButtonLabel("receptionist", telemetry, hospitalView?.languageSummary ?? null);
+        renderHospital();
+        renderSelectionControls();
+        renderLevelControls();
+        renderCasebook();
+    };
+    const createPlacementDispatchAction = (placement, tile) => ({
+        device: "ui",
+        action: placement.action,
+        source: placement.source,
+        pointer: {
+            x: tile.x * orchestrator.pointerTileSize,
+            y: tile.y * orchestrator.pointerTileSize
+        },
+        ...(placement.roomType ? { roomType: placement.roomType } : {}),
+        ...(placement.role ? { role: placement.role } : {}),
+        ...(placement.staffId ? { staffId: placement.staffId } : {})
+    });
+    const updatePlacementPreviewForPoint = (point) => {
+        if (!placementAction || !hospitalView || !point) {
+            placementPreview = null;
+            renderHospital();
+            return null;
+        }
+        const tile = resolveHospitalTileFromCanvasPoint(hospitalView, point);
+        if (!tile) {
+            placementPreview = null;
+            renderHospital();
+            return null;
+        }
+        selectedTile = tile;
+        placementPreview = orchestrator.evaluatePlacement(createPlacementDispatchAction(placementAction, tile));
+        renderHospital();
+        return tile;
+    };
+    const updateActionStatus = (events, placementEvaluation = null) => {
+        const nextStatus = formatActionStatus(events, placementEvaluation);
+        if (nextStatus) {
+            actionStatus.textContent = nextStatus;
+        }
+    };
+    const activeSaveSlot = () => {
+        const slot = saveSlotNameInput.value.trim();
+        return slot.length > 0 ? slot : DEFAULT_SAVE_SLOT;
+    };
+    const renderSaveSlots = (slots) => {
+        const active = activeSaveSlot();
+        saveSlotSelect.innerHTML = formatSaveSlotOptionsHtml(slots, active);
+        saveSlotSelect.value = active;
+    };
+    const refreshSaveSlots = (refreshOptions = {}) => persistenceAdapter
+        .listSlots()
+        .then((slots) => {
+        renderSaveSlots(slots);
+        if (!refreshOptions.silent) {
+            saveStatus.textContent = formatSaveSlotsStatus(slots.length);
+        }
+        return slots;
+    })
+        .catch((error) => {
+        if (!refreshOptions.silent) {
+            saveStatus.textContent = formatSaveFailureStatus("Slots", stringifyError(error));
+        }
+        return [];
+    });
+    renderRuntime();
+    const onPauseToggle = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+        device: "ui",
+        action: "pause-toggle",
+        source: "ui:pause-toggle"
+    }, renderRuntime);
+    const onAdmissionsToggle = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "admissions-toggle",
+            source: "ui:admissions-toggle"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onSpeedSelect = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "speed-set",
+            source: "ui:speed-select",
+            speedMultiplier: Number(telemetryElements.speedSelect.value)
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onAdmissionPolicySelect = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "admission-policy-set",
+            source: "ui:admission-policy",
+            admissionPolicy: telemetryElements.admissionPolicySelect.value
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onPricingPolicySelect = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "pricing-policy-set",
+            source: "ui:pricing-policy",
+            pricingPolicy: telemetryElements.pricingPolicySelect.value
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onTakeLoan = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "take-loan",
+            source: "ui:take-loan"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onRepayLoan = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "repay-loan",
+            source: "ui:repay-loan"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onMarketingCampaign = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "run-marketing-campaign",
+            source: "ui:run-marketing-campaign"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onFinanceAudit = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "run-finance-audit",
+            source: "ui:run-finance-audit"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStartInsuranceContract = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "start-insurance-contract",
+            source: "ui:start-insurance-contract"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onAwardsCeremony = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "run-awards-ceremony",
+            source: "ui:run-awards-ceremony"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStartResearch = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "start-research",
+            source: "ui:start-research"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStartEmergency = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "start-emergency-wave",
+            source: "ui:start-emergency-wave"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStartEpidemic = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "start-epidemic-outbreak",
+            source: "ui:start-epidemic-outbreak"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStartVipInspection = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "start-vip-inspection",
+            source: "ui:start-vip-inspection"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStep = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+        device: "ui",
+        action: "step-tick",
+        source: "ui:step"
+    }, renderRuntime);
+    const onAdmit = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+        device: "ui",
+        action: "admit-patient",
+        severity: Number(admissionSeveritySelect.value),
+        source: "ui:admit"
+    }, renderRuntime);
+    const onTreat = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "treat-patient",
+            ...(resolved?.type === "patient" ? { patientId: resolved.value.id } : {}),
+            source: "ui:treat"
+        }, renderRuntime);
+        if (resolved?.type === "patient") {
+            selectedEntity = null;
+        }
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onSendSelectedPatientHome = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "patient") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "send-patient-home",
+            patientId: resolved.value.id,
+            source: "ui:send-selected-patient-home"
+        }, renderRuntime);
+        selectedEntity = null;
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onPrioritizeSelectedPatient = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "patient") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "prioritize-patient",
+            patientId: resolved.value.id,
+            source: "ui:prioritize-selected-patient"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onGiveDrinkSelectedPatient = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "patient") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "give-patient-drink",
+            patientId: resolved.value.id,
+            source: "ui:give-drink-selected-patient"
+        }, renderRuntime);
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onSendSelectedPatientToilet = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "patient") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "send-patient-toilet",
+            patientId: resolved.value.id,
+            source: "ui:send-selected-patient-toilet"
+        }, renderRuntime);
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onShootRat = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "shoot-rat",
+            source: "ui:shoot-rat"
+        }, renderRuntime);
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onWaterPlant = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "water-plant",
+            source: "ui:water-plant"
+        }, renderRuntime);
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onMoveSelectedStaff = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "staff") {
+            return;
+        }
+        placementAction = {
+            action: "move-staff",
+            staffId: resolved.value.id,
+            role: resolved.value.role,
+            source: "ui:move-selected-staff",
+            label: `move ${staffRoleDisplayName(resolved.value.role, hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onRestSelectedStaff = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "staff") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "rest-staff",
+            staffId: resolved.value.id,
+            restType: bestStaffRestType(orchestrator.telemetry()),
+            source: "ui:rest-selected-staff"
+        }, renderRuntime);
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onTrainSelectedStaff = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "staff") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "train-staff",
+            staffId: resolved.value.id,
+            source: "ui:train-selected-staff"
+        }, renderRuntime);
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onFireSelectedStaff = () => {
+        if (selectedEntity?.type !== "staff") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "fire-staff",
+            staffId: selectedEntity.id,
+            source: "ui:fire-selected-staff"
+        }, renderRuntime);
+        selectedEntity = null;
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onSellSelectedRoom = () => {
+        if (selectedEntity?.type !== "room") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "sell-room",
+            roomId: selectedEntity.id,
+            source: "ui:sell-selected-room"
+        }, renderRuntime);
+        selectedEntity = null;
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onRepairSelectedRoom = () => {
+        if (selectedEntity?.type !== "room") {
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "repair-room",
+            roomId: selectedEntity.id,
+            source: "ui:repair-selected-room"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onStaffBreakToggle = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+        device: "ui",
+        action: "staff-break-toggle",
+        source: "ui:staff-break-toggle",
+        ...(selectedEntity?.type === "staff" ? { staffId: selectedEntity.id } : {})
+    }, renderRuntime);
+    const onTreatmentRoomToggle = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+        device: "ui",
+        action: "treatment-room-toggle",
+        source: "ui:treatment-room-toggle",
+        ...(selectedEntity?.type === "room" ? { roomId: selectedEntity.id } : {})
+    }, renderRuntime);
+    const onBuildDiagnosisRoom = () => {
+        placementAction = {
+            action: "build-room",
+            roomType: "diagnosis",
+            source: "ui:build-diagnosis-room",
+            label: `build ${roomTypeDisplayName("diagnosis", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildTreatmentRoom = () => {
+        placementAction = {
+            action: "build-room",
+            roomType: "treatment",
+            source: "ui:build-treatment-room",
+            label: `build ${roomTypeDisplayName("treatment", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildPharmacyRoom = () => {
+        placementAction = {
+            action: "build-room",
+            roomType: "pharmacy",
+            source: "ui:build-pharmacy-room",
+            label: `build ${roomTypeDisplayName("pharmacy", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildSpecialistRoom = () => {
+        placementAction = {
+            action: "build-room",
+            roomType: "specialist",
+            source: "ui:build-specialist-room",
+            label: `build ${roomTypeDisplayName("specialist", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onHireDiagnostician = () => {
+        placementAction = {
+            action: "hire-staff",
+            role: "diagnostician",
+            source: "ui:hire-diagnostician",
+            label: `hire ${staffRoleDisplayName("diagnostician", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onHireNurse = () => {
+        placementAction = {
+            action: "hire-staff",
+            role: "nurse",
+            source: "ui:hire-nurse",
+            label: `hire ${staffRoleDisplayName("nurse", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onHireHandyman = () => {
+        placementAction = {
+            action: "hire-staff",
+            role: "handyman",
+            source: "ui:hire-handyman",
+            label: `hire ${staffRoleDisplayName("handyman", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onHireReceptionist = () => {
+        placementAction = {
+            action: "hire-staff",
+            role: "receptionist",
+            source: "ui:hire-receptionist",
+            label: `hire ${staffRoleDisplayName("receptionist", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onSaveGame = () => {
+        const slot = activeSaveSlot();
+        saveSlotNameInput.value = slot;
+        saveStatus.textContent = formatSaveLifecycleStatus("saving");
+        void saveOrchestratorToSlot(persistenceAdapter, slot, orchestrator, {
+            mapView: createHospitalMapViewSnapshot(hospitalView)
+        })
+            .then(() => {
+            saveStatus.textContent = formatSaveTickStatus(orchestrator.telemetry().tick, slot);
+            return refreshSaveSlots({ silent: true });
+        })
+            .catch((error) => {
+            saveStatus.textContent = formatSaveFailureStatus("Save", stringifyError(error));
+        });
+    };
+    const onLoadGame = () => {
+        const slot = activeSaveSlot();
+        saveSlotNameInput.value = slot;
+        saveStatus.textContent = formatSaveLifecycleStatus("loading");
+        void persistenceAdapter.loadSlot(slot, {
+            fallbackSeed: options.seed,
+            defaultTickRateHz: options.tickRateHz ?? DEFAULT_TICK_RATE_HZ,
+            defaultPointerTileSize: options.pointerTileSize ?? DEFAULT_POINTER_TILE_SIZE
+        })
+            .then((loaded) => {
+            if (loaded.status === "fallback" && loaded.issues.includes("missing-save-slot")) {
+                saveStatus.textContent = formatSaveLifecycleStatus("no slot");
+                return;
+            }
+            const mapRestored = restoreHospitalMapViewSnapshot(hospitalView, loaded.envelope.payload.mapView);
+            if (!mapRestored) {
+                saveStatus.textContent = formatMissingMapLoadStatus(loaded.envelope.payload.mapView.mapPath);
+                return;
+            }
+            hospitalMapSelect.value = hospitalView?.mapPath ?? "";
+            orchestrator = restoreOrchestratorFromSaveEnvelope(loaded.envelope, createRestoreOptionsFromHospitalView(hospitalView));
+            resetInteractionState();
+            saveStatus.textContent = formatLoadResultStatus(loaded.status, orchestrator.telemetry().tick, slot);
+            renderRuntime();
+        })
+            .catch((error) => {
+            saveStatus.textContent = formatSaveFailureStatus("Load", stringifyError(error));
+        });
+    };
+    const onRefreshSaveSlots = () => {
+        void refreshSaveSlots();
+    };
+    const onDeleteSaveSlot = () => {
+        const slot = activeSaveSlot();
+        saveSlotNameInput.value = slot;
+        saveStatus.textContent = formatSaveLifecycleStatus("deleting");
+        void persistenceAdapter
+            .deleteSlot(slot)
+            .then(() => refreshSaveSlots({ silent: true }))
+            .then(() => {
+            saveStatus.textContent = formatDeletedSaveSlotStatus(slot);
+        })
+            .catch((error) => {
+            saveStatus.textContent = formatSaveFailureStatus("Delete", stringifyError(error));
+        });
+    };
+    const onSaveSlotSelectChange = () => {
+        saveSlotNameInput.value = saveSlotSelect.value || DEFAULT_SAVE_SLOT;
+    };
+    const onMuteToggle = () => {
+        requestAudioInitialization(audioMixer, orchestrator, telemetryElements, renderRuntime);
+        audioMixer.setMuted(!audioMixer.status().muted);
+        renderRuntime();
+    };
+    const onVolumeInput = () => {
+        requestAudioInitialization(audioMixer, orchestrator, telemetryElements, renderRuntime);
+        const volumePercent = clamp(Number(telemetryElements.volumeSlider.value), 0, 100);
+        audioMixer.setVolume(volumePercent / 100);
+        renderRuntime();
+    };
+    const actionForHospitalPointer = (action, point) => {
+        lastPlacementEvaluation = null;
+        if (!action || !hospitalView || !point) {
+            return action;
+        }
+        const tile = resolveHospitalTileFromCanvasPoint(hospitalView, point);
+        if (!tile) {
+            return action;
+        }
+        selectedTile = tile;
+        if (placementAction && action.action === "treat-patient") {
+            const nextAction = createPlacementDispatchAction(placementAction, tile);
+            lastPlacementEvaluation = orchestrator.evaluatePlacement(nextAction);
+            placementAction = null;
+            placementPreview = null;
+            selectedEntity = null;
+            return nextAction;
+        }
+        if (placementAction) {
+            placementPreview = orchestrator.evaluatePlacement(createPlacementDispatchAction(placementAction, tile));
+        }
+        if (!placementAction && action.action === "treat-patient") {
+            const target = findSelectableEntityAtTile(orchestrator.getState(), tile);
+            if (target?.type === "staff" || target?.type === "room") {
+                selectedEntity = target;
+                actionStatus.textContent = formatSelectedEntityActionStatus(target.type);
+                return null;
+            }
+            if (target?.type === "patient") {
+                selectedEntity = target;
+                actionStatus.textContent = formatSelectedEntityActionStatus(target.type);
+                return null;
+            }
+            selectedEntity = null;
+        }
+        return {
+            ...action,
+            pointer: {
+                x: tile.x * orchestrator.pointerTileSize,
+                y: tile.y * orchestrator.pointerTileSize
+            }
+        };
+    };
+    const onMouseDown = (event) => {
+        const action = normalizeMouseEvent({
+            type: event.type,
+            button: event.button,
+            clientX: event.clientX,
+            clientY: event.clientY
+        });
+        const nextAction = actionForHospitalPointer(action, canvasPointerFromEvent(event, hospitalCanvas));
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, nextAction, renderRuntime);
+        if (!nextAction) {
+            renderRuntime();
+        }
+        updateActionStatus(events, lastPlacementEvaluation);
+    };
+    const onMouseMove = (event) => {
+        if (!placementAction) {
+            return;
+        }
+        updatePlacementPreviewForPoint(canvasPointerFromEvent(event, hospitalCanvas));
+    };
+    const onMouseLeave = () => {
+        if (!placementAction || !placementPreview) {
+            return;
+        }
+        placementPreview = null;
+        renderHospital();
+    };
+    const onTouchStart = (event) => {
+        const touches = Array.from(event.touches).map((touch) => ({
+            clientX: touch.clientX,
+            clientY: touch.clientY
+        }));
+        const action = normalizeTouchEvent({
+            type: event.type,
+            touches
+        });
+        const firstTouch = event.touches[0];
+        const point = firstTouch ? canvasPointerFromEvent(firstTouch, hospitalCanvas) : null;
+        const nextAction = actionForHospitalPointer(action, point);
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, nextAction, renderRuntime);
+        if (!nextAction) {
+            renderRuntime();
+        }
+        updateActionStatus(events, lastPlacementEvaluation);
+    };
+    const onKeyDown = (event) => {
+        dispatchAndRender(orchestrator, telemetryElements, audioMixer, normalizeKeyboardEvent({
+            type: event.type,
+            code: event.code,
+            repeat: event.repeat,
+            altKey: event.altKey,
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey
+        }), renderRuntime);
+    };
+    const onContextMenu = (event) => {
+        event.preventDefault();
+    };
+    const onMapSelectChange = () => {
+        if (!hospitalView) {
+            return;
+        }
+        if (setHospitalViewMap(hospitalView, hospitalMapSelect.value)) {
+            resetOrchestratorForActiveMap();
+            saveStatus.textContent = formatNewMapStatus(hospitalView.mapPath);
+            renderRuntime();
+        }
+    };
+    const onRestartLevel = () => {
+        if (!hospitalView?.map) {
+            return;
+        }
+        resetOrchestratorForActiveMap();
+        saveStatus.textContent = formatRestartedLevelStatus(hospitalView.mapPath);
+        renderRuntime();
+    };
+    const onNextLevel = () => {
+        if (orchestrator.telemetry().levelObjectiveStatus !== "won") {
+            return;
+        }
+        const nextMapPath = nextHospitalMapPath(hospitalView);
+        if (!nextMapPath || !setHospitalViewMap(hospitalView, nextMapPath)) {
+            saveStatus.textContent = formatCampaignCompleteStatus();
+            renderRuntime();
+            return;
+        }
+        hospitalMapSelect.value = hospitalView.mapPath;
+        resetOrchestratorForActiveMap();
+        saveStatus.textContent = formatNextLevelStatus(hospitalView.mapPath);
+        renderRuntime();
+    };
+    const onCameraWest = () => {
+        moveHospitalCamera(hospitalView, -HOSPITAL_CAMERA_STEP, 0);
+        placementPreview = null;
+        renderHospital();
+    };
+    const onCameraEast = () => {
+        moveHospitalCamera(hospitalView, HOSPITAL_CAMERA_STEP, 0);
+        placementPreview = null;
+        renderHospital();
+    };
+    const onCameraNorth = () => {
+        moveHospitalCamera(hospitalView, 0, -HOSPITAL_CAMERA_STEP);
+        placementPreview = null;
+        renderHospital();
+    };
+    const onCameraSouth = () => {
+        moveHospitalCamera(hospitalView, 0, HOSPITAL_CAMERA_STEP);
+        placementPreview = null;
+        renderHospital();
+    };
+    if (!hospitalView) {
+        hospitalMapSelect.disabled = true;
+        cameraWestButton.disabled = true;
+        cameraEastButton.disabled = true;
+        cameraNorthButton.disabled = true;
+        cameraSouthButton.disabled = true;
+    }
+    telemetryElements.pauseToggleButton.addEventListener("click", onPauseToggle);
+    telemetryElements.speedSelect.addEventListener("change", onSpeedSelect);
+    telemetryElements.admissionPolicySelect.addEventListener("change", onAdmissionPolicySelect);
+    telemetryElements.pricingPolicySelect.addEventListener("change", onPricingPolicySelect);
+    telemetryElements.admissionsToggleButton.addEventListener("click", onAdmissionsToggle);
+    telemetryElements.muteToggleButton.addEventListener("click", onMuteToggle);
+    telemetryElements.volumeSlider.addEventListener("input", onVolumeInput);
+    stepButton.addEventListener("click", onStep);
+    admitButton.addEventListener("click", onAdmit);
+    treatButton.addEventListener("click", onTreat);
+    researchButton.addEventListener("click", onStartResearch);
+    emergencyButton.addEventListener("click", onStartEmergency);
+    epidemicButton.addEventListener("click", onStartEpidemic);
+    vipInspectionButton.addEventListener("click", onStartVipInspection);
+    marketingCampaignButton.addEventListener("click", onMarketingCampaign);
+    financeAuditButton.addEventListener("click", onFinanceAudit);
+    insuranceContractButton.addEventListener("click", onStartInsuranceContract);
+    awardsButton.addEventListener("click", onAwardsCeremony);
+    takeLoanButton.addEventListener("click", onTakeLoan);
+    repayLoanButton.addEventListener("click", onRepayLoan);
+    prioritizeSelectedPatientButton.addEventListener("click", onPrioritizeSelectedPatient);
+    sendSelectedPatientHomeButton.addEventListener("click", onSendSelectedPatientHome);
+    giveDrinkSelectedPatientButton.addEventListener("click", onGiveDrinkSelectedPatient);
+    sendSelectedPatientToiletButton.addEventListener("click", onSendSelectedPatientToilet);
+    shootRatButton.addEventListener("click", onShootRat);
+    waterPlantButton.addEventListener("click", onWaterPlant);
+    moveSelectedStaffButton.addEventListener("click", onMoveSelectedStaff);
+    restSelectedStaffButton.addEventListener("click", onRestSelectedStaff);
+    trainSelectedStaffButton.addEventListener("click", onTrainSelectedStaff);
+    fireSelectedStaffButton.addEventListener("click", onFireSelectedStaff);
+    sellSelectedRoomButton.addEventListener("click", onSellSelectedRoom);
+    repairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
+    buildDiagnosisRoomButton.addEventListener("click", onBuildDiagnosisRoom);
+    buildTreatmentRoomButton.addEventListener("click", onBuildTreatmentRoom);
+    buildPharmacyRoomButton.addEventListener("click", onBuildPharmacyRoom);
+    buildSpecialistRoomButton.addEventListener("click", onBuildSpecialistRoom);
+    hireDiagnosticianButton.addEventListener("click", onHireDiagnostician);
+    hireNurseButton.addEventListener("click", onHireNurse);
+    hireHandymanButton.addEventListener("click", onHireHandyman);
+    hireReceptionistButton.addEventListener("click", onHireReceptionist);
+    saveSlotSelect.addEventListener("change", onSaveSlotSelectChange);
+    saveGameButton.addEventListener("click", onSaveGame);
+    loadGameButton.addEventListener("click", onLoadGame);
+    refreshSaveSlotsButton.addEventListener("click", onRefreshSaveSlots);
+    deleteSaveSlotButton.addEventListener("click", onDeleteSaveSlot);
+    telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
+    telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
+    playfield.addEventListener("mousedown", onMouseDown);
+    playfield.addEventListener("mousemove", onMouseMove);
+    playfield.addEventListener("mouseleave", onMouseLeave);
+    playfield.addEventListener("touchstart", onTouchStart);
+    playfield.addEventListener("contextmenu", onContextMenu);
+    hospitalMapSelect.addEventListener("change", onMapSelectChange);
+    restartLevelButton.addEventListener("click", onRestartLevel);
+    nextLevelButton.addEventListener("click", onNextLevel);
+    cameraWestButton.addEventListener("click", onCameraWest);
+    cameraEastButton.addEventListener("click", onCameraEast);
+    cameraNorthButton.addEventListener("click", onCameraNorth);
+    cameraSouthButton.addEventListener("click", onCameraSouth);
+    window.addEventListener("keydown", onKeyDown);
+    void refreshSaveSlots({ silent: true });
+    originalUiStripSummary.textContent = renderOriginalUiStrip(originalUiStripCanvas, hospitalView);
+    let lastTimestamp = frameClock.now();
+    let animationFrameHandle = 0;
+    const onFrame = (timestamp) => {
+        const elapsedMs = Math.max(0, timestamp - lastTimestamp);
+        lastTimestamp = timestamp;
+        const advancedTicks = orchestrator.advanceFrame(elapsedMs);
+        if (advancedTicks > 0) {
+            renderRuntime();
+        }
+        animationFrameHandle = frameClock.requestFrame(onFrame);
+    };
+    animationFrameHandle = frameClock.requestFrame(onFrame);
+    return {
+        orchestrator,
+        render: () => {
+            renderRuntime();
+        },
+        dispose: () => {
+            frameClock.cancelFrame(animationFrameHandle);
+            telemetryElements.pauseToggleButton.removeEventListener("click", onPauseToggle);
+            telemetryElements.speedSelect.removeEventListener("change", onSpeedSelect);
+            telemetryElements.admissionPolicySelect.removeEventListener("change", onAdmissionPolicySelect);
+            telemetryElements.pricingPolicySelect.removeEventListener("change", onPricingPolicySelect);
+            telemetryElements.admissionsToggleButton.removeEventListener("click", onAdmissionsToggle);
+            telemetryElements.muteToggleButton.removeEventListener("click", onMuteToggle);
+            telemetryElements.volumeSlider.removeEventListener("input", onVolumeInput);
+            stepButton.removeEventListener("click", onStep);
+            admitButton.removeEventListener("click", onAdmit);
+            treatButton.removeEventListener("click", onTreat);
+            researchButton.removeEventListener("click", onStartResearch);
+            emergencyButton.removeEventListener("click", onStartEmergency);
+            epidemicButton.removeEventListener("click", onStartEpidemic);
+            vipInspectionButton.removeEventListener("click", onStartVipInspection);
+            marketingCampaignButton.removeEventListener("click", onMarketingCampaign);
+            financeAuditButton.removeEventListener("click", onFinanceAudit);
+            insuranceContractButton.removeEventListener("click", onStartInsuranceContract);
+            awardsButton.removeEventListener("click", onAwardsCeremony);
+            takeLoanButton.removeEventListener("click", onTakeLoan);
+            repayLoanButton.removeEventListener("click", onRepayLoan);
+            prioritizeSelectedPatientButton.removeEventListener("click", onPrioritizeSelectedPatient);
+            sendSelectedPatientHomeButton.removeEventListener("click", onSendSelectedPatientHome);
+            giveDrinkSelectedPatientButton.removeEventListener("click", onGiveDrinkSelectedPatient);
+            sendSelectedPatientToiletButton.removeEventListener("click", onSendSelectedPatientToilet);
+            shootRatButton.removeEventListener("click", onShootRat);
+            waterPlantButton.removeEventListener("click", onWaterPlant);
+            moveSelectedStaffButton.removeEventListener("click", onMoveSelectedStaff);
+            restSelectedStaffButton.removeEventListener("click", onRestSelectedStaff);
+            trainSelectedStaffButton.removeEventListener("click", onTrainSelectedStaff);
+            fireSelectedStaffButton.removeEventListener("click", onFireSelectedStaff);
+            sellSelectedRoomButton.removeEventListener("click", onSellSelectedRoom);
+            repairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
+            buildDiagnosisRoomButton.removeEventListener("click", onBuildDiagnosisRoom);
+            buildTreatmentRoomButton.removeEventListener("click", onBuildTreatmentRoom);
+            buildPharmacyRoomButton.removeEventListener("click", onBuildPharmacyRoom);
+            buildSpecialistRoomButton.removeEventListener("click", onBuildSpecialistRoom);
+            hireDiagnosticianButton.removeEventListener("click", onHireDiagnostician);
+            hireNurseButton.removeEventListener("click", onHireNurse);
+            hireHandymanButton.removeEventListener("click", onHireHandyman);
+            hireReceptionistButton.removeEventListener("click", onHireReceptionist);
+            saveSlotSelect.removeEventListener("change", onSaveSlotSelectChange);
+            saveGameButton.removeEventListener("click", onSaveGame);
+            loadGameButton.removeEventListener("click", onLoadGame);
+            refreshSaveSlotsButton.removeEventListener("click", onRefreshSaveSlots);
+            deleteSaveSlotButton.removeEventListener("click", onDeleteSaveSlot);
+            telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
+            telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
+            playfield.removeEventListener("mousedown", onMouseDown);
+            playfield.removeEventListener("mousemove", onMouseMove);
+            playfield.removeEventListener("mouseleave", onMouseLeave);
+            playfield.removeEventListener("touchstart", onTouchStart);
+            playfield.removeEventListener("contextmenu", onContextMenu);
+            hospitalMapSelect.removeEventListener("change", onMapSelectChange);
+            restartLevelButton.removeEventListener("click", onRestartLevel);
+            nextLevelButton.removeEventListener("click", onNextLevel);
+            cameraWestButton.removeEventListener("click", onCameraWest);
+            cameraEastButton.removeEventListener("click", onCameraEast);
+            cameraNorthButton.removeEventListener("click", onCameraNorth);
+            cameraSouthButton.removeEventListener("click", onCameraSouth);
+            window.removeEventListener("keydown", onKeyDown);
+        }
+    };
+}

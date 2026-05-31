@@ -1,0 +1,72 @@
+{
+    "schemaVersion": "replay.v0",
+    "id": "phase7-slice4-secondary-systems-polish",
+    "seed": 7405,
+    "commands": [
+        {
+            "type": "tick",
+            "count": 1
+        },
+        {
+            "type": "admit-patient",
+            "severity": 3,
+            "position": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "type": "admit-patient",
+            "severity": 3,
+            "position": {
+                "x": 2,
+                "y": 2
+            }
+        },
+        {
+            "type": "admit-patient",
+            "severity": 3,
+            "position": {
+                "x": 3,
+                "y": 3
+            }
+        },
+        {
+            "type": "admit-patient",
+            "severity": 3,
+            "position": {
+                "x": 4,
+                "y": 4
+            }
+        },
+        {
+            "type": "set-room-status",
+            "roomId": 2,
+            "status": "closed"
+        },
+        {
+            "type": "tick",
+            "count": 24
+        },
+        {
+            "type": "set-room-status",
+            "roomId": 2,
+            "status": "open"
+        },
+        {
+            "type": "tick",
+            "count": 12
+        }
+    ],
+    "expectedStepHashes": [
+        "759a7991",
+        "4b5bb428",
+        "873148da",
+        "3cc2a596",
+        "f3f163a0",
+        "3216f0e4",
+        "d5ae8c85",
+        "fcc744a1",
+        "4cb3a03d"
+    ]
+}

@@ -1,0 +1,11 @@
+{
+  "name": "@corsixth/scenario-runner",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/replay.js"
+  },
+  "dependencies": {
+    "@corsixth/replay": "workspace:*"
+  }
+}

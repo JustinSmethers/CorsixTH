@@ -114,3 +114,14 @@ CorsixTH/corsix-th
 # Nix
 *.so
 /result*
+
+# JavaScript / TypeScript browser-port workspace
+GameData/
+node_modules/
+.pnpm-store/
+web/**/node_modules/
+web/**/dist/
+web/.tmp/
+web/test-results/
+web/apps/game/playwright-report/
+web/apps/game/e2e/fixtures/

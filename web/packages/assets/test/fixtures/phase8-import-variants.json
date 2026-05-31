@@ -1,0 +1,38 @@
+{
+    "variants": [
+        {
+            "id": "valid-prefixed-mixed-case",
+            "expectedStatus": "ready",
+            "expectedCodes": ["detected-root-prefix", "ready"],
+            "entries": [
+                { "path": "Theme Hospital/hospital.cfg", "text": "LANGUAGE=ENG\nMUSIC=ON\n" },
+                { "path": "Theme Hospital/HOSPITAL.EXE", "text": "MZ-HEADER" },
+                { "path": "Theme Hospital/data/ANIMS.DAT", "text": "anim-data" },
+                { "path": "Theme Hospital/LEVELS/LEVEL01.LEV", "text": "level-data" },
+                { "path": "Theme Hospital/qdata/TEXT.DAT", "text": "qdata" }
+            ]
+        },
+        {
+            "id": "missing-qdata-and-exe",
+            "expectedStatus": "invalid",
+            "expectedCodes": ["missing-required-directory", "missing-required-file"],
+            "entries": [
+                { "path": "HOSPITAL.CFG", "text": "LANGUAGE=ENG\nMUSIC=ON\n" },
+                { "path": "DATA/ANIMS.DAT", "text": "anim-data" },
+                { "path": "LEVELS/LEVEL01.LEV", "text": "level-data" }
+            ]
+        },
+        {
+            "id": "invalid-traversal-path",
+            "expectedStatus": "invalid",
+            "expectedCodes": ["invalid-path"],
+            "entries": [
+                { "path": "../HOSPITAL.CFG", "text": "LANGUAGE=ENG\nMUSIC=ON\n" },
+                { "path": "HOSPITAL.EXE", "text": "MZ-HEADER" },
+                { "path": "DATA/ANIMS.DAT", "text": "anim-data" },
+                { "path": "LEVELS/LEVEL01.LEV", "text": "level-data" },
+                { "path": "QDATA/TEXT.DAT", "text": "qdata" }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "@corsixth/renderer-webgl",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.js"
+  }
+}

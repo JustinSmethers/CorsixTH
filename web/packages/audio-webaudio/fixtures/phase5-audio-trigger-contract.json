@@ -1,0 +1,19 @@
+{
+    "version": "phase5.audio-trigger.v1",
+    "triggers": {
+        "app.paused": "ui.pause",
+        "app.resumed": "ui.resume",
+        "app.step": "ui.step",
+        "patient.admitted": "patient.admit",
+        "patient.treated.success": "patient.treat.success",
+        "patient.treated.empty": "patient.treat.empty"
+    },
+    "cues": {
+        "ui.pause": { "waveform": "triangle", "frequencyHz": 220, "durationMs": 120, "gain": 0.18 },
+        "ui.resume": { "waveform": "triangle", "frequencyHz": 330, "durationMs": 90, "gain": 0.16 },
+        "ui.step": { "waveform": "square", "frequencyHz": 440, "durationMs": 70, "gain": 0.14 },
+        "patient.admit": { "waveform": "sawtooth", "frequencyHz": 280, "durationMs": 100, "gain": 0.2 },
+        "patient.treat.success": { "waveform": "sine", "frequencyHz": 520, "durationMs": 180, "gain": 0.22 },
+        "patient.treat.empty": { "waveform": "square", "frequencyHz": 180, "durationMs": 110, "gain": 0.12 }
+    }
+}

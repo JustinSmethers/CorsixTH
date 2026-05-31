@@ -1,0 +1,65 @@
+{
+    "schemaVersion": "replay.v0",
+    "id": "phase7-slice3-economy-progression-events",
+    "seed": 7304,
+    "commands": [
+        {
+            "type": "tick",
+            "count": 1
+        },
+        {
+            "type": "admit-patient",
+            "severity": 1,
+            "position": {
+                "x": 1,
+                "y": 1
+            }
+        },
+        {
+            "type": "tick",
+            "count": 2
+        },
+        {
+            "type": "admit-patient",
+            "severity": 2,
+            "position": {
+                "x": 2,
+                "y": 2
+            }
+        },
+        {
+            "type": "tick",
+            "count": 3
+        },
+        {
+            "type": "admit-patient",
+            "severity": 3,
+            "position": {
+                "x": 3,
+                "y": 3
+            }
+        },
+        {
+            "type": "tick",
+            "count": 4
+        },
+        {
+            "type": "treat-patient"
+        },
+        {
+            "type": "tick",
+            "count": 2
+        }
+    ],
+    "expectedStepHashes": [
+        "4c9e7ba2",
+        "dc4a4936",
+        "0bcd9aff",
+        "cd84a04a",
+        "4e2cb298",
+        "3a214b1b",
+        "cae6218a",
+        "cf68e83b",
+        "8965b839"
+    ]
+}

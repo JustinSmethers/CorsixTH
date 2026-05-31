@@ -1,0 +1,106 @@
+{
+    "schemaVersion": "renderer-snapshot.v0",
+    "fixtureId": "phase3-renderer-visual",
+    "defaultMaxDiffPixels": 0,
+    "palette": {
+        ".": [0, 0, 0, 255],
+        "g": [66, 142, 76, 255],
+        "w": [57, 106, 177, 255],
+        "r": [200, 64, 64, 255],
+        "b": [64, 104, 208, 255],
+        "y": [220, 190, 64, 255],
+        "c": [64, 188, 196, 255]
+    },
+    "atlas": {
+        "sprites": [
+            { "id": "grass", "page": "terrain", "width": 2, "height": 2, "color": [66, 142, 76, 255] },
+            { "id": "water", "page": "terrain", "width": 2, "height": 2, "color": [57, 106, 177, 255] },
+            { "id": "doctor", "page": "entities", "width": 2, "height": 2, "color": [200, 64, 64, 255] },
+            { "id": "patient", "page": "entities", "width": 2, "height": 2, "color": [64, 104, 208, 255] }
+        ]
+    },
+    "scenarios": [
+        {
+            "id": "camera-origin-depth-order",
+            "viewport": { "width": 8, "height": 8 },
+            "tileSize": 2,
+            "camera": { "scrollX": 0, "scrollY": 0, "zoom": 1 },
+            "tiles": [
+                ["grass", "grass", "grass", "grass"],
+                ["grass", "water", "water", "grass"],
+                ["grass", "water", "water", "grass"],
+                ["grass", "grass", "grass", "grass"]
+            ],
+            "entities": [
+                { "id": "entity-b", "spriteId": "patient", "x": 2, "y": 1 },
+                { "id": "entity-a", "spriteId": "doctor", "x": 1, "y": 1 }
+            ],
+            "baselineRows": [
+                "gggggggg",
+                "gggggggg",
+                "ggrrbbgg",
+                "ggrrbbgg",
+                "ggwwwwgg",
+                "ggwwwwgg",
+                "gggggggg",
+                "gggggggg"
+            ]
+        },
+        {
+            "id": "camera-scroll",
+            "viewport": { "width": 8, "height": 8 },
+            "tileSize": 2,
+            "camera": { "scrollX": 2, "scrollY": 2, "zoom": 1 },
+            "tiles": [
+                ["grass", "grass", "grass", "grass"],
+                ["grass", "water", "water", "grass"],
+                ["grass", "water", "water", "grass"],
+                ["grass", "grass", "grass", "grass"]
+            ],
+            "entities": [
+                { "id": "entity-a", "spriteId": "doctor", "x": 1, "y": 1 },
+                { "id": "entity-b", "spriteId": "patient", "x": 2, "y": 1 }
+            ],
+            "baselineRows": [
+                "rrbbgg..",
+                "rrbbgg..",
+                "wwwwgg..",
+                "wwwwgg..",
+                "gggggg..",
+                "gggggg..",
+                "........",
+                "........"
+            ]
+        },
+        {
+            "id": "debug-overlays",
+            "viewport": { "width": 8, "height": 8 },
+            "tileSize": 2,
+            "camera": { "scrollX": 0, "scrollY": 0, "zoom": 1 },
+            "tiles": [
+                ["grass", "grass", "grass", "grass"],
+                ["grass", "water", "water", "grass"],
+                ["grass", "water", "water", "grass"],
+                ["grass", "grass", "grass", "grass"]
+            ],
+            "entities": [
+                { "id": "entity-a", "spriteId": "doctor", "x": 1, "y": 1 },
+                { "id": "entity-b", "spriteId": "patient", "x": 2, "y": 1 }
+            ],
+            "debug": {
+                "inspectTile": { "x": 1, "y": 1 },
+                "inspectEntityId": "entity-b"
+            },
+            "baselineRows": [
+                "gggggggg",
+                "gggggggg",
+                "ggyyccgg",
+                "ggyyccgg",
+                "ggwwwwgg",
+                "ggwwwwgg",
+                "gggggggg",
+                "gggggggg"
+            ]
+        }
+    ]
+}

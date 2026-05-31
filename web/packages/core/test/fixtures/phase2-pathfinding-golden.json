@@ -1,0 +1,232 @@
+{
+    "schemaVersion": "pathfinding.v0",
+    "id": "phase2-pathfinding-golden",
+    "tileLegend": {
+        ".": 0,
+        "#": 1,
+        "~": 2
+    },
+    "tileDefinitions": [
+        {
+            "id": 0,
+            "name": "floor",
+            "metadata": {
+                "kind": "floor",
+                "passable": true,
+                "movementCost": 1
+            }
+        },
+        {
+            "id": 1,
+            "name": "wall",
+            "metadata": {
+                "kind": "wall",
+                "passable": false,
+                "movementCost": 1
+            }
+        },
+        {
+            "id": 2,
+            "name": "slow",
+            "metadata": {
+                "kind": "slow",
+                "passable": true,
+                "movementCost": 5
+            }
+        }
+    ],
+    "scenarios": [
+        {
+            "id": "tie-break-prefers-north-route",
+            "rows": [
+                ".......",
+                "...#...",
+                "......."
+            ],
+            "start": {
+                "x": 1,
+                "y": 1
+            },
+            "goal": {
+                "x": 5,
+                "y": 1
+            },
+            "blockedPositions": [],
+            "expectedFound": true,
+            "expectedTotalCost": 6,
+            "expectedPath": [
+                {
+                    "x": 1,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 0
+                },
+                {
+                    "x": 3,
+                    "y": 0
+                },
+                {
+                    "x": 4,
+                    "y": 0
+                },
+                {
+                    "x": 5,
+                    "y": 0
+                },
+                {
+                    "x": 5,
+                    "y": 1
+                }
+            ]
+        },
+        {
+            "id": "weighted-cost-prefers-cheaper-detour",
+            "rows": [
+                ".......",
+                ".......",
+                ".~~~~~.",
+                ".......",
+                "......."
+            ],
+            "start": {
+                "x": 0,
+                "y": 2
+            },
+            "goal": {
+                "x": 6,
+                "y": 2
+            },
+            "blockedPositions": [],
+            "expectedFound": true,
+            "expectedTotalCost": 8,
+            "expectedPath": [
+                {
+                    "x": 0,
+                    "y": 2
+                },
+                {
+                    "x": 0,
+                    "y": 1
+                },
+                {
+                    "x": 1,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 1
+                },
+                {
+                    "x": 3,
+                    "y": 1
+                },
+                {
+                    "x": 4,
+                    "y": 1
+                },
+                {
+                    "x": 5,
+                    "y": 1
+                },
+                {
+                    "x": 6,
+                    "y": 1
+                },
+                {
+                    "x": 6,
+                    "y": 2
+                }
+            ]
+        },
+        {
+            "id": "occupancy-blocker-forces-deterministic-detour",
+            "rows": [
+                ".......",
+                ".......",
+                "......."
+            ],
+            "start": {
+                "x": 0,
+                "y": 1
+            },
+            "goal": {
+                "x": 6,
+                "y": 1
+            },
+            "blockedPositions": [
+                {
+                    "x": 3,
+                    "y": 1
+                }
+            ],
+            "expectedFound": true,
+            "expectedTotalCost": 8,
+            "expectedPath": [
+                {
+                    "x": 0,
+                    "y": 1
+                },
+                {
+                    "x": 1,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 1
+                },
+                {
+                    "x": 2,
+                    "y": 0
+                },
+                {
+                    "x": 3,
+                    "y": 0
+                },
+                {
+                    "x": 4,
+                    "y": 0
+                },
+                {
+                    "x": 5,
+                    "y": 0
+                },
+                {
+                    "x": 6,
+                    "y": 0
+                },
+                {
+                    "x": 6,
+                    "y": 1
+                }
+            ]
+        },
+        {
+            "id": "unreachable-goal",
+            "rows": [
+                "#####",
+                "#.#.#",
+                "#####",
+                "#...#",
+                "#####"
+            ],
+            "start": {
+                "x": 1,
+                "y": 1
+            },
+            "goal": {
+                "x": 3,
+                "y": 3
+            },
+            "blockedPositions": [],
+            "expectedFound": false,
+            "expectedTotalCost": 0,
+            "expectedPath": []
+        }
+    ]
+}
