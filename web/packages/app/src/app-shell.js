@@ -673,6 +673,9 @@ export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
         staff.skillLevel < telemetry.maxStaffSkillLevel &&
         telemetry.cash >= telemetry.staffTrainingCost;
 }
+export function canPrioritizePatient(patient = null) {
+    return Boolean(patient && (patient.status === "queued" || patient.status === "awaiting-treatment"));
+}
 export function canStartEmergencyFromTelemetry(telemetry = null) {
     if (!telemetry || telemetry.emergencyActive) {
         return false;
@@ -2707,8 +2710,7 @@ export function mountAppShell(options) {
             selectedEntity = null;
             selectionStatus.textContent = formatNoSelectionStatus();
         }
-        prioritizeSelectedPatientButton.disabled = !(resolved?.type === "patient" &&
-            (resolved.value.status === "queued" || resolved.value.status === "awaiting-treatment"));
+        prioritizeSelectedPatientButton.disabled = !(resolved?.type === "patient" && canPrioritizePatient(resolved.value));
         sendSelectedPatientHomeButton.disabled = resolved?.type !== "patient";
         const telemetry = orchestrator.telemetry();
         giveDrinkSelectedPatientButton.disabled = !(resolved?.type === "patient" && canGiveDrinkToPatient(resolved.value, telemetry));
@@ -3023,7 +3025,9 @@ export function mountAppShell(options) {
     };
     const onPrioritizeSelectedPatient = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "patient") {
+        if (resolved?.type !== "patient" || !canPrioritizePatient(resolved.value)) {
+            actionStatus.textContent = formatActionStatus("patient.prioritize-empty");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
