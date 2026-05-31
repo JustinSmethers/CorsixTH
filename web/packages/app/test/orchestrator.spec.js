@@ -1001,7 +1001,7 @@ describe("app orchestrator", () => {
         });
         stressed.dispatch({ device: "ui", action: "pause-toggle", source: "ui:pause-toggle" });
         for (let index = 0; index < 48; index += 1) {
-            stressed.dispatch({ device: "ui", action: "admit-patient", severity: 3, source: "ui:admit", pointer: { x: 16, y: 16 } });
+            stressed.dispatch({ device: "ui", action: "admit-patient", severity: 1, source: "ui:admit", pointer: { x: 16, y: 16 } });
             stressed.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
         }
         expect(stressed.telemetry().staffHappinessPercent).toBeLessThan(50);

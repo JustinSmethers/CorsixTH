@@ -5,7 +5,7 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
         const highPressure = new DeterministicSimulation(7401, { bounds: { width: 8, height: 8 } });
         const baseline = new DeterministicSimulation(7401, { bounds: { width: 8, height: 8 } });
         for (let i = 0; i < 4; i += 1) {
-            highPressure.execute({ type: "admit-patient", severity: 3, position: { x: i, y: i } });
+            highPressure.execute({ type: "admit-patient", severity: 3, diseaseId: "ruptured-nodules", position: { x: i, y: i } });
         }
         highPressure.execute({ type: "tick", count: 1 });
         baseline.execute({ type: "tick", count: 1 });

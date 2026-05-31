@@ -356,7 +356,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(baselineDischargeTick).toBeGreaterThan(0);
         expect(specialized.getState().hospitalLoop.dischargedPatients).toBe(1);
     });
-    it("prefers disease-specific treatment rooms while keeping generic treatment as fallback", () => {
+    it("requires disease-specific treatment rooms for pharmacy and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -373,9 +373,11 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         fallback.execute({ type: "admit-patient", severity: 2, position: { x: 2, y: 4 } });
         fallback.execute({ type: "tick", count: 5 });
         expect(fallback.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "gastric-grumble",
             preferredTreatmentRoomType: "pharmacy",
-            assignedRoomId: 2
+            status: "awaiting-treatment"
         });
+        expect(fallback.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
         const fracture = new DeterministicSimulation(7212, { bounds: { width: 12, height: 12 } });
         fracture.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         const specialist = fracture.getState().entities.rooms.find((room) => room.roomType === "specialist");
@@ -387,6 +389,26 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             preferredTreatmentRoomType: "specialist",
             status: "walking-to-treatment",
             assignedRoomId: specialist.id
+        });
+        const missingSpecialist = new DeterministicSimulation(7213, { bounds: { width: 12, height: 12 } });
+        missingSpecialist.execute({ type: "admit-patient", severity: 2, diseaseId: "fractured-bones", position: { x: 2, y: 4 } });
+        missingSpecialist.execute({ type: "tick", count: 5 });
+        expect(missingSpecialist.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "fractured-bones",
+            preferredTreatmentRoomType: "specialist",
+            status: "awaiting-treatment"
+        });
+        expect(missingSpecialist.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
+    });
+    it("keeps generic treatment rooms available for diseases that prefer treatment", () => {
+        const simulation = new DeterministicSimulation(7214, { bounds: { width: 12, height: 12 } });
+        simulation.execute({ type: "admit-patient", severity: 1, diseaseId: "mild-cold", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "tick", count: 4 });
+        expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "mild-cold",
+            preferredTreatmentRoomType: "treatment",
+            status: "walking-to-treatment",
+            assignedRoomId: 2
         });
     });
     it("keeps deterministic hashes for identical staff/room command streams", () => {

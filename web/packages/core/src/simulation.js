@@ -3233,6 +3233,9 @@ export class DeterministicSimulation {
         if (preferred) {
             return preferred.id;
         }
+        if (preferredRoomType !== "treatment") {
+            return null;
+        }
         const general = this.selectBestRoutedRoomForPatient(patient, availableRooms.filter((room) => room.roomType === "treatment"), "treatment");
         return general?.id ?? null;
     }

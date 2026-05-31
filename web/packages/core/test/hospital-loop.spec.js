@@ -3,7 +3,7 @@ import { patientSendHomeCashPenaltyForSeverity } from "@corsixth/rules";
 describe("phase 7 slice 1 hospital loop", () => {
     it("progresses admissions through queue, diagnosis, treatment, and discharge", () => {
         const simulation = new DeterministicSimulation(7001, { bounds: { width: 8, height: 8 } });
-        simulation.execute({ type: "admit-patient", severity: 2, position: { x: 3, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "infectious-laughter", position: { x: 3, y: 4 } });
         expect(simulation.getState().hospitalLoop).toMatchObject({
             queuedPatients: 1,
             diagnosingPatients: 0,
@@ -13,8 +13,8 @@ describe("phase 7 slice 1 hospital loop", () => {
         });
         expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("queued");
         expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
-            diseaseId: "gastric-grumble",
-            diseaseName: "Gastric Grumble",
+            diseaseId: "infectious-laughter",
+            diseaseName: "Infectious Laughter",
             diagnosisKnown: false
         });
         simulation.execute({ type: "tick", count: 1 });
@@ -53,8 +53,8 @@ describe("phase 7 slice 1 hospital loop", () => {
         });
         expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("awaiting-treatment");
         expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
-            diseaseId: "gastric-grumble",
-            diseaseName: "Gastric Grumble",
+            diseaseId: "infectious-laughter",
+            diseaseName: "Infectious Laughter",
             diagnosisKnown: true
         });
         expect(simulation.getState().hospitalLoop.diagnosedPatients).toBe(1);
@@ -69,17 +69,17 @@ describe("phase 7 slice 1 hospital loop", () => {
             dischargedPatients: 0
         });
         expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("walking-to-treatment");
-        simulation.execute({ type: "tick", count: 3 });
+        simulation.execute({ type: "tick", count: 2 });
         expect(simulation.getState().hospitalLoop).toMatchObject({
             queuedPatients: 0,
             awaitingTreatmentPatients: 0,
-            walkingToTreatmentPatients: 0,
-            treatingPatients: 1,
+            walkingToTreatmentPatients: 1,
+            treatingPatients: 0,
             dischargedPatients: 0
         });
         expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
-            status: "treating",
-            position: { x: 6, y: 2 }
+            status: "walking-to-treatment",
+            position: { x: 5, y: 2 }
         });
         simulation.execute({ type: "tick", count: 1 });
         const completed = simulation.getState();
@@ -203,6 +203,7 @@ describe("phase 7 slice 1 hospital loop", () => {
     });
     it("records deterministic treatment failures for difficult diagnosed diseases", () => {
         const simulation = new DeterministicSimulation(7004, { bounds: { width: 8, height: 8 } });
+        simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 4 } });
         simulation.execute({ type: "admit-patient", severity: 3, position: { x: 2, y: 2 } });
         simulation.execute({ type: "admit-patient", severity: 3, position: { x: 2, y: 2 } });
         expect(simulation.getState().entities.waitingPatients.map((patient) => patient.diseaseId)).toEqual([
