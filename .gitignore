@@ -123,5 +123,6 @@ web/**/node_modules/
 web/**/dist/
 web/.tmp/
 web/test-results/
+web/apps/game/test-results/
 web/apps/game/playwright-report/
 web/apps/game/e2e/fixtures/

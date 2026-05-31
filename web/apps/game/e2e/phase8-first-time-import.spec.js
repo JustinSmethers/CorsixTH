@@ -15,6 +15,8 @@ test("phase 8 first-time journey: import diagnostics guide fixes and successful 
     await expect(page.getByTestId("asset-runtime-summary")).toHaveText("Asset files: 21; Maps: 2");
     await expectHospitalCanvasNonBlank(page);
     await expectOriginalUiStripNonBlank(page);
+    await clickOriginalUiControl(page, "pause-toggle");
+    await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
     await expectMapPreviewNonBlank(page);
     await expectBlockMapPreviewNonBlank(page);
     await expectSpritePreviewNonBlank(page);
@@ -45,8 +47,25 @@ async function expectHospitalCanvasNonBlank(page) {
 async function expectOriginalUiStripNonBlank(page) {
     await expect(page.getByTestId("original-ui-strip-summary")).toContainText("Original UI:");
     await expect(page.getByTestId("original-ui-strip-summary")).toContainText("DATA/PANEL02V");
+    await expect(page.getByTestId("original-ui-strip-summary")).toContainText("controls Pause");
     await expect(page.getByTestId("original-ui-strip-canvas")).toBeVisible();
     await expectCanvasAlpha(page, "original-ui-strip-canvas");
+}
+
+async function clickOriginalUiControl(page, id) {
+    const position = await page.getByTestId("original-ui-strip-canvas").evaluate((canvas, controlId) => {
+        const zones = Array.isArray(canvas.__originalUiControlZones) ? canvas.__originalUiControlZones : [];
+        const zone = zones.find((candidate) => candidate.id === controlId);
+        if (!zone) {
+            return null;
+        }
+        return {
+            x: zone.left + Math.max(1, Math.floor(zone.width / 2)),
+            y: zone.top + Math.max(1, Math.floor(zone.height / 2))
+        };
+    }, id);
+    expect(position).not.toBeNull();
+    await page.getByTestId("original-ui-strip-canvas").click({ position });
 }
 
 async function expectMapPreviewNonBlank(page) {

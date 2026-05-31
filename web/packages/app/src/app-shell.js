@@ -1197,6 +1197,12 @@ const ORIGINAL_UI_SPRITE_SHEET_PREFERENCE = [
     "DATA/PULLDV",
     "DATA/MPOINTER"
 ];
+const ORIGINAL_UI_STRIP_CONTROLS = [
+    { id: "pause-toggle", label: "Pause" },
+    { id: "step", label: "Step" },
+    { id: "build-diagnosis-room", label: "Build GP" },
+    { id: "hire-diagnostician", label: "Hire Doctor" }
+];
 export function selectOriginalUiSpriteSheetSummary(uiSpriteSheets, qDataSpriteSheets) {
     const visibleUiSheets = Array.isArray(uiSpriteSheets)
         ? uiSpriteSheets.filter((summary) => summary?.visibleSpriteCount > 0)
@@ -1938,12 +1944,15 @@ function patientRenderPosition(patient) {
 export function formatHospitalCanvasSummary(view, state, frameStats) {
     return `${view.mapPath} viewport ${view.startX},${view.startY}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
 }
-export function formatOriginalUiStripSummary(view, visibleSpriteCount) {
+export function formatOriginalUiStripSummary(view, visibleSpriteCount, controls = []) {
     const sheetPath = view.originalUiSpriteSheetPath || "imported sheet";
+    const controlSummary = controls.length > 0
+        ? `; controls ${controls.map((control) => control.label).join(", ")}`
+        : "";
     if (visibleSpriteCount === 0) {
         return `Original UI: ${sheetPath} ${view.originalUiSpriteSheet.spriteCount} sprites, none visible`;
     }
-    return `Original UI: ${sheetPath} ${view.originalUiSpriteSheet.spriteCount} sprites, showing ${visibleSpriteCount}`;
+    return `Original UI: ${sheetPath} ${view.originalUiSpriteSheet.spriteCount} sprites, showing ${visibleSpriteCount}${controlSummary}`;
 }
 export function formatCanvasUnavailableStatus() {
     return "Canvas unavailable";
@@ -2011,6 +2020,8 @@ function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placemen
     return formatHospitalCanvasSummary(view, state, frame.stats);
 }
 function renderOriginalUiStrip(canvas, view) {
+    canvas.__originalUiControlZones = [];
+    canvas.style.cursor = "default";
     const context = canvas.getContext("2d");
     if (!context) {
         return formatOriginalUiCanvasUnavailableStatus();
@@ -2025,6 +2036,9 @@ function renderOriginalUiStrip(canvas, view) {
     if (visibleSprites.length === 0) {
         return formatOriginalUiStripSummary(view, 0);
     }
+    const controlZones = createOriginalUiStripControlZones(view, canvas.width, canvas.height);
+    canvas.__originalUiControlZones = controlZones;
+    canvas.style.cursor = controlZones.length > 0 ? "pointer" : "default";
     const pixels = new Uint8ClampedArray(canvas.width * canvas.height * 4);
     let targetX = 6;
     for (const sprite of visibleSprites) {
@@ -2037,7 +2051,44 @@ function renderOriginalUiStrip(canvas, view) {
         }
     }
     context.putImageData(new ImageData(pixels, canvas.width, canvas.height), 0, 0);
-    return formatOriginalUiStripSummary(view, visibleSprites.length);
+    return formatOriginalUiStripSummary(view, visibleSprites.length, controlZones);
+}
+export function createOriginalUiStripControlZones(view, canvasWidth = 320, canvasHeight = 40) {
+    if (!view?.originalUiSpriteSheet) {
+        return [];
+    }
+    const visibleSprites = view.originalUiSpriteSheet.sprites
+        .filter((sprite) => sprite.width > 0 && sprite.height > 0 && sprite.indices.length > 0)
+        .slice(0, ORIGINAL_UI_STRIP_CONTROLS.length);
+    const zones = [];
+    let targetX = 6;
+    for (let index = 0; index < visibleSprites.length; index += 1) {
+        const sprite = visibleSprites[index];
+        if (targetX >= canvasWidth) {
+            break;
+        }
+        const targetY = Math.max(0, Math.floor((canvasHeight - sprite.height) / 2));
+        zones.push({
+            ...ORIGINAL_UI_STRIP_CONTROLS[index],
+            left: targetX,
+            top: targetY,
+            width: Math.min(sprite.width, Math.max(0, canvasWidth - targetX)),
+            height: Math.min(sprite.height, canvasHeight - targetY)
+        });
+        targetX += sprite.width + 6;
+    }
+    return zones;
+}
+function originalUiControlZoneAt(canvas, event) {
+    const zones = Array.isArray(canvas.__originalUiControlZones) ? canvas.__originalUiControlZones : [];
+    if (zones.length === 0) {
+        return null;
+    }
+    const point = canvasPointerFromEvent(event, canvas);
+    return zones.find((zone) => point.x >= zone.left &&
+        point.x < zone.left + zone.width &&
+        point.y >= zone.top &&
+        point.y < zone.top + zone.height) ?? null;
 }
 function blitSpriteImage(targetPixels, targetWidth, targetHeight, image, targetX, targetY) {
     for (let sourceY = 0; sourceY < image.height; sourceY += 1) {
@@ -3052,6 +3103,19 @@ export function mountAppShell(options) {
         actionStatus.textContent = formatChoosePlacementActionStatus();
         renderRuntime();
     };
+    const originalUiControlHandlers = new Map([
+        ["pause-toggle", onPauseToggle],
+        ["step", onStep],
+        ["build-diagnosis-room", onBuildDiagnosisRoom],
+        ["hire-diagnostician", onHireDiagnostician]
+    ]);
+    const onOriginalUiStripClick = (event) => {
+        const zone = originalUiControlZoneAt(originalUiStripCanvas, event);
+        if (!zone) {
+            return;
+        }
+        originalUiControlHandlers.get(zone.id)?.();
+    };
     const onSaveGame = () => {
         const slot = activeSaveSlot();
         saveSlotNameInput.value = slot;
@@ -3335,6 +3399,7 @@ export function mountAppShell(options) {
     deleteSaveSlotButton.addEventListener("click", onDeleteSaveSlot);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
+    originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
     playfield.addEventListener("mousedown", onMouseDown);
     playfield.addEventListener("mousemove", onMouseMove);
     playfield.addEventListener("mouseleave", onMouseLeave);
@@ -3416,6 +3481,7 @@ export function mountAppShell(options) {
             deleteSaveSlotButton.removeEventListener("click", onDeleteSaveSlot);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
+            originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
             playfield.removeEventListener("mousedown", onMouseDown);
             playfield.removeEventListener("mousemove", onMouseMove);
             playfield.removeEventListener("mouseleave", onMouseLeave);
