@@ -215,7 +215,7 @@ function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = n
         telemetry.treatmentResearchActive ||
             telemetry.treatmentResearchLevel >= telemetry.treatmentResearchMaxLevel ||
             telemetry.cash < telemetry.treatmentResearchProjectCost;
-    elements.emergencyButton.disabled = telemetry.emergencyActive;
+    elements.emergencyButton.disabled = !canStartEmergencyFromTelemetry(telemetry);
     elements.epidemicButton.disabled = telemetry.epidemicActive;
     elements.vipInspectionButton.disabled = telemetry.vipInspectionActive;
     elements.seedMetric.textContent = formatSeedStatus(telemetry);
@@ -640,6 +640,15 @@ export function canRepairRoomFromTelemetry(room, telemetry = null) {
     }
     const needsRepair = room.wear > 0 || room.maintenanceRemainingTicks > 0;
     return needsRepair && telemetry.cash >= roomRepairCost(room.roomType);
+}
+export function canStartEmergencyFromTelemetry(telemetry = null) {
+    if (!telemetry || telemetry.emergencyActive) {
+        return false;
+    }
+    if ((telemetry.scenarioEmergencyScheduleSize ?? 0) === 0) {
+        return true;
+    }
+    return telemetry.scenarioEmergencyActiveIndex !== null && telemetry.scenarioEmergencyActiveIndex !== undefined;
 }
 export function formatMaintenanceStaffStatus(telemetry, languageSummary = null) {
     const base = `Handymen: ${telemetry.activeHandymen}/${telemetry.totalHandymen}, repairs ${telemetry.maintenanceStaffRepairEvents}, bonus ${telemetry.maintenanceStaffRepairBonusTicks} ticks`;
@@ -2842,6 +2851,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onStartEmergency = () => {
+        if (!canStartEmergencyFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("emergency.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "start-emergency-wave",
