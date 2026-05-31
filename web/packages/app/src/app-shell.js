@@ -8,7 +8,7 @@ import {
 } from "@corsixth/assets";
 import { createWebAudioMixer } from "@corsixth/audio-webaudio";
 import { createIndexedDbPersistenceAdapter } from "@corsixth/persistence";
-import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, staffHireCost, staffWageCostPerTick, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
+import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, roomRepairCost, staffHireCost, staffWageCostPerTick, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
 import { normalizeKeyboardEvent, normalizeMouseEvent, normalizeTouchEvent } from "./input-normalization";
 import { AppOrchestrator } from "./orchestrator";
 import { restoreOrchestratorFromSaveEnvelope, saveOrchestratorToSlot } from "./persistence";
@@ -633,6 +633,13 @@ export function canHireStaffFromTelemetry(role, telemetry = null) {
         return true;
     }
     return telemetry.cash >= staffHireCost(role) && staffMarketRemainingForTelemetryRole(role, telemetry) > 0;
+}
+export function canRepairRoomFromTelemetry(room, telemetry = null) {
+    if (!room || !telemetry) {
+        return false;
+    }
+    const needsRepair = room.wear > 0 || room.maintenanceRemainingTicks > 0;
+    return needsRepair && telemetry.cash >= roomRepairCost(room.roomType);
 }
 export function formatMaintenanceStaffStatus(telemetry, languageSummary = null) {
     const base = `Handymen: ${telemetry.activeHandymen}/${telemetry.totalHandymen}, repairs ${telemetry.maintenanceStaffRepairEvents}, bonus ${telemetry.maintenanceStaffRepairBonusTicks} ticks`;
@@ -2645,7 +2652,7 @@ export function mountAppShell(options) {
             telemetry.cash >= telemetry.staffTrainingCost);
         fireSelectedStaffButton.disabled = resolved?.type !== "staff";
         sellSelectedRoomButton.disabled = resolved?.type !== "room";
-        repairSelectedRoomButton.disabled = resolved?.type !== "room";
+        repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
         if (resolved?.type === "staff") {
             telemetryElements.staffBreakToggleButton.textContent = formatSelectedStaffBreakToggleLabel(resolved.value);
         }
@@ -3031,13 +3038,19 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onRepairSelectedRoom = () => {
-        if (selectedEntity?.type !== "room") {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "room") {
+            return;
+        }
+        if (!canRepairRoomFromTelemetry(resolved.value, orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.repair-blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "repair-room",
-            roomId: selectedEntity.id,
+            roomId: resolved.value.id,
             source: "ui:repair-selected-room"
         }, renderRuntime);
         updateActionStatus(events);
