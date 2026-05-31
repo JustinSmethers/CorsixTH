@@ -1456,6 +1456,12 @@ function nextHospitalMapPath(view) {
     }
     return view.mapSummaries[index + 1].path;
 }
+export function canRestartLevelFromHospitalView(view = null) {
+    return Boolean(view?.map);
+}
+export function canAdvanceToNextLevelFromTelemetry(view = null, telemetry = null) {
+    return Boolean(telemetry?.levelObjectiveStatus === "won" && nextHospitalMapPath(view) !== null);
+}
 function campaignLevelIndex(view) {
     if (!view?.mapPath || !Array.isArray(view.mapSummaries) || view.mapSummaries.length === 0) {
         return 0;
@@ -2705,8 +2711,8 @@ export function mountAppShell(options) {
     const renderLevelControls = () => {
         const telemetry = orchestrator.telemetry();
         telemetryElements.campaignProgressMetric.textContent = formatCampaignProgress(hospitalView, telemetry);
-        restartLevelButton.disabled = !hospitalView?.map;
-        nextLevelButton.disabled = telemetry.levelObjectiveStatus !== "won" || nextHospitalMapPath(hospitalView) === null;
+        restartLevelButton.disabled = !canRestartLevelFromHospitalView(hospitalView);
+        nextLevelButton.disabled = !canAdvanceToNextLevelFromTelemetry(hospitalView, telemetry);
     };
     const renderSelectionControls = () => {
         const state = orchestrator.getState();
@@ -3543,7 +3549,7 @@ export function mountAppShell(options) {
         }
     };
     const onRestartLevel = () => {
-        if (!hospitalView?.map) {
+        if (!canRestartLevelFromHospitalView(hospitalView)) {
             return;
         }
         resetOrchestratorForActiveMap();
@@ -3551,7 +3557,7 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onNextLevel = () => {
-        if (orchestrator.telemetry().levelObjectiveStatus !== "won") {
+        if (!canAdvanceToNextLevelFromTelemetry(hospitalView, orchestrator.telemetry())) {
             return;
         }
         const nextMapPath = nextHospitalMapPath(hospitalView);
