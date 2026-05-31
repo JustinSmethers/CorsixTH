@@ -205,17 +205,13 @@ function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = n
     elements.treatmentRoomToggleButton.textContent = formatTreatmentRoomToggleLabel(telemetry);
     elements.muteToggleButton.textContent = formatMuteToggleLabel(audioStatus);
     elements.volumeSlider.value = String(Math.round(audioStatus.volume * 100));
-    elements.takeLoanButton.disabled = telemetry.outstandingLoan >= telemetry.loanMaxOutstanding;
-    elements.repayLoanButton.disabled =
-        telemetry.outstandingLoan <= 0 || telemetry.cash < Math.min(telemetry.loanChunkAmount, telemetry.outstandingLoan);
-    elements.financeAuditButton.disabled = !telemetry.financeLedgerUnlocked || !telemetry.financeAuditReady;
-    elements.marketingCampaignButton.disabled = telemetry.cash < telemetry.marketingCampaignCost || telemetry.reputation >= 1000;
-    elements.insuranceContractButton.disabled = !telemetry.insuranceContractUnlocked || telemetry.insuranceContractActive;
+    elements.takeLoanButton.disabled = !canTakeLoanFromTelemetry(telemetry);
+    elements.repayLoanButton.disabled = !canRepayLoanFromTelemetry(telemetry);
+    elements.financeAuditButton.disabled = !canRunFinanceAuditFromTelemetry(telemetry);
+    elements.marketingCampaignButton.disabled = !canRunMarketingCampaignFromTelemetry(telemetry);
+    elements.insuranceContractButton.disabled = !canStartInsuranceContractFromTelemetry(telemetry);
     elements.awardsButton.disabled = !canRunAwardsFromTelemetry(telemetry);
-    elements.researchButton.disabled =
-        telemetry.treatmentResearchActive ||
-            telemetry.treatmentResearchLevel >= telemetry.treatmentResearchMaxLevel ||
-            telemetry.cash < telemetry.treatmentResearchProjectCost;
+    elements.researchButton.disabled = !canStartResearchFromTelemetry(telemetry);
     elements.emergencyButton.disabled = !canStartEmergencyFromTelemetry(telemetry);
     elements.epidemicButton.disabled = !canStartEpidemicFromTelemetry(telemetry);
     elements.vipInspectionButton.disabled = !canStartVipInspectionFromTelemetry(telemetry);
@@ -634,6 +630,30 @@ export function canHireStaffFromTelemetry(role, telemetry = null) {
         return true;
     }
     return telemetry.cash >= staffHireCost(role) && staffMarketRemainingForTelemetryRole(role, telemetry) > 0;
+}
+export function canTakeLoanFromTelemetry(telemetry = null) {
+    return Boolean(telemetry && telemetry.outstandingLoan < telemetry.loanMaxOutstanding);
+}
+export function canRepayLoanFromTelemetry(telemetry = null) {
+    if (!telemetry) {
+        return false;
+    }
+    return telemetry.outstandingLoan > 0 && telemetry.cash >= Math.min(telemetry.loanChunkAmount, telemetry.outstandingLoan);
+}
+export function canRunFinanceAuditFromTelemetry(telemetry = null) {
+    return Boolean(telemetry && telemetry.financeLedgerUnlocked && telemetry.financeAuditReady);
+}
+export function canRunMarketingCampaignFromTelemetry(telemetry = null) {
+    return Boolean(telemetry && telemetry.cash >= telemetry.marketingCampaignCost && telemetry.reputation < 1000);
+}
+export function canStartInsuranceContractFromTelemetry(telemetry = null) {
+    return Boolean(telemetry && telemetry.insuranceContractUnlocked && !telemetry.insuranceContractActive);
+}
+export function canStartResearchFromTelemetry(telemetry = null) {
+    return Boolean(telemetry &&
+        !telemetry.treatmentResearchActive &&
+        telemetry.treatmentResearchLevel < telemetry.treatmentResearchMaxLevel &&
+        telemetry.cash >= telemetry.treatmentResearchProjectCost);
 }
 export function canRepairRoomFromTelemetry(room, telemetry = null) {
     if (!room || !telemetry) {
@@ -2832,6 +2852,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onTakeLoan = () => {
+        if (!canTakeLoanFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("loan.take-blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "take-loan",
@@ -2840,6 +2865,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onRepayLoan = () => {
+        if (!canRepayLoanFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("loan.repay-blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "repay-loan",
@@ -2848,6 +2878,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onMarketingCampaign = () => {
+        if (!canRunMarketingCampaignFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("marketing.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "run-marketing-campaign",
@@ -2856,6 +2891,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onFinanceAudit = () => {
+        if (!canRunFinanceAuditFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("finance.audit-blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "run-finance-audit",
@@ -2864,6 +2904,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onStartInsuranceContract = () => {
+        if (!canStartInsuranceContractFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("insurance.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "start-insurance-contract",
@@ -2885,6 +2930,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onStartResearch = () => {
+        if (!canStartResearchFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("research.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "start-research",

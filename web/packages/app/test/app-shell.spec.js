@@ -1,4 +1,4 @@
-import { canBuildRoomFromTelemetry, canGiveDrinkToPatient, canHireStaffFromTelemetry, canRepairRoomFromTelemetry, canRestStaffFromTelemetry, canRunAwardsFromTelemetry, canSendPatientToilet, canStartEpidemicFromTelemetry, canStartEmergencyFromTelemetry, canStartVipInspectionFromTelemetry, canTrainStaffFromTelemetry, createCampaignLevelObjectiveFromHospitalView, createCampaignMapSummaries, createOriginalUiStripControlZones, createRoomAvailabilityFromScenario, createRoomAvailabilityScheduleFromScenario, createRoomWearThresholdOverridesFromScenario, formatActionStatus, formatActiveStaffStatus, formatAdmissionPolicyStatus, formatAdmissionRulesStatus, formatAdmissionsStatus, formatAdmissionsToggleLabel, formatAudioStatus, formatAudioVolumeStatus, formatAutoBreakStaffStatus, formatAwaitingTreatmentPatientsStatus, formatBuildRoomButtonLabel, formatCampaignCompleteStatus, formatCanvasUnavailableStatus, formatCasebookWithLanguage, formatCashStatus, formatChoosePlacementActionStatus, formatCriticalPatientsStatus, formatCumulativeCashflowStatus, formatDeletedSaveSlotStatus, formatDiagnosedPatientsStatus, formatDiagnosingPatientsStatus, formatDischargedPatientsStatus, formatEmergencyRewardStatus, formatEmergencyStatus, formatEpidemicStatus, formatEpidemicTermsStatus, formatEventRulesStatus, formatFinanceAuditStatus, formatFinanceLedgerStatus, formatFrontDeskStatus, formatHireStaffButtonLabel, formatHospitalAwardStatus, formatHospitalCanvasSummary, formatHospitalMapOptionsHtml, formatHospitalRatingStatus, formatImportedMapUnavailableStatus, formatInsuranceContractStatus, formatInsuranceTermsStatus, formatLastEventStatus, formatLevelObjectiveProgress, formatLevelObjectiveSafety, formatLevelObjectiveStatus, formatLoadResultStatus, formatLoanInterestStatus, formatLoanStatus, formatMaintenanceStaffStatus, formatMarketingCampaignStatus, formatMilestoneStatus, formatMissingMapLoadStatus, formatMuteToggleLabel, formatNoSelectionStatus, formatNewMapStatus, formatNextAdmissionStatus, formatNextLevelStatus, formatObjectAvailabilityStatus, formatOnBreakStaffStatus, formatOpenDiagnosisRoomsStatus, formatOpenTreatmentRoomsStatus, formatOriginalUiCanvasUnavailableStatus, formatOriginalUiNoSpritesStatus, formatOriginalUiStripSummary, formatPatientBowelOverflowStatus, formatPatientDeathsStatus, formatPatientDrinksStatus, formatPatientLitterStatus, formatPatientMoodStatus, formatPatientsNeedingToiletStatus, formatPatientVomitsStatus, formatPausedStatus, formatPauseToggleLabel, formatPlacementMode, formatPlantCareStatus, formatPricingPolicyStatus, formatQuakeStatus, formatQueuedPatientsStatus, formatQueuePressureEventsStatus, formatQueuePressureStatus, formatQueuePressureValueStatus, formatRatControlStatus, formatRecentEventsStatus, formatReputationStatus, formatResearchEffectStatus, formatResearchStatus, formatRestartedLevelStatus, formatRoomAvailabilityHudStatus, formatRoomAvailabilityStatus, formatRoomMaintenanceCompleteEventsStatus, formatRoomMaintenanceStartEventsStatus, formatRoomMaintenanceStatus, formatRoutingRulesStatus, formatSalaryPressureStatus, formatSaveFailureStatus, formatSaveLifecycleStatus, formatSaveSlotOptionsHtml, formatSaveSlotsStatus, formatSaveTickStatus, formatScenarioExpertiseStatus, formatScenarioNetworkCriteriaStatus, formatScenarioOpponentProgressStatus, formatScenarioOpponentsStatus, formatScenarioResearchDetails, formatSeedStatus, formatSelectedEntityActionStatus, formatSelectedRoomToggleLabel, formatSelectedStaffBreakToggleLabel, formatSelectionStatusWithLanguage, formatSpecializedTreatmentQueueStatus, formatSpecializedTreatmentRoomsStatus, formatSpeedStatus, formatStaffBreakToggleLabel, formatStaffBurnoutEventsStatus, formatStaffMarketStatus, formatStaffRecoveryEventsStatus, formatStaffSkillStatus, formatStaffTrainingStatus, formatStateHashStatus, formatStressedStaffStatus, formatTickCashflowStatus, formatTickStatus, formatTiredStaffStatus, formatTreatedPatientsStatus, formatTreatingPatientsStatus, formatTreatmentFailuresStatus, formatTreatmentRoomToggleLabel, formatUnlockStatus, formatVeryTiredStaffStatus, formatVipInspectionStatus, formatVipInspectionTermsStatus, formatWaitingPatientsStatus, formatWalkingToDiagnosisPatientsStatus, formatWalkingToTreatmentPatientsStatus, selectOriginalUiSpriteSheetSummary, selectQDataUiSpriteSheetSummary } from "../src/app-shell";
+import { canBuildRoomFromTelemetry, canGiveDrinkToPatient, canHireStaffFromTelemetry, canRepayLoanFromTelemetry, canRepairRoomFromTelemetry, canRestStaffFromTelemetry, canRunFinanceAuditFromTelemetry, canRunMarketingCampaignFromTelemetry, canRunAwardsFromTelemetry, canSendPatientToilet, canStartInsuranceContractFromTelemetry, canStartEpidemicFromTelemetry, canStartEmergencyFromTelemetry, canStartResearchFromTelemetry, canStartVipInspectionFromTelemetry, canTakeLoanFromTelemetry, canTrainStaffFromTelemetry, createCampaignLevelObjectiveFromHospitalView, createCampaignMapSummaries, createOriginalUiStripControlZones, createRoomAvailabilityFromScenario, createRoomAvailabilityScheduleFromScenario, createRoomWearThresholdOverridesFromScenario, formatActionStatus, formatActiveStaffStatus, formatAdmissionPolicyStatus, formatAdmissionRulesStatus, formatAdmissionsStatus, formatAdmissionsToggleLabel, formatAudioStatus, formatAudioVolumeStatus, formatAutoBreakStaffStatus, formatAwaitingTreatmentPatientsStatus, formatBuildRoomButtonLabel, formatCampaignCompleteStatus, formatCanvasUnavailableStatus, formatCasebookWithLanguage, formatCashStatus, formatChoosePlacementActionStatus, formatCriticalPatientsStatus, formatCumulativeCashflowStatus, formatDeletedSaveSlotStatus, formatDiagnosedPatientsStatus, formatDiagnosingPatientsStatus, formatDischargedPatientsStatus, formatEmergencyRewardStatus, formatEmergencyStatus, formatEpidemicStatus, formatEpidemicTermsStatus, formatEventRulesStatus, formatFinanceAuditStatus, formatFinanceLedgerStatus, formatFrontDeskStatus, formatHireStaffButtonLabel, formatHospitalAwardStatus, formatHospitalCanvasSummary, formatHospitalMapOptionsHtml, formatHospitalRatingStatus, formatImportedMapUnavailableStatus, formatInsuranceContractStatus, formatInsuranceTermsStatus, formatLastEventStatus, formatLevelObjectiveProgress, formatLevelObjectiveSafety, formatLevelObjectiveStatus, formatLoadResultStatus, formatLoanInterestStatus, formatLoanStatus, formatMaintenanceStaffStatus, formatMarketingCampaignStatus, formatMilestoneStatus, formatMissingMapLoadStatus, formatMuteToggleLabel, formatNoSelectionStatus, formatNewMapStatus, formatNextAdmissionStatus, formatNextLevelStatus, formatObjectAvailabilityStatus, formatOnBreakStaffStatus, formatOpenDiagnosisRoomsStatus, formatOpenTreatmentRoomsStatus, formatOriginalUiCanvasUnavailableStatus, formatOriginalUiNoSpritesStatus, formatOriginalUiStripSummary, formatPatientBowelOverflowStatus, formatPatientDeathsStatus, formatPatientDrinksStatus, formatPatientLitterStatus, formatPatientMoodStatus, formatPatientsNeedingToiletStatus, formatPatientVomitsStatus, formatPausedStatus, formatPauseToggleLabel, formatPlacementMode, formatPlantCareStatus, formatPricingPolicyStatus, formatQuakeStatus, formatQueuedPatientsStatus, formatQueuePressureEventsStatus, formatQueuePressureStatus, formatQueuePressureValueStatus, formatRatControlStatus, formatRecentEventsStatus, formatReputationStatus, formatResearchEffectStatus, formatResearchStatus, formatRestartedLevelStatus, formatRoomAvailabilityHudStatus, formatRoomAvailabilityStatus, formatRoomMaintenanceCompleteEventsStatus, formatRoomMaintenanceStartEventsStatus, formatRoomMaintenanceStatus, formatRoutingRulesStatus, formatSalaryPressureStatus, formatSaveFailureStatus, formatSaveLifecycleStatus, formatSaveSlotOptionsHtml, formatSaveSlotsStatus, formatSaveTickStatus, formatScenarioExpertiseStatus, formatScenarioNetworkCriteriaStatus, formatScenarioOpponentProgressStatus, formatScenarioOpponentsStatus, formatScenarioResearchDetails, formatSeedStatus, formatSelectedEntityActionStatus, formatSelectedRoomToggleLabel, formatSelectedStaffBreakToggleLabel, formatSelectionStatusWithLanguage, formatSpecializedTreatmentQueueStatus, formatSpecializedTreatmentRoomsStatus, formatSpeedStatus, formatStaffBreakToggleLabel, formatStaffBurnoutEventsStatus, formatStaffMarketStatus, formatStaffRecoveryEventsStatus, formatStaffSkillStatus, formatStaffTrainingStatus, formatStateHashStatus, formatStressedStaffStatus, formatTickCashflowStatus, formatTickStatus, formatTiredStaffStatus, formatTreatedPatientsStatus, formatTreatingPatientsStatus, formatTreatmentFailuresStatus, formatTreatmentRoomToggleLabel, formatUnlockStatus, formatVeryTiredStaffStatus, formatVipInspectionStatus, formatVipInspectionTermsStatus, formatWaitingPatientsStatus, formatWalkingToDiagnosisPatientsStatus, formatWalkingToTreatmentPatientsStatus, selectOriginalUiSpriteSheetSummary, selectQDataUiSpriteSheetSummary } from "../src/app-shell";
 
 describe("app shell campaign objectives", () => {
     it("selects the first visible original QDATA sheet for the playable UI strip", () => {
@@ -208,6 +208,71 @@ describe("app shell campaign objectives", () => {
         expect(canHireStaffFromTelemetry("nurse", {
             cash: 100,
             staffMarketNursesAvailable: Number.POSITIVE_INFINITY
+        })).toBe(false);
+    });
+    it("blocks unavailable finance and campaign controls before dispatch", () => {
+        expect(canTakeLoanFromTelemetry({
+            outstandingLoan: 0,
+            loanMaxOutstanding: 6_000
+        })).toBe(true);
+        expect(canTakeLoanFromTelemetry({
+            outstandingLoan: 6_000,
+            loanMaxOutstanding: 6_000
+        })).toBe(false);
+        expect(canRepayLoanFromTelemetry({
+            outstandingLoan: 1_000,
+            loanChunkAmount: 500,
+            cash: 500
+        })).toBe(true);
+        expect(canRepayLoanFromTelemetry({
+            outstandingLoan: 1_000,
+            loanChunkAmount: 500,
+            cash: 499
+        })).toBe(false);
+        expect(canRunFinanceAuditFromTelemetry({
+            financeLedgerUnlocked: true,
+            financeAuditReady: true
+        })).toBe(true);
+        expect(canRunFinanceAuditFromTelemetry({
+            financeLedgerUnlocked: true,
+            financeAuditReady: false
+        })).toBe(false);
+        expect(canRunMarketingCampaignFromTelemetry({
+            cash: 600,
+            marketingCampaignCost: 600,
+            reputation: 999
+        })).toBe(true);
+        expect(canRunMarketingCampaignFromTelemetry({
+            cash: 599,
+            marketingCampaignCost: 600,
+            reputation: 999
+        })).toBe(false);
+        expect(canRunMarketingCampaignFromTelemetry({
+            cash: 600,
+            marketingCampaignCost: 600,
+            reputation: 1000
+        })).toBe(false);
+        expect(canStartInsuranceContractFromTelemetry({
+            insuranceContractUnlocked: true,
+            insuranceContractActive: false
+        })).toBe(true);
+        expect(canStartInsuranceContractFromTelemetry({
+            insuranceContractUnlocked: true,
+            insuranceContractActive: true
+        })).toBe(false);
+        expect(canStartResearchFromTelemetry({
+            treatmentResearchActive: false,
+            treatmentResearchLevel: 1,
+            treatmentResearchMaxLevel: 3,
+            treatmentResearchProjectCost: 1_000,
+            cash: 1_000
+        })).toBe(true);
+        expect(canStartResearchFromTelemetry({
+            treatmentResearchActive: true,
+            treatmentResearchLevel: 1,
+            treatmentResearchMaxLevel: 3,
+            treatmentResearchProjectCost: 1_000,
+            cash: 1_000
         })).toBe(false);
     });
     it("blocks pristine or unaffordable selected-room repairs before dispatch", () => {
