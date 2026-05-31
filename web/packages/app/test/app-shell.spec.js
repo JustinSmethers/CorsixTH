@@ -93,6 +93,22 @@ describe("app shell campaign objectives", () => {
             "hire-diagnostician",
             "hire-nurse"
         ]);
+        expect(createOriginalUiStripControlZones({
+            originalUiSpriteSheet: {
+                sprites: Array.from({ length: 10 }, () => ({ width: 10, height: 10, indices: [1] }))
+            }
+        }, 180, 40).map((zone) => zone.id)).toEqual([
+            "pause-toggle",
+            "step",
+            "build-diagnosis-room",
+            "build-treatment-room",
+            "build-pharmacy-room",
+            "build-specialist-room",
+            "hire-diagnostician",
+            "hire-nurse",
+            "hire-handyman",
+            "hire-receptionist"
+        ]);
     });
     it("uses imported original language names in the patient casebook", () => {
         expect(formatCasebookWithLanguage({
