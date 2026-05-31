@@ -3174,9 +3174,12 @@ export class DeterministicSimulation {
     availableTreatmentStaffIds(roomId, assignments) {
         const room = this.getRoomById(roomId);
         const busyStaffIds = new Set(assignments.map((assignment) => assignment.staffId));
+        const requiresSurgeon = room?.roomType === "specialist";
         return this.staff
             .filter((staff) => staff.status === "active" && !busyStaffIds.has(staff.id) &&
-            (staff.role === "nurse" || (room?.roomType === "specialist" && staff.role === "diagnostician" && staff.specialties?.includes("surgeon"))))
+            (requiresSurgeon
+                ? staff.role === "diagnostician" && staff.specialties?.includes("surgeon")
+                : staff.role === "nurse"))
             .map((staff) => staff.id)
             .sort((left, right) => {
             const leftStaff = this.getStaffById(left);

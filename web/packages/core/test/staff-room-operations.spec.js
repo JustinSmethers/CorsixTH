@@ -332,28 +332,29 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             specialties: ["psychiatrist"]
         });
     });
-    it("uses surgeon-qualified doctors for faster specialist treatment", () => {
-        const baseline = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
+    it("requires surgeon-qualified doctors for specialist treatment", () => {
+        const blocked = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
         const specialized = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
-        baseline.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        blocked.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         specialized.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         specialized.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
-        baseline.execute({ type: "admit-patient", severity: 3, diseaseId: "cranial-pressure", position: { x: 2, y: 4 } });
+        blocked.execute({ type: "admit-patient", severity: 3, diseaseId: "cranial-pressure", position: { x: 2, y: 4 } });
         specialized.execute({ type: "admit-patient", severity: 3, diseaseId: "cranial-pressure", position: { x: 2, y: 4 } });
-        let baselineDischargeTick = null;
         let specializedDischargeTick = null;
         for (let tick = 1; tick <= 16; tick += 1) {
-            baseline.execute({ type: "tick", count: 1 });
+            blocked.execute({ type: "tick", count: 1 });
             specialized.execute({ type: "tick", count: 1 });
-            if (baselineDischargeTick === null && baseline.getState().hospitalLoop.dischargedPatients === 1) {
-                baselineDischargeTick = tick;
-            }
             if (specializedDischargeTick === null && specialized.getState().hospitalLoop.dischargedPatients === 1) {
                 specializedDischargeTick = tick;
             }
         }
-        expect(specializedDischargeTick).toBeLessThan(baselineDischargeTick);
-        expect(baselineDischargeTick).toBeGreaterThan(0);
+        expect(blocked.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "cranial-pressure",
+            preferredTreatmentRoomType: "specialist",
+            status: "awaiting-treatment"
+        });
+        expect(blocked.getState().hospitalLoop.dischargedPatients).toBe(0);
+        expect(specializedDischargeTick).toBeGreaterThan(0);
         expect(specialized.getState().hospitalLoop.dischargedPatients).toBe(1);
     });
     it("requires disease-specific treatment rooms for pharmacy and specialist diseases", () => {
@@ -380,6 +381,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(fallback.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
         const fracture = new DeterministicSimulation(7212, { bounds: { width: 12, height: 12 } });
         fracture.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        fracture.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
         const specialist = fracture.getState().entities.rooms.find((room) => room.roomType === "specialist");
         expect(specialist).toBeTruthy();
         fracture.execute({ type: "admit-patient", severity: 2, diseaseId: "fractured-bones", position: { x: 2, y: 4 } });
