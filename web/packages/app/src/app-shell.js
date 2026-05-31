@@ -1201,7 +1201,11 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "pause-toggle", label: "Pause" },
     { id: "step", label: "Step" },
     { id: "build-diagnosis-room", label: "Build GP" },
-    { id: "hire-diagnostician", label: "Hire Doctor" }
+    { id: "build-treatment-room", label: "Build Ward" },
+    { id: "build-pharmacy-room", label: "Build Pharmacy" },
+    { id: "build-specialist-room", label: "Build Specialist" },
+    { id: "hire-diagnostician", label: "Hire Doctor" },
+    { id: "hire-nurse", label: "Hire Nurse" }
 ];
 export function selectOriginalUiSpriteSheetSummary(uiSpriteSheets, qDataSpriteSheets) {
     const visibleUiSheets = Array.isArray(uiSpriteSheets)
@@ -3107,7 +3111,11 @@ export function mountAppShell(options) {
         ["pause-toggle", onPauseToggle],
         ["step", onStep],
         ["build-diagnosis-room", onBuildDiagnosisRoom],
-        ["hire-diagnostician", onHireDiagnostician]
+        ["build-treatment-room", onBuildTreatmentRoom],
+        ["build-pharmacy-room", onBuildPharmacyRoom],
+        ["build-specialist-room", onBuildSpecialistRoom],
+        ["hire-diagnostician", onHireDiagnostician],
+        ["hire-nurse", onHireNurse]
     ]);
     const onOriginalUiStripClick = (event) => {
         const zone = originalUiControlZoneAt(originalUiStripCanvas, event);

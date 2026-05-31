@@ -79,6 +79,20 @@ describe("app shell campaign objectives", () => {
             { id: "step", label: "Step", left: 22, top: 11, width: 14, height: 18 },
             { id: "build-diagnosis-room", label: "Build GP", left: 42, top: 0, width: 28, height: 40 }
         ]);
+        expect(createOriginalUiStripControlZones({
+            originalUiSpriteSheet: {
+                sprites: Array.from({ length: 8 }, () => ({ width: 10, height: 10, indices: [1] }))
+            }
+        }, 140, 40).map((zone) => zone.id)).toEqual([
+            "pause-toggle",
+            "step",
+            "build-diagnosis-room",
+            "build-treatment-room",
+            "build-pharmacy-room",
+            "build-specialist-room",
+            "hire-diagnostician",
+            "hire-nurse"
+        ]);
     });
     it("uses imported original language names in the patient casebook", () => {
         expect(formatCasebookWithLanguage({
