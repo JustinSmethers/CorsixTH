@@ -20,6 +20,7 @@ test("phase 7 slice 2 player journey: recover stalled flow via staff lifecycle a
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
+    await page.getByTestId("admission-severity").selectOption("1");
     await page.getByTestId("admit").click();
     await expect(page.getByTestId("queue-size")).toHaveText("Queue: 1");
     await page.getByTestId("staff-break-toggle").click();
@@ -33,12 +34,12 @@ test("phase 7 slice 2 player journey: recover stalled flow via staff lifecycle a
     await expect(page.getByTestId("active-staff")).toHaveText("Active staff: 2");
     await page.getByTestId("step").click();
     await expect(page.getByTestId("walking-to-diagnosis-size")).toHaveText("Walking to diagnosis: 1");
+    await page.getByTestId("treatment-room-toggle").click();
+    await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 0");
     for (let i = 0; i < 3; i += 1) {
         await page.getByTestId("step").click();
     }
     await expect(page.getByTestId("awaiting-treatment-size")).toHaveText("Awaiting treatment: 1");
-    await page.getByTestId("treatment-room-toggle").click();
-    await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 0");
     await page.getByTestId("step").click();
     await expect(page.getByTestId("awaiting-treatment-size")).toHaveText("Awaiting treatment: 1");
     await expect(page.getByTestId("treating-size")).toHaveText("Treating: 0");
