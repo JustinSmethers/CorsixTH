@@ -679,6 +679,28 @@ export function canFireStaff(staff = null) {
 export function canSellRoom(room = null) {
     return Boolean(room);
 }
+function defaultStaffBreakTargetFromState(state = null) {
+    if (!Array.isArray(state?.entities?.staff)) {
+        return null;
+    }
+    return state.entities.staff
+        .filter((staff) => staff.role === "diagnostician")
+        .sort((left, right) => left.id - right.id)[0] ?? null;
+}
+function defaultTreatmentRoomToggleTargetFromState(state = null) {
+    if (!Array.isArray(state?.entities?.rooms)) {
+        return null;
+    }
+    return state.entities.rooms
+        .filter((room) => room.roomType === "treatment")
+        .sort((left, right) => left.id - right.id)[0] ?? null;
+}
+export function canToggleStaffBreakFromState(state = null, selectedStaff = null) {
+    return Boolean(selectedStaff ?? defaultStaffBreakTargetFromState(state));
+}
+export function canToggleTreatmentRoomFromState(state = null, selectedRoom = null) {
+    return Boolean(selectedRoom ?? defaultTreatmentRoomToggleTargetFromState(state));
+}
 export function canPrioritizePatient(patient = null) {
     return Boolean(patient && (patient.status === "queued" || patient.status === "awaiting-treatment"));
 }
@@ -2739,6 +2761,8 @@ export function mountAppShell(options) {
         if (resolved?.type === "room") {
             telemetryElements.treatmentRoomToggleButton.textContent = formatSelectedRoomToggleLabel(resolved.value);
         }
+        telemetryElements.staffBreakToggleButton.disabled = !canToggleStaffBreakFromState(state, resolved?.type === "staff" ? resolved.value : null);
+        telemetryElements.treatmentRoomToggleButton.disabled = !canToggleTreatmentRoomFromState(state, resolved?.type === "room" ? resolved.value : null);
     };
     const renderRuntime = () => {
         const currentMap = campaignMapSummaryAt(hospitalView, campaignLevelIndex(hospitalView));
@@ -3197,18 +3221,34 @@ export function mountAppShell(options) {
         }, renderRuntime);
         updateActionStatus(events);
     };
-    const onStaffBreakToggle = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
-        device: "ui",
-        action: "staff-break-toggle",
-        source: "ui:staff-break-toggle",
-        ...(selectedEntity?.type === "staff" ? { staffId: selectedEntity.id } : {})
-    }, renderRuntime);
-    const onTreatmentRoomToggle = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
-        device: "ui",
-        action: "treatment-room-toggle",
-        source: "ui:treatment-room-toggle",
-        ...(selectedEntity?.type === "room" ? { roomId: selectedEntity.id } : {})
-    }, renderRuntime);
+    const onStaffBreakToggle = () => {
+        const state = orchestrator.getState();
+        const resolved = selectedEntityFromState(state, selectedEntity);
+        const staff = resolved?.type === "staff" ? resolved.value : defaultStaffBreakTargetFromState(state);
+        if (!canToggleStaffBreakFromState(state, staff)) {
+            return;
+        }
+        dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "staff-break-toggle",
+            source: "ui:staff-break-toggle",
+            ...(resolved?.type === "staff" ? { staffId: staff.id } : {})
+        }, renderRuntime);
+    };
+    const onTreatmentRoomToggle = () => {
+        const state = orchestrator.getState();
+        const resolved = selectedEntityFromState(state, selectedEntity);
+        const room = resolved?.type === "room" ? resolved.value : defaultTreatmentRoomToggleTargetFromState(state);
+        if (!canToggleTreatmentRoomFromState(state, room)) {
+            return;
+        }
+        dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "treatment-room-toggle",
+            source: "ui:treatment-room-toggle",
+            ...(resolved?.type === "room" ? { roomId: room.id } : {})
+        }, renderRuntime);
+    };
     const onBuildDiagnosisRoom = () => {
         if (!canBuildRoomFromTelemetry("diagnosis", orchestrator.telemetry())) {
             actionStatus.textContent = formatActionStatus("room.build-blocked");
