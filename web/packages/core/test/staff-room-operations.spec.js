@@ -435,6 +435,27 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             awaitingTreatmentPatients: 1
         });
     });
+    it("does not over-assign a single nurse across multiple open treatment rooms", () => {
+        const simulation = new DeterministicSimulation(7216, { bounds: { width: 12, height: 12 } });
+        simulation.execute({ type: "open-room", roomType: "diagnosis", position: { x: 1, y: 7 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", position: { x: 8, y: 4 } });
+        simulation.execute({ type: "open-room", roomType: "treatment", position: { x: 1, y: 7 } });
+        simulation.execute({ type: "admit-patient", severity: 1, diseaseId: "mild-cold", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 1, diseaseId: "mild-cold", position: { x: 3, y: 4 } });
+        simulation.execute({ type: "tick", count: 5 });
+        expect(simulation.getState().hospitalLoop).toMatchObject({
+            walkingToTreatmentPatients: 1,
+            awaitingTreatmentPatients: 1
+        });
+        expect(simulation.getState().entities.waitingPatients.map((patient) => ({
+            id: patient.id,
+            status: patient.status,
+            assignedStaffId: patient.assignedStaffId
+        }))).toEqual([
+            { id: 1, status: "walking-to-treatment", assignedStaffId: 2 },
+            { id: 2, status: "awaiting-treatment", assignedStaffId: null }
+        ]);
+    });
     it("keeps deterministic hashes for identical staff/room command streams", () => {
         const commands = [
             { type: "train-staff", staffId: 1 },
