@@ -1500,6 +1500,7 @@ test("phase 8 scenario import: cans of coke awards use imported SAM values", asy
     await expect(page.getByTestId("give-drink-selected-patient")).toBeEnabled();
     await page.getByTestId("give-drink-selected-patient").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: drink given");
+    await expect(page.getByTestId("give-drink-selected-patient")).toBeDisabled();
     await expect(page.getByTestId("patient-drinks")).toHaveText("Drinks served: 1, award 1/1");
     await expect(page.getByTestId("hospital-awards")).toContainText("Awards: ready, reward 900/+0");
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
@@ -1818,10 +1819,12 @@ test("phase 8 scenario import: patient behavior settings drive browser care cont
     await expect(page.getByTestId("give-drink-selected-patient")).toBeEnabled();
     await page.getByTestId("give-drink-selected-patient").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: drink given");
+    await expect(page.getByTestId("give-drink-selected-patient")).toBeDisabled();
     await expect(page.getByTestId("patient-drinks")).toContainText("Drinks served: 1");
     await expect(page.getByTestId("send-selected-patient-toilet")).toBeEnabled();
     await page.getByTestId("send-selected-patient-toilet").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: toilet used");
+    await expect(page.getByTestId("send-selected-patient-toilet")).toBeDisabled();
     await expect(page.getByTestId("patients-needing-toilet")).toHaveText("Need toilet: 0, threshold 2");
     for (let index = 0; index < 3; index += 1) {
         await page.getByTestId("step").click();

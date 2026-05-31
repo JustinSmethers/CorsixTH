@@ -650,6 +650,25 @@ export function canStartEmergencyFromTelemetry(telemetry = null) {
     }
     return telemetry.scenarioEmergencyActiveIndex !== null && telemetry.scenarioEmergencyActiveIndex !== undefined;
 }
+export function canGiveDrinkToPatient(patient = null, telemetry = null) {
+    const drinkHappy = telemetry?.scenarioPatientDrinkHappy;
+    return Boolean(patient &&
+        patient.drank !== true &&
+        Number.isInteger(drinkHappy) &&
+        drinkHappy > 0 &&
+        Number.isInteger(patient.health) &&
+        Number.isInteger(patient.maxHealth) &&
+        patient.health > 0 &&
+        patient.health < patient.maxHealth);
+}
+export function canSendPatientToilet(patient = null, telemetry = null) {
+    const toiletHappy = telemetry?.scenarioPatientToiletHappy;
+    return Boolean(patient &&
+        patient.usedToilet !== true &&
+        Number.isInteger(patient.health) &&
+        patient.health > 0 &&
+        (patient.needsToilet === true || Number.isInteger(toiletHappy)));
+}
 export function formatMaintenanceStaffStatus(telemetry, languageSummary = null) {
     const base = `Handymen: ${telemetry.activeHandymen}/${telemetry.totalHandymen}, repairs ${telemetry.maintenanceStaffRepairEvents}, bonus ${telemetry.maintenanceStaffRepairBonusTicks} ticks`;
     const thresholds = telemetry.scenarioRoomWearThresholdOverrides ?? {};
@@ -2650,11 +2669,11 @@ export function mountAppShell(options) {
         prioritizeSelectedPatientButton.disabled = !(resolved?.type === "patient" &&
             (resolved.value.status === "queued" || resolved.value.status === "awaiting-treatment"));
         sendSelectedPatientHomeButton.disabled = resolved?.type !== "patient";
-        giveDrinkSelectedPatientButton.disabled = resolved?.type !== "patient";
-        sendSelectedPatientToiletButton.disabled = resolved?.type !== "patient";
+        const telemetry = orchestrator.telemetry();
+        giveDrinkSelectedPatientButton.disabled = !(resolved?.type === "patient" && canGiveDrinkToPatient(resolved.value, telemetry));
+        sendSelectedPatientToiletButton.disabled = !(resolved?.type === "patient" && canSendPatientToilet(resolved.value, telemetry));
         moveSelectedStaffButton.disabled = resolved?.type !== "staff";
         restSelectedStaffButton.disabled = !(resolved?.type === "staff" && resolved.value.status === "on-break" && resolved.value.stress > 0);
-        const telemetry = orchestrator.telemetry();
         trainSelectedStaffButton.disabled = !(resolved?.type === "staff" &&
             resolved.value.trainingRemainingTicks === 0 &&
             resolved.value.skillLevel < telemetry.maxStaffSkillLevel &&
@@ -2934,7 +2953,7 @@ export function mountAppShell(options) {
     };
     const onGiveDrinkSelectedPatient = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "patient") {
+        if (resolved?.type !== "patient" || !canGiveDrinkToPatient(resolved.value, orchestrator.telemetry())) {
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
@@ -2948,7 +2967,7 @@ export function mountAppShell(options) {
     };
     const onSendSelectedPatientToilet = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "patient") {
+        if (resolved?.type !== "patient" || !canSendPatientToilet(resolved.value, orchestrator.telemetry())) {
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {

@@ -59,17 +59,15 @@ test("phase 7 slice 4 player journey: manual patient and environment care contro
     await expect(page.getByTestId("send-selected-patient-toilet")).toBeDisabled();
     await canvas.click({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: patient #1");
-    await expect(page.getByTestId("give-drink-selected-patient")).toBeEnabled();
-    await expect(page.getByTestId("send-selected-patient-toilet")).toBeEnabled();
+    await expect(page.getByTestId("give-drink-selected-patient")).toBeDisabled();
+    await expect(page.getByTestId("send-selected-patient-toilet")).toBeDisabled();
     for (let i = 0; i < 6; i += 1) {
         await page.getByTestId("step").click();
     }
     const drinksBefore = parseServedMetric((await page.getByTestId("patient-drinks").textContent()) ?? "", "Drinks served");
-    await page.getByTestId("give-drink-selected-patient").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: drink blocked");
+    await expect(page.getByTestId("give-drink-selected-patient")).toBeDisabled();
     expect(parseServedMetric((await page.getByTestId("patient-drinks").textContent()) ?? "", "Drinks served")).toBe(drinksBefore);
-    await page.getByTestId("send-selected-patient-toilet").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: toilet blocked");
+    await expect(page.getByTestId("send-selected-patient-toilet")).toBeDisabled();
     const ratsBefore = parseRatioMetric((await page.getByTestId("rat-control").textContent()) ?? "", "Rats");
     await page.getByTestId("shoot-rat").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: rat killed");
