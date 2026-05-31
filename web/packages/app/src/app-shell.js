@@ -211,6 +211,7 @@ function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = n
     elements.financeAuditButton.disabled = !telemetry.financeLedgerUnlocked || !telemetry.financeAuditReady;
     elements.marketingCampaignButton.disabled = telemetry.cash < telemetry.marketingCampaignCost || telemetry.reputation >= 1000;
     elements.insuranceContractButton.disabled = !telemetry.insuranceContractUnlocked || telemetry.insuranceContractActive;
+    elements.awardsButton.disabled = !canRunAwardsFromTelemetry(telemetry);
     elements.researchButton.disabled =
         telemetry.treatmentResearchActive ||
             telemetry.treatmentResearchLevel >= telemetry.treatmentResearchMaxLevel ||
@@ -649,6 +650,9 @@ export function canStartEmergencyFromTelemetry(telemetry = null) {
         return true;
     }
     return telemetry.scenarioEmergencyActiveIndex !== null && telemetry.scenarioEmergencyActiveIndex !== undefined;
+}
+export function canRunAwardsFromTelemetry(telemetry = null) {
+    return telemetry?.scenarioAwardCriteriaMet !== false;
 }
 export function canGiveDrinkToPatient(patient = null, telemetry = null) {
     const drinkHappy = telemetry?.scenarioPatientDrinkHappy;
@@ -2854,6 +2858,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onAwardsCeremony = () => {
+        if (!canRunAwardsFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("awards.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "run-awards-ceremony",

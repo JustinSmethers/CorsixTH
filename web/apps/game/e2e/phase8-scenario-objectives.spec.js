@@ -1063,8 +1063,7 @@ test("phase 8 scenario import: cures awards apply imported poor penalty", async 
     await expect(page.getByTestId("hospital-awards")).toContainText("scenario cures 2, reputation 0, value 0");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor thresholds cures below 3, deaths above 10");
     await expect(page.getByTestId("hospital-awards")).toContainText("cures 0/2");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     for (let index = 0; index < 2; index += 1) {
         await page.getByTestId("admit").click();
@@ -1226,8 +1225,7 @@ test("phase 8 scenario import: cleanliness award thresholds use imported SAM val
     await expect(page.getByTestId("patient-litter")).toHaveText("Patient litter: 4, active 4, cleaned 0, cleanliness 100%");
     await expect(page.getByTestId("hospital-awards")).toContainText("litter 100/5%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor litter 100/40%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
     await expect(page.getByTestId("hospital-awards")).toContainText("totals 0/+6");
 });
 
@@ -1253,8 +1251,7 @@ test("phase 8 scenario import: peep happiness awards use imported SAM values", a
     await expect(page.getByTestId("patient-mood")).toContainText("peep happy 4%");
     await expect(page.getByTestId("hospital-awards")).toContainText("peep happy 4/75%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor peep happy 4/25%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
     await expect(page.getByTestId("hospital-awards")).toContainText("totals 0/+4");
 });
 
@@ -1281,8 +1278,7 @@ test("phase 8 scenario import: waiting times awards use imported SAM values", as
     await expect(page.getByTestId("patient-deaths")).toContainText("walkouts 1 (100%)");
     await expect(page.getByTestId("hospital-awards")).toContainText("walkouts 100/25%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor walkouts 100/75%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
     await expect(page.getByTestId("hospital-awards")).toContainText("totals 0/+2");
 });
 
@@ -1307,8 +1303,7 @@ test("phase 8 scenario import: staff happiness awards use imported SAM values", 
     await expect(page.getByTestId("stressed-staff")).toContainText("staff happy 40%");
     await expect(page.getByTestId("hospital-awards")).toContainText("staff award happy 40/75%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor staff happy 40/50%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
     await expect(page.getByTestId("hospital-awards")).toContainText("totals 0/+4");
 });
 
@@ -1333,8 +1328,7 @@ test("phase 8 scenario import: well-kept tech awards use imported SAM values", a
     await expect(page.getByTestId("rooms-in-maintenance")).toHaveText("Rooms in maintenance: 0, worn 100%");
     await expect(page.getByTestId("hospital-awards")).toContainText("worn tech 100/20%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor worn tech 100/70%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
     await expect(page.getByTestId("hospital-awards")).toContainText("totals 0/+7");
 });
 
@@ -1346,8 +1340,7 @@ test("phase 8 scenario import: new tech awards use imported SAM values", async (
     await expect(page.getByTestId("hospital-awards")).toContainText("poor thresholds research spend below 1500, deaths above 10");
     await expect(page.getByTestId("hospital-awards")).toContainText("research spend 0/2000");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor research spend 0/1500");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 1000");
@@ -1400,8 +1393,7 @@ test("phase 8 scenario import: emergency awards block on imported SAM values", a
     await expect(page.getByTestId("emergency-reward")).toContainText("won 1/2, failed 1, saved 50%");
     await expect(page.getByTestId("hospital-awards")).toContainText("emergency saved 50/90%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor emergency saved 50/75%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 });
 
 test("phase 8 scenario import: emergency awards grant imported SAM payout", async ({ page }) => {
@@ -1438,8 +1430,7 @@ test("phase 8 scenario import: population awards use imported SAM values", async
     await expect(page.getByTestId("level-objective-safety")).toContainText("treated 33/40%");
     await expect(page.getByTestId("hospital-awards")).toContainText("treated 33/75%");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor treated 33/50%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     await page.getByTestId("treat").click();
     await page.getByTestId("treat").click();
@@ -1490,8 +1481,7 @@ test("phase 8 scenario import: cans of coke awards use imported SAM values", asy
     await expect(page.getByTestId("hospital-awards")).toContainText("scenario cures 0, reputation 0, value 0, drinks 1");
     await expect(page.getByTestId("patient-drinks")).toHaveText("Drinks served: 0, award 0/1");
     await expect(page.getByTestId("hospital-awards")).toContainText("drinks 0/1");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     await page.getByTestId("staff-break-toggle").click();
     await selectVisiblePatient(page);
@@ -1515,8 +1505,7 @@ test("phase 8 scenario import: rat awards use imported SAM values", async ({ pag
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("hospital-awards")).toContainText("scenario cures 0, reputation 0, value 0, rats 3, rat accuracy 75%");
     await expect(page.getByTestId("hospital-awards")).toContainText("rats 0/3, rats 0/2");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     await page.getByTestId("shoot-rat").click();
     await expect(page.getByTestId("rat-control")).toHaveText("Rats: 1/1, accuracy 100%");
@@ -1541,8 +1530,7 @@ test("phase 8 scenario import: plant awards use imported SAM values", async ({ p
     await expect(page.getByTestId("hospital-awards")).toContainText("scenario cures 0, reputation 0, value 0, plants watered 80%");
     await expect(page.getByTestId("plant-care")).toHaveText("Plants: 0/0, watered 0%");
     await expect(page.getByTestId("hospital-awards")).toContainText("plants watered 0/80%");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     for (let index = 0; index < 4; index += 1) {
         await page.getByTestId("water-plant").click();
@@ -1563,8 +1551,7 @@ test("phase 8 scenario import: mayor awards use imported SAM values", async ({ p
     await expect(page.getByTestId("vip-inspection-reward")).toHaveText("VIP terms: queue <= 2, reputation >= 450, reward 800/+25, penalty 300/-20, pass 0/0, fail 0; scenario mayor 999 ticks");
     await expect(page.getByTestId("hospital-awards")).toContainText("scenario cures 0, reputation 0, value 0, mayor fail <= 0%");
     await expect(page.getByTestId("hospital-awards")).toContainText("mayor visits 0/2");
-    await page.getByTestId("run-awards-ceremony").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: awards blocked");
+    await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
 
     for (let visit = 1; visit <= 2; visit += 1) {
         await page.getByTestId("start-vip-inspection").click();
