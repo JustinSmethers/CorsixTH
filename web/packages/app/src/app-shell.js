@@ -217,8 +217,8 @@ function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = n
             telemetry.treatmentResearchLevel >= telemetry.treatmentResearchMaxLevel ||
             telemetry.cash < telemetry.treatmentResearchProjectCost;
     elements.emergencyButton.disabled = !canStartEmergencyFromTelemetry(telemetry);
-    elements.epidemicButton.disabled = telemetry.epidemicActive;
-    elements.vipInspectionButton.disabled = telemetry.vipInspectionActive;
+    elements.epidemicButton.disabled = !canStartEpidemicFromTelemetry(telemetry);
+    elements.vipInspectionButton.disabled = !canStartVipInspectionFromTelemetry(telemetry);
     elements.seedMetric.textContent = formatSeedStatus(telemetry);
     elements.tickMetric.textContent = formatTickStatus(telemetry);
     elements.speedStatusMetric.textContent = formatSpeedStatus(telemetry);
@@ -664,6 +664,12 @@ export function canStartEmergencyFromTelemetry(telemetry = null) {
 }
 export function canRunAwardsFromTelemetry(telemetry = null) {
     return telemetry?.scenarioAwardCriteriaMet !== false;
+}
+export function canStartEpidemicFromTelemetry(telemetry = null) {
+    return Boolean(telemetry && !telemetry.epidemicActive);
+}
+export function canStartVipInspectionFromTelemetry(telemetry = null) {
+    return Boolean(telemetry && !telemetry.vipInspectionActive);
 }
 export function canGiveDrinkToPatient(patient = null, telemetry = null) {
     const drinkHappy = telemetry?.scenarioPatientDrinkHappy;
@@ -2900,6 +2906,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onStartEpidemic = () => {
+        if (!canStartEpidemicFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("epidemic.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "start-epidemic-outbreak",
@@ -2908,6 +2919,11 @@ export function mountAppShell(options) {
         updateActionStatus(events);
     };
     const onStartVipInspection = () => {
+        if (!canStartVipInspectionFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("vip.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "start-vip-inspection",
