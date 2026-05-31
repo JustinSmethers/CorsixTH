@@ -1353,7 +1353,17 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "admit", label: "Admit" },
     { id: "treat", label: "Treat" },
     { id: "staff-break-toggle", label: "Staff Break" },
-    { id: "treatment-room-toggle", label: "Treatment Room" }
+    { id: "treatment-room-toggle", label: "Treatment Room" },
+    { id: "take-loan", label: "Take Loan" },
+    { id: "repay-loan", label: "Repay Loan" },
+    { id: "start-research", label: "Research" },
+    { id: "run-finance-audit", label: "Audit" },
+    { id: "run-marketing-campaign", label: "Marketing" },
+    { id: "start-insurance-contract", label: "Insurance" },
+    { id: "run-awards-ceremony", label: "Awards" },
+    { id: "start-emergency-wave", label: "Emergency" },
+    { id: "start-epidemic-outbreak", label: "Epidemic" },
+    { id: "start-vip-inspection", label: "VIP" }
 ];
 export function selectOriginalUiSpriteSheetSummary(uiSpriteSheets, qDataSpriteSheets) {
     const visibleUiSheets = Array.isArray(uiSpriteSheets)
@@ -3405,7 +3415,17 @@ export function mountAppShell(options) {
         ["admit", onAdmit],
         ["treat", onTreat],
         ["staff-break-toggle", onStaffBreakToggle],
-        ["treatment-room-toggle", onTreatmentRoomToggle]
+        ["treatment-room-toggle", onTreatmentRoomToggle],
+        ["take-loan", onTakeLoan],
+        ["repay-loan", onRepayLoan],
+        ["start-research", onStartResearch],
+        ["run-finance-audit", onFinanceAudit],
+        ["run-marketing-campaign", onMarketingCampaign],
+        ["start-insurance-contract", onStartInsuranceContract],
+        ["run-awards-ceremony", onAwardsCeremony],
+        ["start-emergency-wave", onStartEmergency],
+        ["start-epidemic-outbreak", onStartEpidemic],
+        ["start-vip-inspection", onStartVipInspection]
     ]);
     const onOriginalUiStripClick = (event) => {
         const zone = originalUiControlZoneAt(originalUiStripCanvas, event);

@@ -129,6 +129,36 @@ describe("app shell campaign objectives", () => {
             "staff-break-toggle",
             "treatment-room-toggle"
         ]);
+        expect(createOriginalUiStripControlZones({
+            originalUiSpriteSheet: {
+                sprites: Array.from({ length: 24 }, () => ({ width: 10, height: 10, indices: [1] }))
+            }
+        }, 388, 40).map((zone) => zone.id)).toEqual([
+            "pause-toggle",
+            "step",
+            "build-diagnosis-room",
+            "build-treatment-room",
+            "build-pharmacy-room",
+            "build-specialist-room",
+            "hire-diagnostician",
+            "hire-nurse",
+            "hire-handyman",
+            "hire-receptionist",
+            "admit",
+            "treat",
+            "staff-break-toggle",
+            "treatment-room-toggle",
+            "take-loan",
+            "repay-loan",
+            "start-research",
+            "run-finance-audit",
+            "run-marketing-campaign",
+            "start-insurance-contract",
+            "run-awards-ceremony",
+            "start-emergency-wave",
+            "start-epidemic-outbreak",
+            "start-vip-inspection"
+        ]);
     });
     it("uses imported original language names in the patient casebook", () => {
         expect(formatCasebookWithLanguage({
