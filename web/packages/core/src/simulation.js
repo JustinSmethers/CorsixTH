@@ -2600,7 +2600,8 @@ export class DeterministicSimulation {
         }
     }
     startTreatmentAssignments() {
-        const availableRoomIds = this.availableTreatmentRoomIds(this.treatmentAssignments);
+        const availableRoomIds = this.availableTreatmentRoomIds(this.treatmentAssignments)
+            .filter((roomId) => this.availableTreatmentStaffIds(roomId, this.treatmentAssignments).length > 0);
         const slots = availableRoomIds.length;
         for (let i = 0; i < slots; i += 1) {
             const matched = this.dequeueTreatmentPatientForRooms(availableRoomIds);

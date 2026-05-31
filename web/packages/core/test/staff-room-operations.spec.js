@@ -413,6 +413,28 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             assignedRoomId: 2
         });
     });
+    it("does not let unstaffed specialist cases block staffed general treatment rooms", () => {
+        const simulation = new DeterministicSimulation(7215, { bounds: { width: 12, height: 12 } });
+        simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        simulation.execute({ type: "admit-patient", severity: 3, diseaseId: "cranial-pressure", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 1, diseaseId: "mild-cold", position: { x: 3, y: 4 } });
+        simulation.execute({ type: "tick", count: 8 });
+        const specialistPatient = simulation.getState().entities.waitingPatients.find((patient) => patient.diseaseId === "cranial-pressure");
+        const generalPatient = simulation.getState().entities.waitingPatients.find((patient) => patient.diseaseId === "mild-cold");
+        expect(specialistPatient).toMatchObject({
+            preferredTreatmentRoomType: "specialist",
+            status: "awaiting-treatment"
+        });
+        expect(generalPatient).toMatchObject({
+            preferredTreatmentRoomType: "treatment",
+            status: "walking-to-treatment",
+            assignedRoomId: 2
+        });
+        expect(simulation.getState().hospitalLoop).toMatchObject({
+            walkingToTreatmentPatients: 1,
+            awaitingTreatmentPatients: 1
+        });
+    });
     it("keeps deterministic hashes for identical staff/room command streams", () => {
         const commands = [
             { type: "train-staff", staffId: 1 },
