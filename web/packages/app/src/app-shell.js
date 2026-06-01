@@ -1363,7 +1363,17 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "run-awards-ceremony", label: "Awards" },
     { id: "start-emergency-wave", label: "Emergency" },
     { id: "start-epidemic-outbreak", label: "Epidemic" },
-    { id: "start-vip-inspection", label: "VIP" }
+    { id: "start-vip-inspection", label: "VIP" },
+    { id: "save-game", label: "Save" },
+    { id: "load-game", label: "Load" },
+    { id: "refresh-save-slots", label: "Refresh Saves" },
+    { id: "delete-save-slot", label: "Delete Save" },
+    { id: "restart-level", label: "Restart Level" },
+    { id: "next-level", label: "Next Level" },
+    { id: "hospital-camera-west", label: "Camera West" },
+    { id: "hospital-camera-east", label: "Camera East" },
+    { id: "hospital-camera-north", label: "Camera North" },
+    { id: "hospital-camera-south", label: "Camera South" }
 ];
 export function selectOriginalUiSpriteSheetSummary(uiSpriteSheets, qDataSpriteSheets) {
     const visibleUiSheets = Array.isArray(uiSpriteSheets)
@@ -3401,39 +3411,6 @@ export function mountAppShell(options) {
         actionStatus.textContent = formatChoosePlacementActionStatus();
         renderRuntime();
     };
-    const originalUiControlHandlers = new Map([
-        ["pause-toggle", onPauseToggle],
-        ["step", onStep],
-        ["build-diagnosis-room", onBuildDiagnosisRoom],
-        ["build-treatment-room", onBuildTreatmentRoom],
-        ["build-pharmacy-room", onBuildPharmacyRoom],
-        ["build-specialist-room", onBuildSpecialistRoom],
-        ["hire-diagnostician", onHireDiagnostician],
-        ["hire-nurse", onHireNurse],
-        ["hire-handyman", onHireHandyman],
-        ["hire-receptionist", onHireReceptionist],
-        ["admit", onAdmit],
-        ["treat", onTreat],
-        ["staff-break-toggle", onStaffBreakToggle],
-        ["treatment-room-toggle", onTreatmentRoomToggle],
-        ["take-loan", onTakeLoan],
-        ["repay-loan", onRepayLoan],
-        ["start-research", onStartResearch],
-        ["run-finance-audit", onFinanceAudit],
-        ["run-marketing-campaign", onMarketingCampaign],
-        ["start-insurance-contract", onStartInsuranceContract],
-        ["run-awards-ceremony", onAwardsCeremony],
-        ["start-emergency-wave", onStartEmergency],
-        ["start-epidemic-outbreak", onStartEpidemic],
-        ["start-vip-inspection", onStartVipInspection]
-    ]);
-    const onOriginalUiStripClick = (event) => {
-        const zone = originalUiControlZoneAt(originalUiStripCanvas, event);
-        if (!zone) {
-            return;
-        }
-        originalUiControlHandlers.get(zone.id)?.();
-    };
     const onSaveGame = () => {
         const slot = activeSaveSlot();
         saveSlotNameInput.value = slot;
@@ -3662,6 +3639,49 @@ export function mountAppShell(options) {
         moveHospitalCamera(hospitalView, 0, HOSPITAL_CAMERA_STEP);
         placementPreview = null;
         renderHospital();
+    };
+    const originalUiControlHandlers = new Map([
+        ["pause-toggle", onPauseToggle],
+        ["step", onStep],
+        ["build-diagnosis-room", onBuildDiagnosisRoom],
+        ["build-treatment-room", onBuildTreatmentRoom],
+        ["build-pharmacy-room", onBuildPharmacyRoom],
+        ["build-specialist-room", onBuildSpecialistRoom],
+        ["hire-diagnostician", onHireDiagnostician],
+        ["hire-nurse", onHireNurse],
+        ["hire-handyman", onHireHandyman],
+        ["hire-receptionist", onHireReceptionist],
+        ["admit", onAdmit],
+        ["treat", onTreat],
+        ["staff-break-toggle", onStaffBreakToggle],
+        ["treatment-room-toggle", onTreatmentRoomToggle],
+        ["take-loan", onTakeLoan],
+        ["repay-loan", onRepayLoan],
+        ["start-research", onStartResearch],
+        ["run-finance-audit", onFinanceAudit],
+        ["run-marketing-campaign", onMarketingCampaign],
+        ["start-insurance-contract", onStartInsuranceContract],
+        ["run-awards-ceremony", onAwardsCeremony],
+        ["start-emergency-wave", onStartEmergency],
+        ["start-epidemic-outbreak", onStartEpidemic],
+        ["start-vip-inspection", onStartVipInspection],
+        ["save-game", onSaveGame],
+        ["load-game", onLoadGame],
+        ["refresh-save-slots", onRefreshSaveSlots],
+        ["delete-save-slot", onDeleteSaveSlot],
+        ["restart-level", onRestartLevel],
+        ["next-level", onNextLevel],
+        ["hospital-camera-west", onCameraWest],
+        ["hospital-camera-east", onCameraEast],
+        ["hospital-camera-north", onCameraNorth],
+        ["hospital-camera-south", onCameraSouth]
+    ]);
+    const onOriginalUiStripClick = (event) => {
+        const zone = originalUiControlZoneAt(originalUiStripCanvas, event);
+        if (!zone) {
+            return;
+        }
+        originalUiControlHandlers.get(zone.id)?.();
     };
     if (!hospitalView) {
         hospitalMapSelect.disabled = true;

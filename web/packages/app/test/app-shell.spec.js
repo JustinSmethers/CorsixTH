@@ -159,6 +159,22 @@ describe("app shell campaign objectives", () => {
             "start-epidemic-outbreak",
             "start-vip-inspection"
         ]);
+        expect(createOriginalUiStripControlZones({
+            originalUiSpriteSheet: {
+                sprites: Array.from({ length: 34 }, () => ({ width: 10, height: 10, indices: [1] }))
+            }
+        }, 548, 40).map((zone) => zone.id).slice(24)).toEqual([
+            "save-game",
+            "load-game",
+            "refresh-save-slots",
+            "delete-save-slot",
+            "restart-level",
+            "next-level",
+            "hospital-camera-west",
+            "hospital-camera-east",
+            "hospital-camera-north",
+            "hospital-camera-south"
+        ]);
     });
     it("uses imported original language names in the patient casebook", () => {
         expect(formatCasebookWithLanguage({
