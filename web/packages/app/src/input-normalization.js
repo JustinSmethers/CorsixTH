@@ -46,6 +46,34 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyT"
         };
     }
+    if (event.code === "ArrowLeft") {
+        return {
+            device: "keyboard",
+            action: "camera-west",
+            source: "ArrowLeft"
+        };
+    }
+    if (event.code === "ArrowRight") {
+        return {
+            device: "keyboard",
+            action: "camera-east",
+            source: "ArrowRight"
+        };
+    }
+    if (event.code === "ArrowUp") {
+        return {
+            device: "keyboard",
+            action: "camera-north",
+            source: "ArrowUp"
+        };
+    }
+    if (event.code === "ArrowDown") {
+        return {
+            device: "keyboard",
+            action: "camera-south",
+            source: "ArrowDown"
+        };
+    }
     return null;
 }
 export function normalizeMouseEvent(event) {

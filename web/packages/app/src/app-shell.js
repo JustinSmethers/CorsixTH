@@ -1965,6 +1965,16 @@ function canvasPointerFromEvent(event, canvas) {
         y: Math.round((event.clientY - rect.top) * canvas.height / rect.height)
     };
 }
+function isEditableKeyboardTarget(target) {
+    if (!target) {
+        return false;
+    }
+    const tagName = target.tagName;
+    return target.isContentEditable === true ||
+        tagName === "INPUT" ||
+        tagName === "SELECT" ||
+        tagName === "TEXTAREA";
+}
 function drawDiamond(context, center, color) {
     context.save();
     context.strokeStyle = color;
@@ -3575,14 +3585,38 @@ export function mountAppShell(options) {
         updateActionStatus(events, lastPlacementEvaluation);
     };
     const onKeyDown = (event) => {
-        dispatchAndRender(orchestrator, telemetryElements, audioMixer, normalizeKeyboardEvent({
+        if (isEditableKeyboardTarget(event.target)) {
+            return;
+        }
+        const action = normalizeKeyboardEvent({
             type: event.type,
             code: event.code,
             repeat: event.repeat,
             altKey: event.altKey,
             ctrlKey: event.ctrlKey,
             metaKey: event.metaKey
-        }), renderRuntime);
+        });
+        if (action?.action === "camera-west") {
+            event.preventDefault();
+            onCameraWest();
+            return;
+        }
+        if (action?.action === "camera-east") {
+            event.preventDefault();
+            onCameraEast();
+            return;
+        }
+        if (action?.action === "camera-north") {
+            event.preventDefault();
+            onCameraNorth();
+            return;
+        }
+        if (action?.action === "camera-south") {
+            event.preventDefault();
+            onCameraSouth();
+            return;
+        }
+        dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);
     };
     const onContextMenu = (event) => {
         event.preventDefault();

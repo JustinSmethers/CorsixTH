@@ -5,10 +5,18 @@ describe("input normalization contract", () => {
         const step = normalizeKeyboardEvent({ type: "keydown", code: "Period", repeat: false });
         const admit = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false });
         const treat = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
+        const cameraWest = normalizeKeyboardEvent({ type: "keydown", code: "ArrowLeft", repeat: false });
+        const cameraEast = normalizeKeyboardEvent({ type: "keydown", code: "ArrowRight", repeat: false });
+        const cameraNorth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowUp", repeat: false });
+        const cameraSouth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowDown", repeat: false });
         expect(pause).toEqual({ device: "keyboard", action: "pause-toggle", source: "Space" });
         expect(step).toEqual({ device: "keyboard", action: "step-tick", source: "Period" });
         expect(admit).toEqual({ device: "keyboard", action: "admit-patient", severity: 2, source: "KeyA" });
         expect(treat).toEqual({ device: "keyboard", action: "treat-patient", source: "KeyT" });
+        expect(cameraWest).toEqual({ device: "keyboard", action: "camera-west", source: "ArrowLeft" });
+        expect(cameraEast).toEqual({ device: "keyboard", action: "camera-east", source: "ArrowRight" });
+        expect(cameraNorth).toEqual({ device: "keyboard", action: "camera-north", source: "ArrowUp" });
+        expect(cameraSouth).toEqual({ device: "keyboard", action: "camera-south", source: "ArrowDown" });
     });
     it("ignores keyboard repeats, modifiers, and unsupported keys", () => {
         const repeated = { type: "keydown", code: "Space", repeat: true };

@@ -15,6 +15,9 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await page.getByTestId("hospital-map-select").selectOption("LEVELS/SECOND.MAP");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("LEVELS/SECOND.MAP");
     await page.getByTestId("hospital-camera-east").click();
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("viewport 76,75");
+    await page.keyboard.press("ArrowDown");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("viewport 76,79");
     await page.getByTestId("save-game").click();
     await expect(page.getByTestId("save-status")).toContainText("Save: tick");
     await page.getByTestId("hospital-map-select").selectOption("LEVELS/EXAMPLE.MAP");
