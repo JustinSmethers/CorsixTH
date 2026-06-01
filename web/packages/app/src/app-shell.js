@@ -3626,6 +3626,21 @@ export function mountAppShell(options) {
             onLoadGame();
             return;
         }
+        if (action?.action === "restart-level") {
+            event.preventDefault();
+            onRestartLevel();
+            return;
+        }
+        if (action?.action === "next-level") {
+            event.preventDefault();
+            onNextLevel();
+            return;
+        }
+        if (action?.action === "start-research") {
+            event.preventDefault();
+            onStartResearch();
+            return;
+        }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);
     };
     const onContextMenu = (event) => {

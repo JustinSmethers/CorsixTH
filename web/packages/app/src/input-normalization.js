@@ -68,6 +68,27 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyL"
         };
     }
+    if (event.code === "KeyR") {
+        return {
+            device: "keyboard",
+            action: "restart-level",
+            source: "KeyR"
+        };
+    }
+    if (event.code === "KeyN") {
+        return {
+            device: "keyboard",
+            action: "next-level",
+            source: "KeyN"
+        };
+    }
+    if (event.code === "F6") {
+        return {
+            device: "keyboard",
+            action: "start-research",
+            source: "F6"
+        };
+    }
     if (event.code === "ArrowLeft") {
         return {
             device: "keyboard",
