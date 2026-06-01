@@ -169,6 +169,19 @@ test("phase 7 keyboard shortcuts admit explicit severities", async ({ page }) =>
     await expect(page.getByTestId("queue-size")).toHaveText("Queue: 1");
     await expect(page.getByTestId("casebook-summary")).toContainText("H48/48");
 });
+test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) => {
+    await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("KeyS");
+    await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");
+    await page.keyboard.press("Digit1");
+    await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
+    await page.keyboard.press("KeyL");
+    await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
+    await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
+});
 
 async function expectCanvasAlpha(page, testId) {
     await expect

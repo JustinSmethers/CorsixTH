@@ -3616,6 +3616,16 @@ export function mountAppShell(options) {
             onCameraSouth();
             return;
         }
+        if (action?.action === "save-game") {
+            event.preventDefault();
+            onSaveGame();
+            return;
+        }
+        if (action?.action === "load-game") {
+            event.preventDefault();
+            onLoadGame();
+            return;
+        }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);
     };
     const onContextMenu = (event) => {

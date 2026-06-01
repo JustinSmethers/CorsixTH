@@ -54,6 +54,20 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyT"
         };
     }
+    if (event.code === "KeyS") {
+        return {
+            device: "keyboard",
+            action: "save-game",
+            source: "KeyS"
+        };
+    }
+    if (event.code === "KeyL") {
+        return {
+            device: "keyboard",
+            action: "load-game",
+            source: "KeyL"
+        };
+    }
     if (event.code === "ArrowLeft") {
         return {
             device: "keyboard",
