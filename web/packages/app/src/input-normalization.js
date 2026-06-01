@@ -39,6 +39,14 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyA"
         };
     }
+    if (event.code === "Digit1" || event.code === "Digit2" || event.code === "Digit3") {
+        return {
+            device: "keyboard",
+            action: "admit-patient",
+            severity: Number(event.code.slice(-1)),
+            source: event.code
+        };
+    }
     if (event.code === "KeyT") {
         return {
             device: "keyboard",

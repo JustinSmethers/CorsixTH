@@ -162,6 +162,13 @@ test("phase 7 audio flow: gesture-safe init and no Chromium autoplay policy viol
     await expect(page.getByTestId("audio-status")).toHaveText("Audio: running");
     await expect.poll(() => autoplayViolations).toEqual([]);
 });
+test("phase 7 keyboard shortcuts admit explicit severities", async ({ page }) => {
+    await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await page.keyboard.press("Digit3");
+    await expect(page.getByTestId("queue-size")).toHaveText("Queue: 1");
+    await expect(page.getByTestId("casebook-summary")).toContainText("H48/48");
+});
 
 async function expectCanvasAlpha(page, testId) {
     await expect
