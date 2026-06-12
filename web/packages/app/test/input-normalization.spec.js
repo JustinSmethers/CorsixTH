@@ -12,6 +12,8 @@ describe("input normalization contract", () => {
         const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
         const buildRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyF", repeat: false });
+        const furnishCorridor = normalizeKeyboardEvent({ type: "keydown", code: "KeyG", repeat: false });
+        const editRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyV", repeat: false });
         const openHireStaff = normalizeKeyboardEvent({ type: "keydown", code: "KeyB", repeat: false });
         const openCasebook = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false });
         const openBankManager = normalizeKeyboardEvent({ type: "keydown", code: "F1", repeat: false });
@@ -53,6 +55,8 @@ describe("input normalization contract", () => {
         expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
         expect(buildRoom).toEqual({ device: "keyboard", action: "build-room", source: "KeyF" });
+        expect(furnishCorridor).toEqual({ device: "keyboard", action: "open-furnish-corridor", source: "KeyG" });
+        expect(editRoom).toEqual({ device: "keyboard", action: "open-edit-room", source: "KeyV" });
         expect(openHireStaff).toEqual({ device: "keyboard", action: "open-hire-staff", source: "KeyB" });
         expect(openCasebook).toEqual({ device: "keyboard", action: "open-casebook", source: "KeyC" });
         expect(openBankManager).toEqual({ device: "keyboard", action: "open-bank-manager", source: "F1" });

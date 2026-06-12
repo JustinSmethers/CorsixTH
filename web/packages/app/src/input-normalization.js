@@ -127,6 +127,20 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyF"
         };
     }
+    if (event.code === "KeyG") {
+        return {
+            device: "keyboard",
+            action: "open-furnish-corridor",
+            source: "KeyG"
+        };
+    }
+    if (event.code === "KeyV") {
+        return {
+            device: "keyboard",
+            action: "open-edit-room",
+            source: "KeyV"
+        };
+    }
     if (event.code === "KeyB") {
         return {
             device: "keyboard",

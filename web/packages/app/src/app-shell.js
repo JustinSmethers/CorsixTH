@@ -2509,8 +2509,8 @@ export function mountAppShell(options) {
           <p data-testid="open-diagnosis-rooms" style="margin:0;"></p>
           <p data-testid="open-treatment-rooms" style="margin:0;"></p>
           <p data-testid="specialized-treatment-rooms" style="margin:0; grid-column:1 / -1;"></p>
-          <p data-testid="room-availability" style="margin:0; grid-column:1 / -1;"></p>
-          <p data-testid="object-availability" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="room-availability" tabindex="-1" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="object-availability" tabindex="-1" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="specialized-treatment-queue" style="margin:0;"></p>
           <p data-testid="cash" style="margin:0;"></p>
           <p data-testid="reputation" style="margin:0;"></p>
@@ -3567,6 +3567,14 @@ export function mountAppShell(options) {
         telemetryElements.activeStaffMetric.focus();
         return true;
     };
+    const onOpenFurnishCorridor = () => {
+        telemetryElements.objectAvailabilityMetric.focus();
+        return true;
+    };
+    const onOpenEditRoom = () => {
+        telemetryElements.roomAvailabilityMetric.focus();
+        return true;
+    };
     const onOpenResearch = () => {
         telemetryElements.researchStatusMetric.focus();
         return true;
@@ -3756,6 +3764,18 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-staff") {
             if (onOpenStaff()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-furnish-corridor") {
+            if (onOpenFurnishCorridor()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-edit-room") {
+            if (onOpenEditRoom()) {
                 event.preventDefault();
             }
             return;
