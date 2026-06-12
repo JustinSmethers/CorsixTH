@@ -14,6 +14,20 @@ export function normalizeKeyboardEvent(event) {
     if (event.repeat) {
         return null;
     }
+    if (!event.ctrlKey && !event.metaKey && event.altKey && event.code === "KeyS") {
+        return {
+            device: "keyboard",
+            action: "audio-mute-toggle",
+            source: "Alt+KeyS"
+        };
+    }
+    if (!event.ctrlKey && !event.metaKey && event.altKey && event.code === "KeyM") {
+        return {
+            device: "keyboard",
+            action: "audio-mute-toggle",
+            source: "Alt+KeyM"
+        };
+    }
     if (event.altKey || event.ctrlKey || event.metaKey) {
         return null;
     }

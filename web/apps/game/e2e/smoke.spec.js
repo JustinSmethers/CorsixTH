@@ -172,6 +172,12 @@ test("phase 7 audio flow: gesture-safe init and no Chromium autoplay policy viol
     await expect(page.getByTestId("audio-status")).toHaveText("Audio: waiting-for-user-gesture");
     await page.getByTestId("admit").click();
     await expect(page.getByTestId("audio-status")).toHaveText("Audio: running");
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 100% (unmuted)");
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("Alt+KeyS");
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 100% (muted)");
+    await page.keyboard.press("Alt+KeyM");
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 100% (unmuted)");
     await expect.poll(() => autoplayViolations).toEqual([]);
 });
 test("phase 7 keyboard shortcuts admit explicit severities", async ({ page }) => {

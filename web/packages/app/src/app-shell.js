@@ -3712,6 +3712,11 @@ export function mountAppShell(options) {
             onStartResearch();
             return;
         }
+        if (action?.action === "audio-mute-toggle") {
+            event.preventDefault();
+            onMuteToggle();
+            return;
+        }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);
     };
     const onContextMenu = (event) => {

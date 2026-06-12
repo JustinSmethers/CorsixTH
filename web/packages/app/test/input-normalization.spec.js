@@ -21,6 +21,8 @@ describe("input normalization contract", () => {
         const restart = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
         const research = normalizeKeyboardEvent({ type: "keydown", code: "F6", repeat: false });
+        const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
+        const muteMusic = normalizeKeyboardEvent({ type: "keydown", code: "KeyM", repeat: false, altKey: true });
         const cameraWest = normalizeKeyboardEvent({ type: "keydown", code: "ArrowLeft", repeat: false });
         const cameraEast = normalizeKeyboardEvent({ type: "keydown", code: "ArrowRight", repeat: false });
         const cameraNorth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowUp", repeat: false });
@@ -45,6 +47,8 @@ describe("input normalization contract", () => {
         expect(restart).toEqual({ device: "keyboard", action: "restart-level", source: "KeyR" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
         expect(research).toEqual({ device: "keyboard", action: "start-research", source: "F6" });
+        expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
+        expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });
         expect(cameraWest).toEqual({ device: "keyboard", action: "camera-west", source: "ArrowLeft" });
         expect(cameraEast).toEqual({ device: "keyboard", action: "camera-east", source: "ArrowRight" });
         expect(cameraNorth).toEqual({ device: "keyboard", action: "camera-north", source: "ArrowUp" });
