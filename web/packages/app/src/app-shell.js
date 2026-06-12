@@ -2500,7 +2500,7 @@ export function mountAppShell(options) {
           <p data-testid="admission-rules" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="routing-rules" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="front-desk-status" style="margin:0; grid-column:1 / -1;"></p>
-          <p data-testid="active-staff" style="margin:0;"></p>
+          <p data-testid="active-staff" tabindex="-1" style="margin:0;"></p>
           <p data-testid="on-break-staff" style="margin:0;"></p>
           <p data-testid="staff-training-status" style="margin:0;"></p>
           <p data-testid="staff-skill-status" style="margin:0;"></p>
@@ -3555,6 +3555,10 @@ export function mountAppShell(options) {
         casebookSummary.focus();
         return true;
     };
+    const onOpenStaff = () => {
+        telemetryElements.activeStaffMetric.focus();
+        return true;
+    };
     const onOpenResearch = () => {
         telemetryElements.researchStatusMetric.focus();
         return true;
@@ -3722,6 +3726,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-casebook") {
             if (onOpenCasebook()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-staff") {
+            if (onOpenStaff()) {
                 event.preventDefault();
             }
             return;

@@ -141,6 +141,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyC"
         };
     }
+    if (event.code === "F3") {
+        return {
+            device: "keyboard",
+            action: "open-staff",
+            source: "F3"
+        };
+    }
     if (event.code === "F4") {
         return {
             device: "keyboard",
