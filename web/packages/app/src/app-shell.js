@@ -2874,7 +2874,22 @@ export function mountAppShell(options) {
         }
         placementAction = null;
         placementPreview = null;
+        selectedTile = null;
         renderRuntime();
+        return true;
+    };
+    const onConfirmAction = () => {
+        lastPlacementEvaluation = null;
+        if (!placementAction || !placementPreview || !selectedTile) {
+            return false;
+        }
+        const nextAction = createPlacementDispatchAction(placementAction, selectedTile);
+        lastPlacementEvaluation = orchestrator.evaluatePlacement(nextAction);
+        placementAction = null;
+        placementPreview = null;
+        selectedEntity = null;
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, nextAction, renderRuntime);
+        updateActionStatus(events, lastPlacementEvaluation);
         return true;
     };
     const activeSaveSlot = () => {
@@ -3662,6 +3677,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "cancel-action") {
             if (onCancelAction()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "confirm-action") {
+            if (onConfirmAction()) {
                 event.preventDefault();
             }
             return;

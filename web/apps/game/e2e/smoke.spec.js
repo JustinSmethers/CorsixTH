@@ -37,7 +37,7 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
     await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 384, y: 160 } });
+    await page.keyboard.press("Enter");
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
     await expect(page.getByTestId("open-diagnosis-rooms")).toHaveText("Open diagnosis rooms: 2");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("rooms 3");
@@ -48,9 +48,12 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await page.getByTestId("treatment-room-toggle").click();
     await expect(page.getByTestId("open-diagnosis-rooms")).toHaveText("Open diagnosis rooms: 2");
     await page.getByTestId("build-treatment-room").click();
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("Enter");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build Ward");
     await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("blocked: occupied");
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 384, y: 160 } });
+    await page.keyboard.press("KeyE");
     await expect(page.getByTestId("action-status")).toHaveText("Action: room blocked: occupied");
     await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 1");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("rooms 3");
