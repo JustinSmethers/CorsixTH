@@ -23,6 +23,20 @@ export function normalizeKeyboardEvent(event) {
     if (event.repeat) {
         return null;
     }
+    if (!event.ctrlKey && !event.metaKey && event.shiftKey && event.altKey && event.code === "KeyS") {
+        return {
+            device: "keyboard",
+            action: "save-game",
+            source: "Alt+Shift+KeyS"
+        };
+    }
+    if (!event.ctrlKey && !event.metaKey && event.shiftKey && event.altKey && event.code === "KeyL") {
+        return {
+            device: "keyboard",
+            action: "load-game",
+            source: "Alt+Shift+KeyL"
+        };
+    }
     if (!event.ctrlKey && !event.metaKey && !event.shiftKey && event.altKey && event.code === "KeyS") {
         return {
             device: "keyboard",

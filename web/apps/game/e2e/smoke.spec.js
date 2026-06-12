@@ -463,6 +463,13 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("Shift+KeyL");
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
+    await page.keyboard.press("Alt+Shift+KeyS");
+    await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");
+    await page.keyboard.press("KeyA");
+    await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
+    await page.keyboard.press("Alt+Shift+KeyL");
+    await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
+    await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
 });
 
 async function expectCanvasAlpha(page, testId) {

@@ -40,6 +40,8 @@ describe("input normalization contract", () => {
         const researchAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
         const saveMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, shiftKey: true });
         const loadMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, shiftKey: true });
+        const quickSave = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true, shiftKey: true });
+        const quickLoad = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, altKey: true, shiftKey: true });
         const restartLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false, shiftKey: true });
         const toggleAdvisor = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false, shiftKey: true });
         const openCasebookAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false, shiftKey: true });
@@ -99,6 +101,8 @@ describe("input normalization contract", () => {
         expect(researchAlt).toEqual({ device: "keyboard", action: "open-research", source: "KeyR" });
         expect(saveMenu).toEqual({ device: "keyboard", action: "save-game", source: "Shift+KeyS" });
         expect(loadMenu).toEqual({ device: "keyboard", action: "load-game", source: "Shift+KeyL" });
+        expect(quickSave).toEqual({ device: "keyboard", action: "save-game", source: "Alt+Shift+KeyS" });
+        expect(quickLoad).toEqual({ device: "keyboard", action: "load-game", source: "Alt+Shift+KeyL" });
         expect(restartLevel).toEqual({ device: "keyboard", action: "restart-level", source: "Shift+KeyR" });
         expect(toggleAdvisor).toEqual({ device: "keyboard", action: "advisor-toggle", source: "Shift+KeyA" });
         expect(openCasebookAlt).toEqual({ device: "keyboard", action: "open-casebook", source: "Shift+KeyC" });
@@ -123,12 +127,10 @@ describe("input normalization contract", () => {
     it("ignores keyboard repeats, modifiers, and unsupported keys", () => {
         const repeated = { type: "keydown", code: "Space", repeat: true };
         const modified = { type: "keydown", code: "KeyT", ctrlKey: true };
-        const quickSaveReserved = { type: "keydown", code: "KeyS", altKey: true, shiftKey: true };
         const quitLevelReserved = { type: "keydown", code: "KeyQ", shiftKey: true };
         const unsupported = { type: "keydown", code: "KeyO" };
         expect(normalizeKeyboardEvent(repeated)).toBeNull();
         expect(normalizeKeyboardEvent(modified)).toBeNull();
-        expect(normalizeKeyboardEvent(quickSaveReserved)).toBeNull();
         expect(normalizeKeyboardEvent(quitLevelReserved)).toBeNull();
         expect(normalizeKeyboardEvent(unsupported)).toBeNull();
     });
