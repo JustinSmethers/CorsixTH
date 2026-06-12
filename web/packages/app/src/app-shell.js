@@ -3609,6 +3609,28 @@ export function mountAppShell(options) {
         telemetryElements.roomsInMaintenanceMetric.focus();
         return true;
     };
+    let advisorVisible = true;
+    let announcementsVisible = true;
+    const setAdvisorVisible = (visible) => {
+        advisorVisible = visible;
+        telemetryElements.advisorStatusMetric.hidden = !advisorVisible;
+    };
+    const setAnnouncementsVisible = (visible) => {
+        announcementsVisible = visible;
+        telemetryElements.eventsMetric.hidden = !announcementsVisible;
+        telemetryElements.lastEventMetric.hidden = !announcementsVisible;
+        telemetryElements.recentEventsMetric.hidden = !announcementsVisible;
+    };
+    const onToggleAdvisor = () => {
+        setAdvisorVisible(!advisorVisible);
+        actionStatus.textContent = advisorVisible ? "Action: advisor shown" : "Action: advisor hidden";
+        return true;
+    };
+    const onToggleAnnouncements = () => {
+        setAnnouncementsVisible(!announcementsVisible);
+        actionStatus.textContent = announcementsVisible ? "Action: announcements shown" : "Action: announcements hidden";
+        return true;
+    };
     const actionForHospitalPointer = (action, point) => {
         lastPlacementEvaluation = null;
         if (!action || !hospitalView || !point) {
@@ -3746,6 +3768,18 @@ export function mountAppShell(options) {
         if (action?.action === "speed-set") {
             event.preventDefault();
             onSpeedSet(action.speedMultiplier, action.source);
+            return;
+        }
+        if (action?.action === "advisor-toggle") {
+            if (onToggleAdvisor()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "announcements-toggle") {
+            if (onToggleAnnouncements()) {
+                event.preventDefault();
+            }
             return;
         }
         if (action?.action === "build-room") {

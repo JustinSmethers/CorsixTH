@@ -28,8 +28,22 @@ export function normalizeKeyboardEvent(event) {
             source: "Alt+KeyM"
         };
     }
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey && event.altKey && event.code === "KeyA") {
+        return {
+            device: "keyboard",
+            action: "announcements-toggle",
+            source: "Alt+KeyA"
+        };
+    }
     if (event.altKey || event.ctrlKey || event.metaKey) {
         return null;
+    }
+    if (event.shiftKey && event.code === "KeyA") {
+        return {
+            device: "keyboard",
+            action: "advisor-toggle",
+            source: "Shift+KeyA"
+        };
     }
     if (event.shiftKey && event.code === "KeyS") {
         return {

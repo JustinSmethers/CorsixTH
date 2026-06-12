@@ -33,6 +33,7 @@ describe("input normalization contract", () => {
         const saveMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, shiftKey: true });
         const loadMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, shiftKey: true });
         const restartLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false, shiftKey: true });
+        const toggleAdvisor = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false, shiftKey: true });
         const openCasebookAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false, shiftKey: true });
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
         const research = normalizeKeyboardEvent({ type: "keydown", code: "F6", repeat: false });
@@ -42,6 +43,7 @@ describe("input normalization contract", () => {
         const machineMenu = normalizeKeyboardEvent({ type: "keydown", code: "F10", repeat: false });
         const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
         const muteMusic = normalizeKeyboardEvent({ type: "keydown", code: "KeyM", repeat: false, altKey: true });
+        const toggleAnnouncements = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false, altKey: true });
         const cameraWest = normalizeKeyboardEvent({ type: "keydown", code: "ArrowLeft", repeat: false });
         const cameraEast = normalizeKeyboardEvent({ type: "keydown", code: "ArrowRight", repeat: false });
         const cameraNorth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowUp", repeat: false });
@@ -78,6 +80,7 @@ describe("input normalization contract", () => {
         expect(saveMenu).toEqual({ device: "keyboard", action: "save-game", source: "Shift+KeyS" });
         expect(loadMenu).toEqual({ device: "keyboard", action: "load-game", source: "Shift+KeyL" });
         expect(restartLevel).toEqual({ device: "keyboard", action: "restart-level", source: "Shift+KeyR" });
+        expect(toggleAdvisor).toEqual({ device: "keyboard", action: "advisor-toggle", source: "Shift+KeyA" });
         expect(openCasebookAlt).toEqual({ device: "keyboard", action: "open-casebook", source: "Shift+KeyC" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
         expect(research).toEqual({ device: "keyboard", action: "open-research", source: "F6" });
@@ -87,6 +90,7 @@ describe("input normalization contract", () => {
         expect(machineMenu).toEqual({ device: "keyboard", action: "open-machine-menu", source: "F10" });
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
         expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });
+        expect(toggleAnnouncements).toEqual({ device: "keyboard", action: "announcements-toggle", source: "Alt+KeyA" });
         expect(cameraWest).toEqual({ device: "keyboard", action: "camera-west", source: "ArrowLeft" });
         expect(cameraEast).toEqual({ device: "keyboard", action: "camera-east", source: "ArrowRight" });
         expect(cameraNorth).toEqual({ device: "keyboard", action: "camera-north", source: "ArrowUp" });
