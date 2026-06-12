@@ -1395,6 +1395,7 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "refresh-save-slots", label: "Refresh Saves" },
     { id: "delete-save-slot", label: "Delete Save" },
     { id: "restart-level", label: "Restart Level" },
+    { id: "quit-level", label: "Quit Level" },
     { id: "next-level", label: "Next Level" },
     { id: "hospital-camera-west", label: "Camera West" },
     { id: "hospital-camera-east", label: "Camera East" },
@@ -2293,7 +2294,9 @@ function renderOriginalUiStrip(canvas, view) {
     if (!view?.originalUiSpriteSheet) {
         return formatOriginalUiNoSpritesStatus();
     }
-    const visibleSprites = view.originalUiSpriteSheet.sprites.filter((sprite) => sprite.width > 0 && sprite.height > 0 && sprite.indices.length > 0).slice(0, 8);
+    const visibleSprites = view.originalUiSpriteSheet.sprites
+        .filter((sprite) => sprite.width > 0 && sprite.height > 0 && sprite.indices.length > 0)
+        .slice(0, ORIGINAL_UI_STRIP_CONTROLS.length);
     if (visibleSprites.length === 0) {
         return formatOriginalUiStripSummary(view, 0);
     }
@@ -4359,6 +4362,7 @@ export function mountAppShell(options) {
         ["refresh-save-slots", onRefreshSaveSlots],
         ["delete-save-slot", onDeleteSaveSlot],
         ["restart-level", onRestartLevel],
+        ["quit-level", onOpenQuitLevelConfirmation],
         ["next-level", onNextLevel],
         ["hospital-camera-west", onCameraWest],
         ["hospital-camera-east", onCameraEast],

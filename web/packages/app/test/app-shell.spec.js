@@ -163,14 +163,15 @@ describe("app shell campaign objectives", () => {
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
-                sprites: Array.from({ length: 34 }, () => ({ width: 10, height: 10, indices: [1] }))
+                sprites: Array.from({ length: 35 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
-        }, 548, 40).map((zone) => zone.id).slice(24)).toEqual([
+        }, 564, 40).map((zone) => zone.id).slice(24)).toEqual([
             "save-game",
             "load-game",
             "refresh-save-slots",
             "delete-save-slot",
             "restart-level",
+            "quit-level",
             "next-level",
             "hospital-camera-west",
             "hospital-camera-east",
