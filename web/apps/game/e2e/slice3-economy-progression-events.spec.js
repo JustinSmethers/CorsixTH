@@ -53,7 +53,7 @@ test("phase 7 slice 3 player journey: progress economy milestones and determinis
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/4, cash \d+\/250, reputation \d+\/6$/u);
     await expect(page.getByTestId("level-objective-safety")).toHaveText("Safety: cash > 0, reputation >= 6, target cash 250");
     await expect(page.getByTestId("next-level")).toBeDisabled();
-    await page.keyboard.press("KeyR");
+    await page.keyboard.press("Shift+KeyR");
     await expect(page.getByTestId("save-status")).toHaveText("Save: restarted LEVELS/SECOND.MAP");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/4, cash \d+\/250, reputation \d+\/6$/u);
     await expect(page.getByTestId("cash")).toContainText("Cash:");

@@ -221,7 +221,7 @@ export function normalizeKeyboardEvent(event) {
     if (event.code === "KeyR") {
         return {
             device: "keyboard",
-            action: "restart-level",
+            action: "open-research",
             source: "KeyR"
         };
     }
