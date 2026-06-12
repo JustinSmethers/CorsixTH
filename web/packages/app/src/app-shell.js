@@ -19,6 +19,14 @@ const DEFAULT_POINTER_TILE_SIZE = 16;
 const HOSPITAL_TILE_COLUMNS = 14;
 const HOSPITAL_TILE_ROWS = 12;
 const HOSPITAL_CAMERA_STEP = 4;
+const HOSPITAL_DEFAULT_ZOOM_INDEX = 2;
+const HOSPITAL_ZOOM_LEVELS = [
+    { label: "50%", tileColumns: 22, tileRows: 18 },
+    { label: "75%", tileColumns: 18, tileRows: 14 },
+    { label: "100%", tileColumns: HOSPITAL_TILE_COLUMNS, tileRows: HOSPITAL_TILE_ROWS },
+    { label: "150%", tileColumns: 10, tileRows: 8 },
+    { label: "200%", tileColumns: 8, tileRows: 6 }
+];
 const DEFAULT_SAVE_SLOT = "browser-autosave";
 const SPEED_MULTIPLIER_STEPS = [0.5, 1, 2, 4, 8];
 const HOSPITAL_ISO_TILE_HALF_WIDTH = 32;
@@ -1334,6 +1342,7 @@ function createImportedHospitalView(assetBundle) {
         startY: 0,
         tileColumns: HOSPITAL_TILE_COLUMNS,
         tileRows: HOSPITAL_TILE_ROWS,
+        zoomIndex: HOSPITAL_DEFAULT_ZOOM_INDEX,
         originX: Math.floor(HOSPITAL_CANVAS_WIDTH / 2),
         originY: 18
     };
@@ -1408,6 +1417,40 @@ export function createCampaignMapSummaries(mapSummaries) {
     const scenarioMaps = mapSummaries.filter((summary) => summary?.scenario);
     return scenarioMaps.length > 0 ? scenarioMaps : mapSummaries;
 }
+function currentHospitalViewCenter(view) {
+    return {
+        x: view.startX + view.tileColumns / 2,
+        y: view.startY + view.tileRows / 2
+    };
+}
+function clampHospitalViewCamera(view) {
+    if (!view?.map) {
+        return;
+    }
+    view.startX = clamp(view.startX, 0, Math.max(0, view.map.width - view.tileColumns));
+    view.startY = clamp(view.startY, 0, Math.max(0, view.map.height - view.tileRows));
+}
+function applyHospitalViewZoom(view, zoomIndex, options = {}) {
+    if (!view) {
+        return false;
+    }
+    const nextZoomIndex = clamp(Math.trunc(zoomIndex), 0, HOSPITAL_ZOOM_LEVELS.length - 1);
+    const nextZoom = HOSPITAL_ZOOM_LEVELS[nextZoomIndex] ?? HOSPITAL_ZOOM_LEVELS[HOSPITAL_DEFAULT_ZOOM_INDEX];
+    const center = view.map && options.preserveCenter !== false ? currentHospitalViewCenter(view) : null;
+    view.zoomIndex = nextZoomIndex;
+    view.tileColumns = nextZoom.tileColumns;
+    view.tileRows = nextZoom.tileRows;
+    if (center) {
+        view.startX = Math.round(center.x - view.tileColumns / 2);
+        view.startY = Math.round(center.y - view.tileRows / 2);
+    }
+    clampHospitalViewCamera(view);
+    return true;
+}
+function formatHospitalZoomLevel(view) {
+    const zoom = HOSPITAL_ZOOM_LEVELS[view?.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX] ?? HOSPITAL_ZOOM_LEVELS[HOSPITAL_DEFAULT_ZOOM_INDEX];
+    return zoom.label;
+}
 function setHospitalViewMap(view, mapPath) {
     const decodedMap = safeDecode(() => decodeThemeHospitalMapFromBundle(view.assetBundle, mapPath));
     if (!decodedMap || !Array.isArray(decodedMap.tiles)) {
@@ -1415,6 +1458,7 @@ function setHospitalViewMap(view, mapPath) {
     }
     view.mapPath = mapPath;
     view.map = decodedMap;
+    applyHospitalViewZoom(view, view.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX, { preserveCenter: false });
     const camera = decodedMap.cameras?.[0] ?? { x: 0, y: 0 };
     view.startX = clamp(Math.floor(camera.x - view.tileColumns / 2), 0, Math.max(0, decodedMap.width - view.tileColumns));
     view.startY = clamp(Math.floor(camera.y - view.tileRows / 2), 0, Math.max(0, decodedMap.height - view.tileRows));
@@ -1488,7 +1532,8 @@ function createHospitalMapViewSnapshot(view) {
     return {
         mapPath: view.mapPath,
         startX: view.startX,
-        startY: view.startY
+        startY: view.startY,
+        zoomIndex: view.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX
     };
 }
 function restoreHospitalMapViewSnapshot(view, mapView) {
@@ -1498,6 +1543,7 @@ function restoreHospitalMapViewSnapshot(view, mapView) {
     if (!setHospitalViewMap(view, mapView.mapPath)) {
         return false;
     }
+    applyHospitalViewZoom(view, mapView.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX, { preserveCenter: false });
     view.startX = clamp(mapView.startX, 0, Math.max(0, view.map.width - view.tileColumns));
     view.startY = clamp(mapView.startY, 0, Math.max(0, view.map.height - view.tileRows));
     return true;
@@ -2138,7 +2184,7 @@ function patientRenderPosition(patient) {
     return patient.position;
 }
 export function formatHospitalCanvasSummary(view, state, frameStats) {
-    return `${view.mapPath} viewport ${view.startX},${view.startY}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
+    return `${view.mapPath} viewport ${view.startX},${view.startY}; zoom ${formatHospitalZoomLevel(view)}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
 }
 export function formatOriginalUiStripSummary(view, visibleSpriteCount, controls = []) {
     const sheetPath = view.originalUiSpriteSheetPath || "imported sheet";
@@ -3770,6 +3816,31 @@ export function mountAppShell(options) {
             onSpeedSet(action.speedMultiplier, action.source);
             return;
         }
+        if (action?.action === "zoom-in") {
+            event.preventDefault();
+            onZoomHospitalView(1);
+            return;
+        }
+        if (action?.action === "zoom-in-more") {
+            event.preventDefault();
+            onZoomHospitalView(2);
+            return;
+        }
+        if (action?.action === "zoom-out") {
+            event.preventDefault();
+            onZoomHospitalView(-1);
+            return;
+        }
+        if (action?.action === "zoom-out-more") {
+            event.preventDefault();
+            onZoomHospitalView(-2);
+            return;
+        }
+        if (action?.action === "zoom-reset") {
+            event.preventDefault();
+            onResetHospitalZoom();
+            return;
+        }
         if (action?.action === "advisor-toggle") {
             if (onToggleAdvisor()) {
                 event.preventDefault();
@@ -3939,6 +4010,25 @@ export function mountAppShell(options) {
         resetOrchestratorForActiveMap();
         saveStatus.textContent = formatNextLevelStatus(hospitalView.mapPath);
         renderRuntime();
+    };
+    const onZoomHospitalView = (delta) => {
+        if (!hospitalView) {
+            return;
+        }
+        const currentZoomIndex = hospitalView.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX;
+        applyHospitalViewZoom(hospitalView, currentZoomIndex + delta);
+        placementPreview = null;
+        actionStatus.textContent = `Action: zoom ${formatHospitalZoomLevel(hospitalView)}`;
+        renderHospital();
+    };
+    const onResetHospitalZoom = () => {
+        if (!hospitalView) {
+            return;
+        }
+        applyHospitalViewZoom(hospitalView, HOSPITAL_DEFAULT_ZOOM_INDEX);
+        placementPreview = null;
+        actionStatus.textContent = `Action: zoom ${formatHospitalZoomLevel(hospitalView)}`;
+        renderHospital();
     };
     const onCameraWest = () => {
         moveHospitalCamera(hospitalView, -HOSPITAL_CAMERA_STEP, 0);

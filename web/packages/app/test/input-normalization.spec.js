@@ -10,6 +10,11 @@ describe("input normalization contract", () => {
         const speedNormal = normalizeKeyboardEvent({ type: "keydown", code: "Digit3", repeat: false });
         const speedMax = normalizeKeyboardEvent({ type: "keydown", code: "Digit4", repeat: false });
         const speedThenSome = normalizeKeyboardEvent({ type: "keydown", code: "Digit5", repeat: false });
+        const zoomIn = normalizeKeyboardEvent({ type: "keydown", code: "Equal", repeat: false });
+        const zoomInMore = normalizeKeyboardEvent({ type: "keydown", code: "Equal", repeat: false, shiftKey: true });
+        const zoomOut = normalizeKeyboardEvent({ type: "keydown", code: "Minus", repeat: false });
+        const zoomOutMore = normalizeKeyboardEvent({ type: "keydown", code: "Minus", repeat: false, shiftKey: true });
+        const zoomReset = normalizeKeyboardEvent({ type: "keydown", code: "Digit0", repeat: false });
         const treat = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
         const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
@@ -57,6 +62,11 @@ describe("input normalization contract", () => {
         expect(speedNormal).toEqual({ device: "keyboard", action: "speed-set", speedMultiplier: 2, source: "Digit3" });
         expect(speedMax).toEqual({ device: "keyboard", action: "speed-set", speedMultiplier: 4, source: "Digit4" });
         expect(speedThenSome).toEqual({ device: "keyboard", action: "speed-set", speedMultiplier: 8, source: "Digit5" });
+        expect(zoomIn).toEqual({ device: "keyboard", action: "zoom-in", source: "Equal" });
+        expect(zoomInMore).toEqual({ device: "keyboard", action: "zoom-in-more", source: "Shift+Equal" });
+        expect(zoomOut).toEqual({ device: "keyboard", action: "zoom-out", source: "Minus" });
+        expect(zoomOutMore).toEqual({ device: "keyboard", action: "zoom-out-more", source: "Shift+Minus" });
+        expect(zoomReset).toEqual({ device: "keyboard", action: "zoom-reset", source: "Digit0" });
         expect(treat).toEqual({ device: "keyboard", action: "treat-patient", source: "KeyT" });
         expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });

@@ -197,9 +197,37 @@ test("phase 7 keyboard shortcuts set original speed tiers", async ({ page }) => 
     await expect(page.getByTestId("speed-status")).toHaveText("Speed: 8x");
     await expect(page.getByTestId("action-status")).toHaveText("Action: speed changed");
 });
+test("phase 7 keyboard shortcuts zoom the hospital viewport", async ({ page }) => {
+    await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await page.getByTestId("playfield").focus();
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 100%");
+    await page.keyboard.press("Equal");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 150%");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: zoom 150%");
+    await page.keyboard.press("Shift+Equal");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 200%");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: zoom 200%");
+    await page.keyboard.press("Minus");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 150%");
+    await page.keyboard.press("Shift+Minus");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 75%");
+    await page.keyboard.press("Digit0");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 100%");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: zoom 100%");
+});
 test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("Equal");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-load=");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("Minus");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-load-");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("Digit0");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-load0");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("KeyC");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadc");

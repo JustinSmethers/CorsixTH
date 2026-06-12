@@ -73,6 +73,20 @@ export function normalizeKeyboardEvent(event) {
             source: "Shift+KeyC"
         };
     }
+    if (event.shiftKey && event.code === "Equal") {
+        return {
+            device: "keyboard",
+            action: "zoom-in-more",
+            source: "Shift+Equal"
+        };
+    }
+    if (event.shiftKey && event.code === "Minus") {
+        return {
+            device: "keyboard",
+            action: "zoom-out-more",
+            source: "Shift+Minus"
+        };
+    }
     if (event.shiftKey && event.code === "KeyQ") {
         return null;
     }
@@ -95,6 +109,27 @@ export function normalizeKeyboardEvent(event) {
             device: "keyboard",
             action: "step-tick",
             source: "Period"
+        };
+    }
+    if (event.code === "Equal") {
+        return {
+            device: "keyboard",
+            action: "zoom-in",
+            source: "Equal"
+        };
+    }
+    if (event.code === "Minus") {
+        return {
+            device: "keyboard",
+            action: "zoom-out",
+            source: "Minus"
+        };
+    }
+    if (event.code === "Digit0") {
+        return {
+            device: "keyboard",
+            action: "zoom-reset",
+            source: "Digit0"
         };
     }
     if (event.code === "KeyA") {
