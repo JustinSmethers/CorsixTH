@@ -2499,6 +2499,15 @@ export function mountAppShell(options) {
         <button type="button" data-testid="game-menu-options">Options</button>
         <button type="button" data-testid="game-menu-help">Help</button>
       </nav>
+      <section
+        data-testid="quit-level-confirmation"
+        hidden
+        style="margin:0 0 10px; padding:10px; border:1px solid #6f5d2d; background:#211d13; color:#f1e6c0;"
+      >
+        <p style="margin:0 0 8px; font-size:13px;">Quit level and return to the browser main menu?</p>
+        <button type="button" data-testid="quit-level-confirm">Quit Level</button>
+        <button type="button" data-testid="quit-level-cancel">Stay</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2815,6 +2824,9 @@ export function mountAppShell(options) {
     const deleteSaveSlotButton = requiredElement(options.root, "[data-testid='delete-save-slot']");
     const gameMenuBar = requiredElement(options.root, "[data-testid='game-menu-bar']");
     const gameMenuFileButton = requiredElement(options.root, "[data-testid='game-menu-file']");
+    const quitLevelConfirmation = requiredElement(options.root, "[data-testid='quit-level-confirmation']");
+    const quitLevelConfirmButton = requiredElement(options.root, "[data-testid='quit-level-confirm']");
+    const quitLevelCancelButton = requiredElement(options.root, "[data-testid='quit-level-cancel']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -2956,6 +2968,12 @@ export function mountAppShell(options) {
         }
     };
     const onCancelAction = (source = "") => {
+        if (!quitLevelConfirmation.hidden) {
+            quitLevelConfirmation.hidden = true;
+            actionStatus.textContent = "Action: quit level cancelled";
+            playfield.focus();
+            return true;
+        }
         if (!placementAction) {
             if (source !== "Escape") {
                 return false;
@@ -2985,6 +3003,33 @@ export function mountAppShell(options) {
         actionStatus.textContent = `Action: placement rotated ${placementAction.orientation}`;
         renderRuntime();
         return true;
+    };
+    const onOpenQuitLevelConfirmation = () => {
+        placementAction = null;
+        placementPreview = null;
+        selectedTile = null;
+        quitLevelConfirmation.hidden = false;
+        quitLevelCancelButton.focus();
+        actionStatus.textContent = "Action: quit level confirmation";
+        renderRuntime();
+        return true;
+    };
+    const onCancelQuitLevel = () => {
+        quitLevelConfirmation.hidden = true;
+        actionStatus.textContent = "Action: quit level cancelled";
+        playfield.focus();
+    };
+    const onConfirmQuitLevel = () => {
+        quitLevelConfirmation.hidden = true;
+        if (typeof options.onQuitLevel === "function") {
+            options.onQuitLevel();
+            return;
+        }
+        resetOrchestratorForActiveMap();
+        saveStatus.textContent = formatRestartedLevelStatus(hospitalView?.mapPath ?? "");
+        actionStatus.textContent = "Action: quit level confirmed";
+        renderRuntime();
+        playfield.focus();
     };
     const onConfirmAction = () => {
         lastPlacementEvaluation = null;
@@ -4131,6 +4176,11 @@ export function mountAppShell(options) {
             onRestartLevel();
             return;
         }
+        if (action?.action === "quit-level") {
+            event.preventDefault();
+            onOpenQuitLevelConfirmation();
+            return;
+        }
         if (action?.action === "next-level") {
             event.preventDefault();
             onNextLevel();
@@ -4374,6 +4424,8 @@ export function mountAppShell(options) {
     loadGameButton.addEventListener("click", onLoadGame);
     refreshSaveSlotsButton.addEventListener("click", onRefreshSaveSlots);
     deleteSaveSlotButton.addEventListener("click", onDeleteSaveSlot);
+    quitLevelConfirmButton.addEventListener("click", onConfirmQuitLevel);
+    quitLevelCancelButton.addEventListener("click", onCancelQuitLevel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4457,6 +4509,8 @@ export function mountAppShell(options) {
             loadGameButton.removeEventListener("click", onLoadGame);
             refreshSaveSlotsButton.removeEventListener("click", onRefreshSaveSlots);
             deleteSaveSlotButton.removeEventListener("click", onDeleteSaveSlot);
+            quitLevelConfirmButton.removeEventListener("click", onConfirmQuitLevel);
+            quitLevelCancelButton.removeEventListener("click", onCancelQuitLevel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);

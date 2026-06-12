@@ -65,7 +65,11 @@ function mountPlayableShell(root, assetBundle) {
         tickRateHz: 4,
         pointerTileSize: 16,
         scenarioCommands: phase4SmokeScenarioCommands(),
-        assetBundle
+        assetBundle,
+        onQuitLevel: () => {
+            mounted.dispose();
+            renderImportShell(root);
+        }
     });
     const assetSummary = document.createElement("p");
     assetSummary.dataset.testid = "asset-runtime-summary";

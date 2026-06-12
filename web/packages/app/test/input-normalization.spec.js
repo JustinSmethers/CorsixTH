@@ -45,6 +45,7 @@ describe("input normalization contract", () => {
         const quickSave = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true, shiftKey: true });
         const quickLoad = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, altKey: true, shiftKey: true });
         const restartLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false, shiftKey: true });
+        const quitLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyQ", repeat: false, shiftKey: true });
         const toggleAdvisor = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false, shiftKey: true });
         const openCasebookAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false, shiftKey: true });
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
@@ -108,6 +109,7 @@ describe("input normalization contract", () => {
         expect(quickSave).toEqual({ device: "keyboard", action: "save-game", source: "Alt+Shift+KeyS" });
         expect(quickLoad).toEqual({ device: "keyboard", action: "load-game", source: "Alt+Shift+KeyL" });
         expect(restartLevel).toEqual({ device: "keyboard", action: "restart-level", source: "Shift+KeyR" });
+        expect(quitLevel).toEqual({ device: "keyboard", action: "quit-level", source: "Shift+KeyQ" });
         expect(toggleAdvisor).toEqual({ device: "keyboard", action: "advisor-toggle", source: "Shift+KeyA" });
         expect(openCasebookAlt).toEqual({ device: "keyboard", action: "open-casebook", source: "Shift+KeyC" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
@@ -131,11 +133,9 @@ describe("input normalization contract", () => {
     it("ignores keyboard repeats, modifiers, and unsupported keys", () => {
         const repeated = { type: "keydown", code: "Space", repeat: true };
         const modified = { type: "keydown", code: "KeyT", ctrlKey: true };
-        const quitLevelReserved = { type: "keydown", code: "KeyQ", shiftKey: true };
         const unsupported = { type: "keydown", code: "KeyO" };
         expect(normalizeKeyboardEvent(repeated)).toBeNull();
         expect(normalizeKeyboardEvent(modified)).toBeNull();
-        expect(normalizeKeyboardEvent(quitLevelReserved)).toBeNull();
         expect(normalizeKeyboardEvent(unsupported)).toBeNull();
     });
     it("maps keyboard releases used by original hold-style controls", () => {

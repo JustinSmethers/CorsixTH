@@ -111,6 +111,13 @@ export function normalizeKeyboardEvent(event) {
             source: "Shift+KeyR"
         };
     }
+    if (event.shiftKey && event.code === "KeyQ") {
+        return {
+            device: "keyboard",
+            action: "quit-level",
+            source: "Shift+KeyQ"
+        };
+    }
     if (event.shiftKey && event.code === "KeyC") {
         return {
             device: "keyboard",
@@ -138,9 +145,6 @@ export function normalizeKeyboardEvent(event) {
             action: "transparent-walls-toggle",
             source: "Shift+KeyX"
         };
-    }
-    if (event.shiftKey && event.code === "KeyQ") {
-        return null;
     }
     if (event.code === "Space") {
         return {

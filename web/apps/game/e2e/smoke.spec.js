@@ -302,6 +302,9 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("Shift+KeyA");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadA");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("Shift+KeyQ");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadQ");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("Alt+KeyA");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("F1");
@@ -526,6 +529,22 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("Alt+Shift+KeyL");
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
+    await page.getByTestId("playfield").focus();
+    await expect(page.getByTestId("quit-level-confirmation")).toBeHidden();
+    await page.keyboard.press("Shift+KeyQ");
+    await expect(page.getByTestId("quit-level-confirmation")).toBeVisible();
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "quit-level-cancel");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: quit level confirmation");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("quit-level-confirmation")).toBeHidden();
+    await expect(page.getByTestId("action-status")).toHaveText("Action: quit level cancelled");
+    await page.keyboard.press("Shift+KeyQ");
+    await expect(page.getByTestId("quit-level-confirmation")).toBeVisible();
+    await page.getByTestId("quit-level-confirm").click();
+    await expect(page.getByRole("heading", { name: "Phase 8 Asset Import" })).toBeVisible();
+    await expect
+        .poll(async () => page.evaluate(() => window.localStorage.getItem("corsixth.phase8.asset-import.v1") ?? ""))
+        .toContain("\"contract\":\"phase8.asset-import.v1\"");
 });
 
 async function expectCanvasAlpha(page, testId) {
