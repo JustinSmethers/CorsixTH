@@ -40,7 +40,13 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await expect(page.getByTestId("game-menu-bar")).toBeHidden();
     await page.keyboard.press("KeyF");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
+    await expect(page.getByTestId("paused")).toHaveText("Paused: no");
+    await page.keyboard.press("Space");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office facing east");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: placement rotated east");
+    await expect(page.getByTestId("paused")).toHaveText("Paused: no");
     await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
+    await expect(page.getByTestId("hospital-placement-mode")).toContainText("facing east at");
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await page.keyboard.press("Enter");
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");

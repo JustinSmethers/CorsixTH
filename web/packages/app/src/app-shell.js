@@ -399,19 +399,25 @@ function escapeHtml(value) {
 function placementReasonLabel(reason) {
     return PLACEMENT_REASON_LABELS[reason] ?? reason ?? "blocked";
 }
+const PLACEMENT_ORIENTATIONS = Object.freeze(["north", "east", "south", "west"]);
+function nextPlacementOrientation(orientation = "north") {
+    const index = PLACEMENT_ORIENTATIONS.indexOf(orientation);
+    return PLACEMENT_ORIENTATIONS[(index + 1 + PLACEMENT_ORIENTATIONS.length) % PLACEMENT_ORIENTATIONS.length];
+}
 export function formatPlacementMode(placementAction, placementPreview) {
     if (!placementAction) {
         return "Placement: none";
     }
+    const orientation = placementAction.orientation && placementAction.orientation !== "north" ? ` facing ${placementAction.orientation}` : "";
     if (!placementPreview) {
-        return `Placement: ${placementAction.label}`;
+        return `Placement: ${placementAction.label}${orientation}`;
     }
     const position = placementPreview.requestedPosition ?? placementPreview.position;
     const location = position ? ` at ${position.x},${position.y}` : "";
     if (placementPreview.valid) {
-        return `Placement: ${placementAction.label}${location} (valid)`;
+        return `Placement: ${placementAction.label}${orientation}${location} (valid)`;
     }
-    return `Placement: ${placementAction.label}${location} blocked: ${placementReasonLabel(placementPreview.reason)}`;
+    return `Placement: ${placementAction.label}${orientation}${location} blocked: ${placementReasonLabel(placementPreview.reason)}`;
 }
 export function formatActionStatus(events, placementEvaluation) {
     const event = events?.[0];
@@ -2920,6 +2926,7 @@ export function mountAppShell(options) {
             y: tile.y * orchestrator.pointerTileSize
         },
         ...(placement.roomType ? { roomType: placement.roomType } : {}),
+        ...(placement.orientation ? { orientation: placement.orientation } : {}),
         ...(placement.role ? { role: placement.role } : {}),
         ...(placement.staffId ? { staffId: placement.staffId } : {})
     });
@@ -2959,6 +2966,21 @@ export function mountAppShell(options) {
         placementAction = null;
         placementPreview = null;
         selectedTile = null;
+        renderRuntime();
+        return true;
+    };
+    const onRotatePlacement = () => {
+        if (!placementAction || placementAction.action !== "build-room") {
+            return false;
+        }
+        placementAction = {
+            ...placementAction,
+            orientation: nextPlacementOrientation(placementAction.orientation)
+        };
+        if (selectedTile) {
+            placementPreview = orchestrator.evaluatePlacement(createPlacementDispatchAction(placementAction, selectedTile));
+        }
+        actionStatus.textContent = `Action: placement rotated ${placementAction.orientation}`;
         renderRuntime();
         return true;
     };
@@ -3428,6 +3450,7 @@ export function mountAppShell(options) {
         placementAction = {
             action: "build-room",
             roomType: "diagnosis",
+            orientation: "north",
             source: "ui:build-diagnosis-room",
             label: `build ${roomTypeDisplayName("diagnosis", hospitalView?.languageSummary ?? null)}`
         };
@@ -3445,6 +3468,7 @@ export function mountAppShell(options) {
         placementAction = {
             action: "build-room",
             roomType: "treatment",
+            orientation: "north",
             source: "ui:build-treatment-room",
             label: `build ${roomTypeDisplayName("treatment", hospitalView?.languageSummary ?? null)}`
         };
@@ -3462,6 +3486,7 @@ export function mountAppShell(options) {
         placementAction = {
             action: "build-room",
             roomType: "pharmacy",
+            orientation: "north",
             source: "ui:build-pharmacy-room",
             label: `build ${roomTypeDisplayName("pharmacy", hospitalView?.languageSummary ?? null)}`
         };
@@ -3479,6 +3504,7 @@ export function mountAppShell(options) {
         placementAction = {
             action: "build-room",
             roomType: "specialist",
+            orientation: "north",
             source: "ui:build-specialist-room",
             label: `build ${roomTypeDisplayName("specialist", hospitalView?.languageSummary ?? null)}`
         };
@@ -3894,6 +3920,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "camera-recall-position") {
             if (onRecallCameraPosition(action.slot)) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "pause-toggle" && placementAction) {
+            if (onRotatePlacement()) {
                 event.preventDefault();
             }
             return;

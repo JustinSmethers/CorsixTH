@@ -585,10 +585,15 @@ describe("app shell campaign objectives", () => {
     it("formats placement previews and action feedback for the browser status bar", () => {
         expect(formatPlacementMode(null, null)).toBe("Placement: none");
         expect(formatPlacementMode({ label: "build GP's Office" }, null)).toBe("Placement: build GP's Office");
+        expect(formatPlacementMode({ label: "build GP's Office", orientation: "east" }, null)).toBe("Placement: build GP's Office facing east");
         expect(formatPlacementMode({ label: "build GP's Office" }, {
             valid: true,
             requestedPosition: { x: 6, y: 4 }
         })).toBe("Placement: build GP's Office at 6,4 (valid)");
+        expect(formatPlacementMode({ label: "build GP's Office", orientation: "south" }, {
+            valid: true,
+            requestedPosition: { x: 6, y: 4 }
+        })).toBe("Placement: build GP's Office facing south at 6,4 (valid)");
         expect(formatPlacementMode({ label: "hire Nurse" }, {
             valid: false,
             position: { x: 1, y: 2 },
