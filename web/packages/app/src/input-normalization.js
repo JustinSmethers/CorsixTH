@@ -52,6 +52,13 @@ export function normalizeKeyboardEvent(event) {
             source: "Shift+KeyR"
         };
     }
+    if (event.shiftKey && event.code === "KeyC") {
+        return {
+            device: "keyboard",
+            action: "open-casebook",
+            source: "Shift+KeyC"
+        };
+    }
     if (event.shiftKey && event.code === "KeyQ") {
         return null;
     }
@@ -125,6 +132,13 @@ export function normalizeKeyboardEvent(event) {
             device: "keyboard",
             action: "open-hire-staff",
             source: "KeyB"
+        };
+    }
+    if (event.code === "KeyC") {
+        return {
+            device: "keyboard",
+            action: "open-casebook",
+            source: "KeyC"
         };
     }
     if (event.code === "Enter") {

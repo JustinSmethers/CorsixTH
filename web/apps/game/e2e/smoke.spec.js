@@ -191,6 +191,12 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("KeyC");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadc");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("Shift+KeyC");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadC");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("KeyB");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadb");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
@@ -198,6 +204,12 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("KeyB");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "hire-diagnostician");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("KeyC");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "casebook-summary");
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("Shift+KeyC");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "casebook-summary");
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyS");
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");

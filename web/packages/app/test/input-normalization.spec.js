@@ -13,6 +13,7 @@ describe("input normalization contract", () => {
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
         const buildRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyF", repeat: false });
         const openHireStaff = normalizeKeyboardEvent({ type: "keydown", code: "KeyB", repeat: false });
+        const openCasebook = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false });
         const confirmAction = normalizeKeyboardEvent({ type: "keydown", code: "Enter", repeat: false });
         const confirmActionAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyE", repeat: false });
         const cancelAction = normalizeKeyboardEvent({ type: "keydown", code: "Escape", repeat: false });
@@ -23,6 +24,7 @@ describe("input normalization contract", () => {
         const saveMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, shiftKey: true });
         const loadMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, shiftKey: true });
         const restartLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false, shiftKey: true });
+        const openCasebookAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false, shiftKey: true });
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
         const research = normalizeKeyboardEvent({ type: "keydown", code: "F6", repeat: false });
         const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
@@ -43,6 +45,7 @@ describe("input normalization contract", () => {
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
         expect(buildRoom).toEqual({ device: "keyboard", action: "build-room", source: "KeyF" });
         expect(openHireStaff).toEqual({ device: "keyboard", action: "open-hire-staff", source: "KeyB" });
+        expect(openCasebook).toEqual({ device: "keyboard", action: "open-casebook", source: "KeyC" });
         expect(confirmAction).toEqual({ device: "keyboard", action: "confirm-action", source: "Enter" });
         expect(confirmActionAlt).toEqual({ device: "keyboard", action: "confirm-action", source: "KeyE" });
         expect(cancelAction).toEqual({ device: "keyboard", action: "cancel-action", source: "Escape" });
@@ -53,6 +56,7 @@ describe("input normalization contract", () => {
         expect(saveMenu).toEqual({ device: "keyboard", action: "save-game", source: "Shift+KeyS" });
         expect(loadMenu).toEqual({ device: "keyboard", action: "load-game", source: "Shift+KeyL" });
         expect(restartLevel).toEqual({ device: "keyboard", action: "restart-level", source: "Shift+KeyR" });
+        expect(openCasebookAlt).toEqual({ device: "keyboard", action: "open-casebook", source: "Shift+KeyC" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
         expect(research).toEqual({ device: "keyboard", action: "start-research", source: "F6" });
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });

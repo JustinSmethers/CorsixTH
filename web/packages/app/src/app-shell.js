@@ -2423,7 +2423,7 @@ export function mountAppShell(options) {
           <span data-testid="selection-status" style="min-width:160px; color:#d8dca5; font-size:13px;">Selection: none</span>
         </div>
       </header>
-      <p data-testid="casebook-summary" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
+      <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
           <canvas
@@ -3551,6 +3551,10 @@ export function mountAppShell(options) {
         firstEnabledHireButton.focus();
         return true;
     };
+    const onOpenCasebook = () => {
+        casebookSummary.focus();
+        return true;
+    };
     const actionForHospitalPointer = (action, point) => {
         lastPlacementEvaluation = null;
         if (!action || !hospitalView || !point) {
@@ -3692,6 +3696,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-hire-staff") {
             if (onOpenHireStaff()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-casebook") {
+            if (onOpenCasebook()) {
                 event.preventDefault();
             }
             return;
