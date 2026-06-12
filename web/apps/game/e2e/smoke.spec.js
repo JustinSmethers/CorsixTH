@@ -191,6 +191,13 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("KeyB");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadb");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("KeyB");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "hire-diagnostician");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("KeyS");
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");

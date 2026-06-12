@@ -2725,6 +2725,12 @@ export function mountAppShell(options) {
     const hireNurseButton = requiredElement(options.root, "[data-testid='hire-nurse']");
     const hireHandymanButton = requiredElement(options.root, "[data-testid='hire-handyman']");
     const hireReceptionistButton = requiredElement(options.root, "[data-testid='hire-receptionist']");
+    const hireStaffButtons = [
+        hireDiagnosticianButton,
+        hireNurseButton,
+        hireHandymanButton,
+        hireReceptionistButton
+    ];
     const saveSlotNameInput = requiredElement(options.root, "[data-testid='save-slot-name']");
     const saveSlotSelect = requiredElement(options.root, "[data-testid='save-slot-select']");
     const saveGameButton = requiredElement(options.root, "[data-testid='save-game']");
@@ -3537,6 +3543,14 @@ export function mountAppShell(options) {
         audioMixer.setVolume(volumePercent / 100);
         renderRuntime();
     };
+    const onOpenHireStaff = () => {
+        const firstEnabledHireButton = hireStaffButtons.find((button) => !button.disabled);
+        if (!firstEnabledHireButton) {
+            return false;
+        }
+        firstEnabledHireButton.focus();
+        return true;
+    };
     const actionForHospitalPointer = (action, point) => {
         lastPlacementEvaluation = null;
         if (!action || !hospitalView || !point) {
@@ -3673,6 +3687,12 @@ export function mountAppShell(options) {
         if (action?.action === "build-room") {
             event.preventDefault();
             onBuildDiagnosisRoom();
+            return;
+        }
+        if (action?.action === "open-hire-staff") {
+            if (onOpenHireStaff()) {
+                event.preventDefault();
+            }
             return;
         }
         if (action?.action === "cancel-action") {

@@ -96,6 +96,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyF"
         };
     }
+    if (event.code === "KeyB") {
+        return {
+            device: "keyboard",
+            action: "open-hire-staff",
+            source: "KeyB"
+        };
+    }
     if (event.code === "Enter") {
         return {
             device: "keyboard",
