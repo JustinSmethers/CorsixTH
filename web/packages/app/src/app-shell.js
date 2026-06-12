@@ -2870,11 +2870,12 @@ export function mountAppShell(options) {
     };
     const onCancelAction = () => {
         if (!placementAction) {
-            return;
+            return false;
         }
         placementAction = null;
         placementPreview = null;
         renderRuntime();
+        return true;
     };
     const activeSaveSlot = () => {
         const slot = saveSlotNameInput.value.trim();
@@ -3660,8 +3661,9 @@ export function mountAppShell(options) {
             return;
         }
         if (action?.action === "cancel-action") {
-            event.preventDefault();
-            onCancelAction();
+            if (onCancelAction()) {
+                event.preventDefault();
+            }
             return;
         }
         if (action?.action === "save-game") {

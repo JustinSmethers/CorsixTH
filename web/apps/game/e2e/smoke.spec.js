@@ -10,6 +10,9 @@ function parseMetric(raw, label) {
 test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("patients 0");
+    await page.keyboard.press("KeyQ");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("patients 0");
     await expectCanvasAlpha(page, "hospital-map-canvas");
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/EXAMPLE.MAP");
     await page.getByTestId("hospital-map-select").selectOption("LEVELS/SECOND.MAP");
@@ -28,7 +31,7 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("LEVELS/SECOND.MAP");
     await page.keyboard.press("KeyF");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
-    await page.keyboard.press("Escape");
+    await page.keyboard.press("KeyQ");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
     await page.keyboard.press("KeyF");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");

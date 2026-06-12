@@ -89,6 +89,13 @@ export function normalizeKeyboardEvent(event) {
             source: "Escape"
         };
     }
+    if (event.code === "KeyQ") {
+        return {
+            device: "keyboard",
+            action: "cancel-action",
+            source: "KeyQ"
+        };
+    }
     if (event.code === "KeyS") {
         return {
             device: "keyboard",

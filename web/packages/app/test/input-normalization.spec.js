@@ -13,6 +13,7 @@ describe("input normalization contract", () => {
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
         const buildRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyF", repeat: false });
         const cancelAction = normalizeKeyboardEvent({ type: "keydown", code: "Escape", repeat: false });
+        const cancelActionAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyQ", repeat: false });
         const save = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false });
         const load = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false });
         const restart = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
@@ -34,6 +35,7 @@ describe("input normalization contract", () => {
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
         expect(buildRoom).toEqual({ device: "keyboard", action: "build-room", source: "KeyF" });
         expect(cancelAction).toEqual({ device: "keyboard", action: "cancel-action", source: "Escape" });
+        expect(cancelActionAlt).toEqual({ device: "keyboard", action: "cancel-action", source: "KeyQ" });
         expect(save).toEqual({ device: "keyboard", action: "save-game", source: "KeyS" });
         expect(load).toEqual({ device: "keyboard", action: "load-game", source: "KeyL" });
         expect(restart).toEqual({ device: "keyboard", action: "restart-level", source: "KeyR" });
@@ -47,7 +49,7 @@ describe("input normalization contract", () => {
     it("ignores keyboard repeats, modifiers, and unsupported keys", () => {
         const repeated = { type: "keydown", code: "Space", repeat: true };
         const modified = { type: "keydown", code: "KeyT", ctrlKey: true };
-        const unsupported = { type: "keydown", code: "KeyQ" };
+        const unsupported = { type: "keydown", code: "KeyO" };
         expect(normalizeKeyboardEvent(repeated)).toBeNull();
         expect(normalizeKeyboardEvent(modified)).toBeNull();
         expect(normalizeKeyboardEvent(unsupported)).toBeNull();
