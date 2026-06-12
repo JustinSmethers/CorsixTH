@@ -710,11 +710,12 @@ describe("app shell campaign objectives", () => {
     it("formats treatment research progress and total investment for the browser HUD", () => {
         expect(formatSeedStatus({ seed: 1234 })).toBe("Seed: 1234");
         expect(formatTickStatus({ tick: 42 })).toBe("Tick: 42");
-        expect(formatSpeedStatus({ speedMultiplier: 4 })).toBe("Speed: 4x");
+        expect(formatSpeedStatus({ speedMultiplier: 8 })).toBe("Speed: 8x");
         expect(nextSpeedMultiplier(0.5)).toBe(1);
         expect(nextSpeedMultiplier(1)).toBe(2);
         expect(nextSpeedMultiplier(2)).toBe(4);
-        expect(nextSpeedMultiplier(4)).toBe(4);
+        expect(nextSpeedMultiplier(4)).toBe(8);
+        expect(nextSpeedMultiplier(8)).toBe(8);
         expect(nextSpeedMultiplier(99)).toBe(1);
         expect(formatPausedStatus({ paused: true })).toBe("Paused: yes");
         expect(formatPausedStatus({ paused: false })).toBe("Paused: no");

@@ -91,11 +91,18 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyA"
         };
     }
-    if (event.code === "Digit1" || event.code === "Digit2" || event.code === "Digit3") {
+    if (event.code === "Digit1" || event.code === "Digit2" || event.code === "Digit3" || event.code === "Digit4" || event.code === "Digit5") {
+        const speedByDigit = {
+            Digit1: 0.5,
+            Digit2: 1,
+            Digit3: 2,
+            Digit4: 4,
+            Digit5: 8
+        };
         return {
             device: "keyboard",
-            action: "admit-patient",
-            severity: Number(event.code.slice(-1)),
+            action: "speed-set",
+            speedMultiplier: speedByDigit[event.code],
             source: event.code
         };
     }

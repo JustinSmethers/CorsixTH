@@ -189,13 +189,13 @@ describe("app orchestrator", () => {
         expect(orchestrator.dispatch({
             device: "ui",
             action: "speed-set",
-            speedMultiplier: 4,
+            speedMultiplier: 8,
             source: "ui:speed-select"
         })).toEqual(["speed.changed"]);
-        expect(orchestrator.advanceFrame(250)).toBe(4);
+        expect(orchestrator.advanceFrame(250)).toBe(8);
         expect(orchestrator.telemetry()).toMatchObject({
-            speedMultiplier: 4,
-            tick: 4
+            speedMultiplier: 8,
+            tick: 8
         });
         expect(orchestrator.dispatch({
             device: "ui",
@@ -207,7 +207,7 @@ describe("app orchestrator", () => {
         expect(orchestrator.advanceFrame(250)).toBe(1);
         expect(orchestrator.telemetry()).toMatchObject({
             speedMultiplier: 0.5,
-            tick: 5
+            tick: 9
         });
         const restored = AppOrchestrator.fromPersistenceSnapshot(orchestrator.createPersistenceSnapshot());
         expect(restored.telemetry()).toEqual(orchestrator.telemetry());

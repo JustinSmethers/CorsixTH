@@ -180,12 +180,22 @@ test("phase 7 audio flow: gesture-safe init and no Chromium autoplay policy viol
     await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 100% (unmuted)");
     await expect.poll(() => autoplayViolations).toEqual([]);
 });
-test("phase 7 keyboard shortcuts admit explicit severities", async ({ page }) => {
+test("phase 7 keyboard shortcuts set original speed tiers", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("Digit1");
+    await expect(page.getByTestId("speed-status")).toHaveText("Speed: 0.5x");
+    await expect(page.getByTestId("speed-select")).toHaveValue("0.5");
+    await page.keyboard.press("Digit2");
+    await expect(page.getByTestId("speed-status")).toHaveText("Speed: 1x");
     await page.keyboard.press("Digit3");
-    await expect(page.getByTestId("queue-size")).toHaveText("Queue: 1");
-    await expect(page.getByTestId("casebook-summary")).toContainText("H48/48");
+    await expect(page.getByTestId("speed-status")).toHaveText("Speed: 2x");
+    await page.keyboard.press("Digit4");
+    await expect(page.getByTestId("speed-status")).toHaveText("Speed: 4x");
+    await page.keyboard.press("Digit5");
+    await expect(page.getByTestId("speed-status")).toHaveText("Speed: 8x");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: speed changed");
 });
 test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
@@ -339,7 +349,7 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyS");
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");
-    await page.keyboard.press("Digit1");
+    await page.keyboard.press("KeyA");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
     await page.keyboard.press("Shift+KeyL");
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");

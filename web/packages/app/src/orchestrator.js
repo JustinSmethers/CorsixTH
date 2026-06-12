@@ -13,7 +13,7 @@ const DEFAULT_LEVEL_OBJECTIVE = {
     maximumDeaths: Number.POSITIVE_INFINITY
 };
 const DEFAULT_SPEED_MULTIPLIER = 1;
-const ALLOWED_SPEED_MULTIPLIERS = [0.5, 1, 2, 4];
+const ALLOWED_SPEED_MULTIPLIERS = [0.5, 1, 2, 4, 8];
 const DEFAULT_ADMISSION_POLICY = "standard";
 const ALLOWED_ADMISSION_POLICIES = ["conservative", "standard", "aggressive"];
 const AUTO_ADMISSION_INTERVAL_TICKS = 16;

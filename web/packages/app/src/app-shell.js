@@ -20,7 +20,7 @@ const HOSPITAL_TILE_COLUMNS = 14;
 const HOSPITAL_TILE_ROWS = 12;
 const HOSPITAL_CAMERA_STEP = 4;
 const DEFAULT_SAVE_SLOT = "browser-autosave";
-const SPEED_MULTIPLIER_STEPS = [0.5, 1, 2, 4];
+const SPEED_MULTIPLIER_STEPS = [0.5, 1, 2, 4, 8];
 const HOSPITAL_ISO_TILE_HALF_WIDTH = 32;
 const HOSPITAL_ISO_TILE_HALF_HEIGHT = 16;
 const PATIENT_STATUS_COLORS = {
@@ -2336,6 +2336,7 @@ export function mountAppShell(options) {
               <option value="1">1x</option>
               <option value="2">2x</option>
               <option value="4">4x</option>
+              <option value="8">8x</option>
             </select>
           </label>
           <button type="button" data-testid="admissions-toggle">Open Admissions</button>
@@ -2951,6 +2952,15 @@ export function mountAppShell(options) {
             action: "speed-set",
             source: "KeyZ",
             speedMultiplier: nextSpeedMultiplier(orchestrator.telemetry().speedMultiplier)
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onSpeedSet = (speedMultiplier, source) => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "keyboard",
+            action: "speed-set",
+            source,
+            speedMultiplier
         }, renderRuntime);
         updateActionStatus(events);
     };
@@ -3731,6 +3741,11 @@ export function mountAppShell(options) {
         if (action?.action === "speed-increase") {
             event.preventDefault();
             onSpeedIncrease();
+            return;
+        }
+        if (action?.action === "speed-set") {
+            event.preventDefault();
+            onSpeedSet(action.speedMultiplier, action.source);
             return;
         }
         if (action?.action === "build-room") {
