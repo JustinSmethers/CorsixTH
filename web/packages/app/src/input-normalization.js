@@ -141,6 +141,20 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyC"
         };
     }
+    if (event.code === "F1") {
+        return {
+            device: "keyboard",
+            action: "open-bank-manager",
+            source: "F1"
+        };
+    }
+    if (event.code === "F2") {
+        return {
+            device: "keyboard",
+            action: "open-bank-stats",
+            source: "F2"
+        };
+    }
     if (event.code === "F3") {
         return {
             device: "keyboard",

@@ -2515,9 +2515,9 @@ export function mountAppShell(options) {
           <p data-testid="cash" style="margin:0;"></p>
           <p data-testid="reputation" style="margin:0;"></p>
           <p data-testid="pricing-policy-status" style="margin:0;"></p>
-          <p data-testid="loan-status" style="margin:0;"></p>
+          <p data-testid="loan-status" tabindex="-1" style="margin:0;"></p>
           <p data-testid="loan-interest" style="margin:0;"></p>
-          <p data-testid="finance-ledger" style="margin:0;"></p>
+          <p data-testid="finance-ledger" tabindex="-1" style="margin:0;"></p>
           <p data-testid="finance-audit" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="marketing-campaign" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="insurance-contract-status" style="margin:0;"></p>
@@ -3555,6 +3555,14 @@ export function mountAppShell(options) {
         casebookSummary.focus();
         return true;
     };
+    const onOpenBankManager = () => {
+        telemetryElements.loanStatusMetric.focus();
+        return true;
+    };
+    const onOpenBankStats = () => {
+        telemetryElements.financeLedgerMetric.focus();
+        return true;
+    };
     const onOpenStaff = () => {
         telemetryElements.activeStaffMetric.focus();
         return true;
@@ -3726,6 +3734,18 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-casebook") {
             if (onOpenCasebook()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-bank-manager") {
+            if (onOpenBankManager()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-bank-stats") {
+            if (onOpenBankStats()) {
                 event.preventDefault();
             }
             return;
