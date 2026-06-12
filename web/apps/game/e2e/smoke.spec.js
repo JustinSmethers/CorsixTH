@@ -26,7 +26,7 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/SECOND.MAP");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("LEVELS/SECOND.MAP");
-    await page.getByTestId("build-diagnosis-room").click();
+    await page.keyboard.press("KeyF");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
     await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");

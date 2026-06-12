@@ -3646,6 +3646,11 @@ export function mountAppShell(options) {
             onSpeedIncrease();
             return;
         }
+        if (action?.action === "build-room") {
+            event.preventDefault();
+            onBuildDiagnosisRoom();
+            return;
+        }
         if (action?.action === "save-game") {
             event.preventDefault();
             onSaveGame();

@@ -75,6 +75,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyZ"
         };
     }
+    if (event.code === "KeyF") {
+        return {
+            device: "keyboard",
+            action: "build-room",
+            source: "KeyF"
+        };
+    }
     if (event.code === "KeyS") {
         return {
             device: "keyboard",
