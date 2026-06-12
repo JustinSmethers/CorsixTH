@@ -260,6 +260,13 @@ export function normalizeKeyboardEvent(event) {
             source: "F9"
         };
     }
+    if (event.code === "F10") {
+        return {
+            device: "keyboard",
+            action: "open-machine-menu",
+            source: "F10"
+        };
+    }
     if (event.code === "ArrowLeft") {
         return {
             device: "keyboard",

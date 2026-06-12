@@ -213,6 +213,8 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("F9");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
+    await page.keyboard.press("F10");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("KeyB");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadb");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
@@ -293,6 +295,15 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("F9");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "pricing-policy");
     await expect(page.getByTestId("pricing-policy")).toHaveValue("standard");
+    await page.getByTestId("playfield").focus();
+    const cashBeforeMachineFocus = (await page.getByTestId("cash").textContent()) ?? "";
+    const actionStatusBeforeMachineFocus = (await page.getByTestId("action-status").textContent()) ?? "";
+    const roomsInMaintenanceBeforeFocus = (await page.getByTestId("rooms-in-maintenance").textContent()) ?? "";
+    await page.keyboard.press("F10");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "rooms-in-maintenance");
+    await expect(page.getByTestId("cash")).toHaveText(cashBeforeMachineFocus);
+    await expect(page.getByTestId("action-status")).toHaveText(actionStatusBeforeMachineFocus);
+    await expect(page.getByTestId("rooms-in-maintenance")).toHaveText(roomsInMaintenanceBeforeFocus);
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyS");
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");

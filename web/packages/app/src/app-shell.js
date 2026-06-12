@@ -2547,7 +2547,7 @@ export function mountAppShell(options) {
           <p data-testid="very-tired-staff" style="margin:0;"></p>
           <p data-testid="salary-pressure" style="margin:0;"></p>
           <p data-testid="auto-break-staff" style="margin:0;"></p>
-          <p data-testid="rooms-in-maintenance" style="margin:0;"></p>
+          <p data-testid="rooms-in-maintenance" tabindex="-1" style="margin:0;"></p>
           <p data-testid="queue-pressure-events" style="margin:0;"></p>
           <p data-testid="staff-burnout-events" style="margin:0;"></p>
           <p data-testid="staff-recovery-events" style="margin:0;"></p>
@@ -3587,6 +3587,10 @@ export function mountAppShell(options) {
         telemetryElements.admissionPolicySelect.focus();
         return true;
     };
+    const onOpenMachineMenu = () => {
+        telemetryElements.roomsInMaintenanceMetric.focus();
+        return true;
+    };
     const actionForHospitalPointer = (action, point) => {
         lastPlacementEvaluation = null;
         if (!action || !hospitalView || !point) {
@@ -3782,6 +3786,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-policy") {
             if (onOpenPolicy()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-machine-menu") {
+            if (onOpenMachineMenu()) {
                 event.preventDefault();
             }
             return;
