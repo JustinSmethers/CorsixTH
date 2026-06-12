@@ -216,6 +216,24 @@ test("phase 7 keyboard shortcuts zoom the hospital viewport", async ({ page }) =
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 100%");
     await expect(page.getByTestId("action-status")).toHaveText("Action: zoom 100%");
 });
+test("phase 7 keyboard shortcuts control original transparent wall mode", async ({ page }) => {
+    await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await page.getByTestId("playfield").focus();
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("transparent walls no");
+    await page.keyboard.down("KeyX");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("transparent walls yes");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: transparent walls held");
+    await page.keyboard.up("KeyX");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("transparent walls no");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: transparent walls released");
+    await page.keyboard.press("Shift+KeyX");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("transparent walls yes");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: transparent walls shown");
+    await page.keyboard.press("Shift+KeyX");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("transparent walls no");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: transparent walls hidden");
+});
 test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
@@ -228,6 +246,9 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("Digit0");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-load0");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("KeyX");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadx");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("KeyC");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadc");

@@ -1,4 +1,4 @@
-import { normalizeKeyboardEvent, normalizeMouseEvent, normalizeTouchEvent } from "../src/index";
+import { normalizeKeyboardEvent, normalizeKeyboardReleaseEvent, normalizeMouseEvent, normalizeTouchEvent } from "../src/index";
 describe("input normalization contract", () => {
     it("maps supported keyboard controls into deterministic app actions", () => {
         const pause = normalizeKeyboardEvent({ type: "keydown", code: "Space", repeat: false });
@@ -15,6 +15,8 @@ describe("input normalization contract", () => {
         const zoomOut = normalizeKeyboardEvent({ type: "keydown", code: "Minus", repeat: false });
         const zoomOutMore = normalizeKeyboardEvent({ type: "keydown", code: "Minus", repeat: false, shiftKey: true });
         const zoomReset = normalizeKeyboardEvent({ type: "keydown", code: "Digit0", repeat: false });
+        const transparentWallsHold = normalizeKeyboardEvent({ type: "keydown", code: "KeyX", repeat: false });
+        const transparentWallsToggle = normalizeKeyboardEvent({ type: "keydown", code: "KeyX", repeat: false, shiftKey: true });
         const treat = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
         const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
@@ -67,6 +69,8 @@ describe("input normalization contract", () => {
         expect(zoomOut).toEqual({ device: "keyboard", action: "zoom-out", source: "Minus" });
         expect(zoomOutMore).toEqual({ device: "keyboard", action: "zoom-out-more", source: "Shift+Minus" });
         expect(zoomReset).toEqual({ device: "keyboard", action: "zoom-reset", source: "Digit0" });
+        expect(transparentWallsHold).toEqual({ device: "keyboard", action: "transparent-walls-hold", source: "KeyX" });
+        expect(transparentWallsToggle).toEqual({ device: "keyboard", action: "transparent-walls-toggle", source: "Shift+KeyX" });
         expect(treat).toEqual({ device: "keyboard", action: "treat-patient", source: "KeyT" });
         expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
@@ -117,6 +121,12 @@ describe("input normalization contract", () => {
         expect(normalizeKeyboardEvent(quickSaveReserved)).toBeNull();
         expect(normalizeKeyboardEvent(quitLevelReserved)).toBeNull();
         expect(normalizeKeyboardEvent(unsupported)).toBeNull();
+    });
+    it("maps keyboard releases used by original hold-style controls", () => {
+        expect(normalizeKeyboardReleaseEvent({ type: "keyup", code: "KeyX" })).toEqual({ device: "keyboard", action: "transparent-walls-release", source: "KeyX" });
+        expect(normalizeKeyboardReleaseEvent({ type: "keyup", code: "KeyX", ctrlKey: true })).toBeNull();
+        expect(normalizeKeyboardReleaseEvent({ type: "keydown", code: "KeyX" })).toBeNull();
+        expect(normalizeKeyboardReleaseEvent({ type: "keyup", code: "KeyO" })).toBeNull();
     });
     it("maps mouse primary/secondary buttons with normalized coordinates", () => {
         const primary = { type: "mousedown", button: 0, clientX: 19.7, clientY: 32.2 };

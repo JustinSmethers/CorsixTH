@@ -87,6 +87,13 @@ export function normalizeKeyboardEvent(event) {
             source: "Shift+Minus"
         };
     }
+    if (event.shiftKey && event.code === "KeyX") {
+        return {
+            device: "keyboard",
+            action: "transparent-walls-toggle",
+            source: "Shift+KeyX"
+        };
+    }
     if (event.shiftKey && event.code === "KeyQ") {
         return null;
     }
@@ -130,6 +137,13 @@ export function normalizeKeyboardEvent(event) {
             device: "keyboard",
             action: "zoom-reset",
             source: "Digit0"
+        };
+    }
+    if (event.code === "KeyX") {
+        return {
+            device: "keyboard",
+            action: "transparent-walls-hold",
+            source: "KeyX"
         };
     }
     if (event.code === "KeyA") {
@@ -363,6 +377,22 @@ export function normalizeKeyboardEvent(event) {
             device: "keyboard",
             action: "camera-south",
             source: "ArrowDown"
+        };
+    }
+    return null;
+}
+export function normalizeKeyboardReleaseEvent(event) {
+    if (event.type !== "keyup") {
+        return null;
+    }
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+        return null;
+    }
+    if (event.code === "KeyX") {
+        return {
+            device: "keyboard",
+            action: "transparent-walls-release",
+            source: "KeyX"
         };
     }
     return null;

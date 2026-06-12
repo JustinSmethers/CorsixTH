@@ -252,7 +252,7 @@ export function renderThemeHospitalMapScene(input) {
             }
             const image = renderThemeHospitalSprite(sprite, input.palette);
             const xOffset = layer === "westWall" ? -32 : -32;
-            blitImage(pixels, width, height, image, draw.baseX + xOffset, draw.baseY - image.height + 32);
+            blitImage(pixels, width, height, image, draw.baseX + xOffset, draw.baseY - image.height + 32, 0, { opacity: input.wallAlpha ?? 1 });
             wallSpriteCount += 1;
         }
     }
@@ -368,9 +368,10 @@ function animationFrameElements(animationSet, animationIndex, frameStep = 0) {
     return { frameIndex, elements };
 }
 
-function blitImage(targetPixels, targetWidth, targetHeight, image, targetX, targetY, flags = 0) {
+function blitImage(targetPixels, targetWidth, targetHeight, image, targetX, targetY, flags = 0, options = {}) {
     const flipHorizontal = (flags & THEME_HOSPITAL_DRAW_FLAG_FLIP_HORIZONTAL) !== 0;
     const flipVertical = (flags & THEME_HOSPITAL_DRAW_FLAG_FLIP_VERTICAL) !== 0;
+    const opacity = Math.max(0, Math.min(1, options.opacity ?? 1));
     for (let sourceY = 0; sourceY < image.height; sourceY += 1) {
         const readY = flipVertical ? image.height - 1 - sourceY : sourceY;
         const y = targetY + sourceY;
@@ -388,11 +389,26 @@ function blitImage(targetPixels, targetWidth, targetHeight, image, targetX, targ
             if (alpha === 0) {
                 continue;
             }
+            const effectiveAlpha = Math.round(alpha * opacity);
+            if (effectiveAlpha === 0) {
+                continue;
+            }
             const targetOffset = (y * targetWidth + x) * 4;
-            targetPixels[targetOffset] = image.pixels[sourceOffset];
-            targetPixels[targetOffset + 1] = image.pixels[sourceOffset + 1];
-            targetPixels[targetOffset + 2] = image.pixels[sourceOffset + 2];
-            targetPixels[targetOffset + 3] = alpha;
+            if (effectiveAlpha === 255) {
+                targetPixels[targetOffset] = image.pixels[sourceOffset];
+                targetPixels[targetOffset + 1] = image.pixels[sourceOffset + 1];
+                targetPixels[targetOffset + 2] = image.pixels[sourceOffset + 2];
+                targetPixels[targetOffset + 3] = effectiveAlpha;
+                continue;
+            }
+            const sourceWeight = effectiveAlpha / 255;
+            const targetAlpha = targetPixels[targetOffset + 3] ?? 0;
+            const targetWeight = (targetAlpha / 255) * (1 - sourceWeight);
+            const outputWeight = sourceWeight + targetWeight;
+            targetPixels[targetOffset] = outputWeight === 0 ? 0 : Math.round(((image.pixels[sourceOffset] * sourceWeight) + (targetPixels[targetOffset] * targetWeight)) / outputWeight);
+            targetPixels[targetOffset + 1] = outputWeight === 0 ? 0 : Math.round(((image.pixels[sourceOffset + 1] * sourceWeight) + (targetPixels[targetOffset + 1] * targetWeight)) / outputWeight);
+            targetPixels[targetOffset + 2] = outputWeight === 0 ? 0 : Math.round(((image.pixels[sourceOffset + 2] * sourceWeight) + (targetPixels[targetOffset + 2] * targetWeight)) / outputWeight);
+            targetPixels[targetOffset + 3] = Math.round(outputWeight * 255);
         }
     }
 }

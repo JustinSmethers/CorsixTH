@@ -9,7 +9,7 @@ import {
 import { createWebAudioMixer } from "@corsixth/audio-webaudio";
 import { createIndexedDbPersistenceAdapter } from "@corsixth/persistence";
 import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, roomRepairCost, staffHireCost, staffWageCostPerTick, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
-import { normalizeKeyboardEvent, normalizeMouseEvent, normalizeTouchEvent } from "./input-normalization";
+import { normalizeKeyboardEvent, normalizeKeyboardReleaseEvent, normalizeMouseEvent, normalizeTouchEvent } from "./input-normalization";
 import { AppOrchestrator } from "./orchestrator";
 import { restoreOrchestratorFromSaveEnvelope, saveOrchestratorToSlot } from "./persistence";
 const HOSPITAL_CANVAS_WIDTH = 768;
@@ -1343,6 +1343,7 @@ function createImportedHospitalView(assetBundle) {
         tileColumns: HOSPITAL_TILE_COLUMNS,
         tileRows: HOSPITAL_TILE_ROWS,
         zoomIndex: HOSPITAL_DEFAULT_ZOOM_INDEX,
+        transparentWalls: false,
         originX: Math.floor(HOSPITAL_CANVAS_WIDTH / 2),
         originY: 18
     };
@@ -2184,7 +2185,7 @@ function patientRenderPosition(patient) {
     return patient.position;
 }
 export function formatHospitalCanvasSummary(view, state, frameStats) {
-    return `${view.mapPath} viewport ${view.startX},${view.startY}; zoom ${formatHospitalZoomLevel(view)}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
+    return `${view.mapPath} viewport ${view.startX},${view.startY}; zoom ${formatHospitalZoomLevel(view)}; transparent walls ${view.transparentWalls ? "yes" : "no"}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
 }
 export function formatOriginalUiStripSummary(view, visibleSpriteCount, controls = []) {
     const sheetPath = view.originalUiSpriteSheetPath || "imported sheet";
@@ -2234,6 +2235,7 @@ function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placemen
         startY: view.startY,
         tileColumns: view.tileColumns,
         tileRows: view.tileRows,
+        wallAlpha: view.transparentWalls ? 0.42 : 1,
         animationFrameStep: state.tick
     });
     context.putImageData(new ImageData(frame.pixels, frame.width, frame.height), 0, 0);
@@ -3657,6 +3659,8 @@ export function mountAppShell(options) {
     };
     let advisorVisible = true;
     let announcementsVisible = true;
+    let transparentWallsHeld = false;
+    let transparentWallsToggled = false;
     const setAdvisorVisible = (visible) => {
         advisorVisible = visible;
         telemetryElements.advisorStatusMetric.hidden = !advisorVisible;
@@ -3667,6 +3671,16 @@ export function mountAppShell(options) {
         telemetryElements.lastEventMetric.hidden = !announcementsVisible;
         telemetryElements.recentEventsMetric.hidden = !announcementsVisible;
     };
+    const setTransparentWallsVisible = (visible) => {
+        if (!hospitalView) {
+            return;
+        }
+        hospitalView.transparentWalls = visible;
+    };
+    const updateTransparentWalls = () => {
+        setTransparentWallsVisible(transparentWallsHeld || transparentWallsToggled);
+        renderHospital();
+    };
     const onToggleAdvisor = () => {
         setAdvisorVisible(!advisorVisible);
         actionStatus.textContent = advisorVisible ? "Action: advisor shown" : "Action: advisor hidden";
@@ -3675,6 +3689,27 @@ export function mountAppShell(options) {
     const onToggleAnnouncements = () => {
         setAnnouncementsVisible(!announcementsVisible);
         actionStatus.textContent = announcementsVisible ? "Action: announcements shown" : "Action: announcements hidden";
+        return true;
+    };
+    const onHoldTransparentWalls = () => {
+        transparentWallsHeld = true;
+        updateTransparentWalls();
+        actionStatus.textContent = "Action: transparent walls held";
+        return true;
+    };
+    const onReleaseTransparentWalls = () => {
+        if (!transparentWallsHeld) {
+            return false;
+        }
+        transparentWallsHeld = false;
+        updateTransparentWalls();
+        actionStatus.textContent = hospitalView?.transparentWalls ? "Action: transparent walls shown" : "Action: transparent walls released";
+        return true;
+    };
+    const onToggleTransparentWalls = () => {
+        transparentWallsToggled = !transparentWallsToggled;
+        updateTransparentWalls();
+        actionStatus.textContent = hospitalView?.transparentWalls ? "Action: transparent walls shown" : "Action: transparent walls hidden";
         return true;
     };
     const actionForHospitalPointer = (action, point) => {
@@ -3841,6 +3876,18 @@ export function mountAppShell(options) {
             onResetHospitalZoom();
             return;
         }
+        if (action?.action === "transparent-walls-hold") {
+            if (onHoldTransparentWalls()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "transparent-walls-toggle") {
+            if (onToggleTransparentWalls()) {
+                event.preventDefault();
+            }
+            return;
+        }
         if (action?.action === "advisor-toggle") {
             if (onToggleAdvisor()) {
                 event.preventDefault();
@@ -3974,6 +4021,24 @@ export function mountAppShell(options) {
             return;
         }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);
+    };
+    const onKeyUp = (event) => {
+        if (isEditableKeyboardTarget(event.target)) {
+            return;
+        }
+        const action = normalizeKeyboardReleaseEvent({
+            type: event.type,
+            code: event.code,
+            altKey: event.altKey,
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey,
+            shiftKey: event.shiftKey
+        });
+        if (action?.action === "transparent-walls-release") {
+            if (onReleaseTransparentWalls()) {
+                event.preventDefault();
+            }
+        }
     };
     const onContextMenu = (event) => {
         event.preventDefault();
@@ -4161,6 +4226,7 @@ export function mountAppShell(options) {
     cameraNorthButton.addEventListener("click", onCameraNorth);
     cameraSouthButton.addEventListener("click", onCameraSouth);
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("keyup", onKeyUp);
     void refreshSaveSlots({ silent: true });
     originalUiStripSummary.textContent = renderOriginalUiStrip(originalUiStripCanvas, hospitalView);
     let lastTimestamp = frameClock.now();
@@ -4243,6 +4309,7 @@ export function mountAppShell(options) {
             cameraNorthButton.removeEventListener("click", onCameraNorth);
             cameraSouthButton.removeEventListener("click", onCameraSouth);
             window.removeEventListener("keydown", onKeyDown);
+            window.removeEventListener("keyup", onKeyUp);
         }
     };
 }

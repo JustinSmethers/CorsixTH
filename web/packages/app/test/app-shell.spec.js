@@ -35,7 +35,8 @@ describe("app shell campaign objectives", () => {
             mapPath: "LEVELS/EXAMPLE.MAP",
             startX: 4,
             startY: 5,
-            zoomIndex: 2
+            zoomIndex: 2,
+            transparentWalls: true
         }, {
             patientsWaiting: 3,
             entities: {
@@ -46,7 +47,7 @@ describe("app shell campaign objectives", () => {
             floorSpriteCount: 20,
             wallSpriteCount: 8,
             objectSpriteCount: 5
-        })).toBe("LEVELS/EXAMPLE.MAP viewport 4,5; zoom 100%; patients 3; rooms 2; staff 1; floor 20; walls 8; objects 5");
+        })).toBe("LEVELS/EXAMPLE.MAP viewport 4,5; zoom 100%; transparent walls yes; patients 3; rooms 2; staff 1; floor 20; walls 8; objects 5");
         expect(formatOriginalUiStripSummary({
             originalUiSpriteSheetPath: "DATA/PANEL02V",
             originalUiSpriteSheet: { spriteCount: 11 }

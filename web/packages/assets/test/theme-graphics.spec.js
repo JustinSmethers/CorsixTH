@@ -157,6 +157,38 @@ describe("Theme Hospital graphics decoder", () => {
         expect(scene.stats.animation?.animationIndex).toBe(0);
         expect(scene.pixels.some((value, index) => index % 4 === 3 && value !== 0)).toBe(true);
     });
+    it("alpha-composites transparent wall sprites over already rendered floor pixels", () => {
+        const palette = decodeThemeHospitalPalette(fixturePaletteBytes());
+        const blockSheet = {
+            sprites: [
+                { width: 0, height: 0, indices: new Uint8Array() },
+                { width: 4, height: 2, indices: new Uint8Array(8).fill(1) },
+                { width: 40, height: 2, indices: new Uint8Array(80).fill(2) }
+            ]
+        };
+        const map = decodedMapFixture();
+        map.width = 1;
+        map.height = 1;
+        map.tiles = [
+            { x: 0, y: 0, ground: 1, northWall: 2, westWall: 0, objectType: 0 }
+        ];
+        const scene = renderThemeHospitalMapScene({
+            map,
+            blockSheet,
+            palette,
+            viewportWidth: 80,
+            viewportHeight: 80,
+            originX: 40,
+            originY: 16,
+            tileColumns: 1,
+            tileRows: 1,
+            wallAlpha: 0.5
+        });
+        const overlappedPixel = ((46 * scene.width) + 40) * 4;
+        expect([...scene.pixels.slice(overlappedPixel, overlappedPixel + 4)]).toEqual([127, 128, 0, 255]);
+        expect(scene.stats.floorSpriteCount).toBe(1);
+        expect(scene.stats.wallSpriteCount).toBe(1);
+    });
     it("uses the scene animation frame step for imported map animation overlays", () => {
         const palette = decodeThemeHospitalPalette(fixturePaletteBytes());
         const blockSheet = decodeThemeHospitalSpriteSheet(new Uint8Array([
