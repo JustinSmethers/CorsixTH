@@ -14,6 +14,7 @@ describe("input normalization contract", () => {
         const buildRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyF", repeat: false });
         const openHireStaff = normalizeKeyboardEvent({ type: "keydown", code: "KeyB", repeat: false });
         const openCasebook = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false });
+        const openCasebookPanel = normalizeKeyboardEvent({ type: "keydown", code: "F5", repeat: false });
         const confirmAction = normalizeKeyboardEvent({ type: "keydown", code: "Enter", repeat: false });
         const confirmActionAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyE", repeat: false });
         const cancelAction = normalizeKeyboardEvent({ type: "keydown", code: "Escape", repeat: false });
@@ -46,6 +47,7 @@ describe("input normalization contract", () => {
         expect(buildRoom).toEqual({ device: "keyboard", action: "build-room", source: "KeyF" });
         expect(openHireStaff).toEqual({ device: "keyboard", action: "open-hire-staff", source: "KeyB" });
         expect(openCasebook).toEqual({ device: "keyboard", action: "open-casebook", source: "KeyC" });
+        expect(openCasebookPanel).toEqual({ device: "keyboard", action: "open-casebook", source: "F5" });
         expect(confirmAction).toEqual({ device: "keyboard", action: "confirm-action", source: "Enter" });
         expect(confirmActionAlt).toEqual({ device: "keyboard", action: "confirm-action", source: "KeyE" });
         expect(cancelAction).toEqual({ device: "keyboard", action: "cancel-action", source: "Escape" });

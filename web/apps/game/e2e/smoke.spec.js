@@ -197,6 +197,8 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("Shift+KeyC");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadC");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("F5");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("KeyB");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadb");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
@@ -209,6 +211,9 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "casebook-summary");
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyC");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "casebook-summary");
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("F5");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "casebook-summary");
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyS");

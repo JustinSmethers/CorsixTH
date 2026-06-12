@@ -141,6 +141,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyC"
         };
     }
+    if (event.code === "F5") {
+        return {
+            device: "keyboard",
+            action: "open-casebook",
+            source: "F5"
+        };
+    }
     if (event.code === "Enter") {
         return {
             device: "keyboard",
