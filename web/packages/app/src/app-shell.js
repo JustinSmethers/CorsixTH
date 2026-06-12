@@ -2524,7 +2524,7 @@ export function mountAppShell(options) {
           <p data-testid="insurance-contract-reward" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="hospital-rating" style="margin:0;"></p>
           <p data-testid="hospital-awards" style="margin:0;"></p>
-          <p data-testid="cashflow-net" style="margin:0;"></p>
+          <p data-testid="cashflow-net" tabindex="-1" style="margin:0;"></p>
           <p data-testid="cashflow-cumulative" style="margin:0;"></p>
           <p data-testid="milestone-level" style="margin:0;"></p>
           <p data-testid="unlocks" style="margin:0;"></p>
@@ -3563,6 +3563,10 @@ export function mountAppShell(options) {
         telemetryElements.levelObjectiveStatusMetric.focus();
         return true;
     };
+    const onOpenCharts = () => {
+        telemetryElements.tickCashflowMetric.focus();
+        return true;
+    };
     const onOpenMap = () => {
         hospitalMapSelect.focus();
         return true;
@@ -3736,6 +3740,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-status") {
             if (onOpenStatus()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-charts") {
+            if (onOpenCharts()) {
                 event.preventDefault();
             }
             return;

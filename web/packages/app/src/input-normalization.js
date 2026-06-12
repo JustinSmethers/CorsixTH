@@ -225,6 +225,13 @@ export function normalizeKeyboardEvent(event) {
             source: "F7"
         };
     }
+    if (event.code === "F8") {
+        return {
+            device: "keyboard",
+            action: "open-charts",
+            source: "F8"
+        };
+    }
     if (event.code === "F9") {
         return {
             device: "keyboard",

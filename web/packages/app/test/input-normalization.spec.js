@@ -30,6 +30,7 @@ describe("input normalization contract", () => {
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
         const research = normalizeKeyboardEvent({ type: "keydown", code: "F6", repeat: false });
         const status = normalizeKeyboardEvent({ type: "keydown", code: "F7", repeat: false });
+        const charts = normalizeKeyboardEvent({ type: "keydown", code: "F8", repeat: false });
         const policy = normalizeKeyboardEvent({ type: "keydown", code: "F9", repeat: false });
         const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
         const muteMusic = normalizeKeyboardEvent({ type: "keydown", code: "KeyM", repeat: false, altKey: true });
@@ -66,6 +67,7 @@ describe("input normalization contract", () => {
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
         expect(research).toEqual({ device: "keyboard", action: "open-research", source: "F6" });
         expect(status).toEqual({ device: "keyboard", action: "open-status", source: "F7" });
+        expect(charts).toEqual({ device: "keyboard", action: "open-charts", source: "F8" });
         expect(policy).toEqual({ device: "keyboard", action: "open-policy", source: "F9" });
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
         expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });

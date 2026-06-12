@@ -203,6 +203,8 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("F7");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
+    await page.keyboard.press("F8");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("F9");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("KeyB");
@@ -242,6 +244,15 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.getByTestId("cash")).toHaveText(cashBeforeStatusFocus);
     await expect(page.getByTestId("action-status")).toHaveText(actionStatusBeforeStatusFocus);
     await expect(page.getByTestId("level-objective-status")).toHaveText(levelObjectiveStatusBeforeFocus);
+    await page.getByTestId("playfield").focus();
+    const cashBeforeChartsFocus = (await page.getByTestId("cash").textContent()) ?? "";
+    const actionStatusBeforeChartsFocus = (await page.getByTestId("action-status").textContent()) ?? "";
+    const cashflowNetBeforeFocus = (await page.getByTestId("cashflow-net").textContent()) ?? "";
+    await page.keyboard.press("F8");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "cashflow-net");
+    await expect(page.getByTestId("cash")).toHaveText(cashBeforeChartsFocus);
+    await expect(page.getByTestId("action-status")).toHaveText(actionStatusBeforeChartsFocus);
+    await expect(page.getByTestId("cashflow-net")).toHaveText(cashflowNetBeforeFocus);
     await page.getByTestId("playfield").focus();
     const admissionPolicyBeforeFocus = (await page.getByTestId("admission-policy-status").textContent()) ?? "";
     const pricingPolicyBeforeFocus = (await page.getByTestId("pricing-policy-status").textContent()) ?? "";
