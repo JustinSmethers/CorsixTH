@@ -68,6 +68,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyH"
         };
     }
+    if (event.code === "KeyZ") {
+        return {
+            device: "keyboard",
+            action: "speed-increase",
+            source: "KeyZ"
+        };
+    }
     if (event.code === "KeyS") {
         return {
             device: "keyboard",

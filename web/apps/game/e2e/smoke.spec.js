@@ -73,7 +73,9 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
         timeout: 3000
     })
         .toBeGreaterThan(0);
-    await page.getByTestId("speed-select").selectOption("4");
+    await page.keyboard.press("KeyZ");
+    await expect(page.getByTestId("speed-status")).toHaveText("Speed: 2x");
+    await page.keyboard.press("KeyZ");
     await expect(page.getByTestId("speed-status")).toHaveText("Speed: 4x");
     await expect(page.getByTestId("action-status")).toHaveText("Action: speed changed");
     const tickAfterSpeedChange = parseMetric((await tickMetric.textContent()) ?? "", "Tick");

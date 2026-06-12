@@ -20,6 +20,7 @@ const HOSPITAL_TILE_COLUMNS = 14;
 const HOSPITAL_TILE_ROWS = 12;
 const HOSPITAL_CAMERA_STEP = 4;
 const DEFAULT_SAVE_SLOT = "browser-autosave";
+const SPEED_MULTIPLIER_STEPS = [0.5, 1, 2, 4];
 const HOSPITAL_ISO_TILE_HALF_WIDTH = 32;
 const HOSPITAL_ISO_TILE_HALF_HEIGHT = 16;
 const PATIENT_STATUS_COLORS = {
@@ -159,6 +160,13 @@ export function formatTickStatus(telemetry) {
 }
 export function formatSpeedStatus(telemetry) {
     return `Speed: ${telemetry.speedMultiplier}x`;
+}
+export function nextSpeedMultiplier(currentSpeedMultiplier) {
+    const currentIndex = SPEED_MULTIPLIER_STEPS.indexOf(currentSpeedMultiplier);
+    if (currentIndex === -1) {
+        return 1;
+    }
+    return SPEED_MULTIPLIER_STEPS[Math.min(currentIndex + 1, SPEED_MULTIPLIER_STEPS.length - 1)];
 }
 export function formatPausedStatus(telemetry) {
     return `Paused: ${telemetry.paused ? "yes" : "no"}`;
@@ -2907,6 +2915,15 @@ export function mountAppShell(options) {
         }, renderRuntime);
         updateActionStatus(events);
     };
+    const onSpeedIncrease = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "keyboard",
+            action: "speed-set",
+            source: "KeyZ",
+            speedMultiplier: nextSpeedMultiplier(orchestrator.telemetry().speedMultiplier)
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
     const onAdmissionPolicySelect = () => {
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
@@ -3622,6 +3639,11 @@ export function mountAppShell(options) {
         if (action?.action === "send-patient-home") {
             event.preventDefault();
             onSendSelectedPatientHome();
+            return;
+        }
+        if (action?.action === "speed-increase") {
+            event.preventDefault();
+            onSpeedIncrease();
             return;
         }
         if (action?.action === "save-game") {
