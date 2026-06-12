@@ -3559,6 +3559,10 @@ export function mountAppShell(options) {
         telemetryElements.researchStatusMetric.focus();
         return true;
     };
+    const onOpenMap = () => {
+        hospitalMapSelect.focus();
+        return true;
+    };
     const onOpenPolicy = () => {
         telemetryElements.admissionPolicySelect.focus();
         return true;
@@ -3710,6 +3714,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-casebook") {
             if (onOpenCasebook()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-map") {
+            if (onOpenMap()) {
                 event.preventDefault();
             }
             return;

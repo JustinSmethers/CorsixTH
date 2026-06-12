@@ -141,6 +141,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyC"
         };
     }
+    if (event.code === "F4") {
+        return {
+            device: "keyboard",
+            action: "open-map",
+            source: "F4"
+        };
+    }
     if (event.code === "F5") {
         return {
             device: "keyboard",
