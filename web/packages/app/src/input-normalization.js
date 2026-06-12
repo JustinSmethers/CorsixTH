@@ -217,7 +217,7 @@ export function normalizeKeyboardEvent(event) {
     if (event.code === "KeyT") {
         return {
             device: "keyboard",
-            action: "treat-patient",
+            action: "open-map",
             source: "KeyT"
         };
     }

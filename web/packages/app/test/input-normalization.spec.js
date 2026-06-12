@@ -17,7 +17,7 @@ describe("input normalization contract", () => {
         const zoomReset = normalizeKeyboardEvent({ type: "keydown", code: "Digit0", repeat: false });
         const transparentWallsHold = normalizeKeyboardEvent({ type: "keydown", code: "KeyX", repeat: false });
         const transparentWallsToggle = normalizeKeyboardEvent({ type: "keydown", code: "KeyX", repeat: false, shiftKey: true });
-        const treat = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
+        const openMapAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
         const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
         const jukebox = normalizeKeyboardEvent({ type: "keydown", code: "KeyJ", repeat: false });
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
@@ -79,7 +79,7 @@ describe("input normalization contract", () => {
         expect(zoomReset).toEqual({ device: "keyboard", action: "zoom-reset", source: "Digit0" });
         expect(transparentWallsHold).toEqual({ device: "keyboard", action: "transparent-walls-hold", source: "KeyX" });
         expect(transparentWallsToggle).toEqual({ device: "keyboard", action: "transparent-walls-toggle", source: "Shift+KeyX" });
-        expect(treat).toEqual({ device: "keyboard", action: "treat-patient", source: "KeyT" });
+        expect(openMapAlt).toEqual({ device: "keyboard", action: "open-map", source: "KeyT" });
         expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
         expect(jukebox).toEqual({ device: "keyboard", action: "open-jukebox", source: "KeyJ" });
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
