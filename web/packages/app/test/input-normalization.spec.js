@@ -51,6 +51,10 @@ describe("input normalization contract", () => {
         const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
         const muteMusic = normalizeKeyboardEvent({ type: "keydown", code: "KeyM", repeat: false, altKey: true });
         const toggleAnnouncements = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false, altKey: true });
+        const storeCameraSlot1 = normalizeKeyboardEvent({ type: "keydown", code: "Digit1", repeat: false, altKey: true });
+        const storeCameraSlot0 = normalizeKeyboardEvent({ type: "keydown", code: "Digit0", repeat: false, altKey: true });
+        const recallCameraSlot1 = normalizeKeyboardEvent({ type: "keydown", code: "Digit1", repeat: false, ctrlKey: true });
+        const recallCameraSlot0 = normalizeKeyboardEvent({ type: "keydown", code: "Digit0", repeat: false, ctrlKey: true });
         const cameraWest = normalizeKeyboardEvent({ type: "keydown", code: "ArrowLeft", repeat: false });
         const cameraEast = normalizeKeyboardEvent({ type: "keydown", code: "ArrowRight", repeat: false });
         const cameraNorth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowUp", repeat: false });
@@ -105,6 +109,10 @@ describe("input normalization contract", () => {
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
         expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });
         expect(toggleAnnouncements).toEqual({ device: "keyboard", action: "announcements-toggle", source: "Alt+KeyA" });
+        expect(storeCameraSlot1).toEqual({ device: "keyboard", action: "camera-store-position", slot: 1, source: "Alt+Digit1" });
+        expect(storeCameraSlot0).toEqual({ device: "keyboard", action: "camera-store-position", slot: 0, source: "Alt+Digit0" });
+        expect(recallCameraSlot1).toEqual({ device: "keyboard", action: "camera-recall-position", slot: 1, source: "Ctrl+Digit1" });
+        expect(recallCameraSlot0).toEqual({ device: "keyboard", action: "camera-recall-position", slot: 0, source: "Ctrl+Digit0" });
         expect(cameraWest).toEqual({ device: "keyboard", action: "camera-west", source: "ArrowLeft" });
         expect(cameraEast).toEqual({ device: "keyboard", action: "camera-east", source: "ArrowRight" });
         expect(cameraNorth).toEqual({ device: "keyboard", action: "camera-north", source: "ArrowUp" });

@@ -234,6 +234,28 @@ test("phase 7 keyboard shortcuts control original transparent wall mode", async 
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("transparent walls no");
     await expect(page.getByTestId("action-status")).toHaveText("Action: transparent walls hidden");
 });
+test("phase 7 keyboard shortcuts store and recall original camera positions", async ({ page }) => {
+    await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("Control+Digit9");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: camera position 9 empty");
+    const initialSummary = (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
+    await page.keyboard.press("Alt+Digit1");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: camera position 1 stored");
+    await page.keyboard.press("ArrowRight");
+    await page.keyboard.press("ArrowDown");
+    await page.keyboard.press("Equal");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("zoom 150%");
+    expect((await page.getByTestId("hospital-canvas-summary").textContent()) ?? "").not.toBe(initialSummary);
+    await page.keyboard.press("Control+Digit1");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: camera position 1 recalled");
+    await expect(page.getByTestId("hospital-canvas-summary")).toHaveText(initialSummary);
+    await page.keyboard.press("Alt+Digit0");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: camera position 0 stored");
+    await page.keyboard.press("Control+Digit0");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: camera position 0 recalled");
+});
 test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();

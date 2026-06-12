@@ -1549,6 +1549,15 @@ function restoreHospitalMapViewSnapshot(view, mapView) {
     view.startY = clamp(mapView.startY, 0, Math.max(0, view.map.height - view.tileRows));
     return true;
 }
+function restoreHospitalCameraSnapshot(view, mapView) {
+    if (!view?.map || !mapView || mapView.mapPath !== view.mapPath) {
+        return false;
+    }
+    applyHospitalViewZoom(view, mapView.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX, { preserveCenter: false });
+    view.startX = clamp(mapView.startX, 0, Math.max(0, view.map.width - view.tileColumns));
+    view.startY = clamp(mapView.startY, 0, Math.max(0, view.map.height - view.tileRows));
+    return true;
+}
 function nextHospitalMapPath(view) {
     if (!view?.mapPath || !Array.isArray(view.mapSummaries) || view.mapSummaries.length === 0) {
         return null;
@@ -2811,6 +2820,7 @@ export function mountAppShell(options) {
     let placementAction = null;
     let placementPreview = null;
     let lastPlacementEvaluation = null;
+    const cameraMemorySlots = new Map();
     const resetInteractionState = () => {
         selectedTile = null;
         selectedEntity = null;
@@ -3833,6 +3843,18 @@ export function mountAppShell(options) {
             onCameraSouth();
             return;
         }
+        if (action?.action === "camera-store-position") {
+            if (onStoreCameraPosition(action.slot)) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "camera-recall-position") {
+            if (onRecallCameraPosition(action.slot)) {
+                event.preventDefault();
+            }
+            return;
+        }
         if (action?.action === "pause-toggle") {
             event.preventDefault();
         }
@@ -4075,6 +4097,33 @@ export function mountAppShell(options) {
         resetOrchestratorForActiveMap();
         saveStatus.textContent = formatNextLevelStatus(hospitalView.mapPath);
         renderRuntime();
+    };
+    const onStoreCameraPosition = (slot) => {
+        const snapshot = createHospitalMapViewSnapshot(hospitalView);
+        if (!snapshot || !Number.isInteger(slot)) {
+            return false;
+        }
+        cameraMemorySlots.set(slot, snapshot);
+        actionStatus.textContent = `Action: camera position ${slot} stored`;
+        return true;
+    };
+    const onRecallCameraPosition = (slot) => {
+        if (!Number.isInteger(slot)) {
+            return false;
+        }
+        const snapshot = cameraMemorySlots.get(slot);
+        if (!snapshot) {
+            actionStatus.textContent = `Action: camera position ${slot} empty`;
+            return true;
+        }
+        if (!restoreHospitalCameraSnapshot(hospitalView, snapshot)) {
+            actionStatus.textContent = `Action: camera position ${slot} unavailable`;
+            return true;
+        }
+        placementPreview = null;
+        actionStatus.textContent = `Action: camera position ${slot} recalled`;
+        renderHospital();
+        return true;
     };
     const onZoomHospitalView = (delta) => {
         if (!hospitalView) {

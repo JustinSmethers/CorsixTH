@@ -7,6 +7,15 @@ function roundPointerCoordinates(x, y) {
         y: Math.round(y)
     };
 }
+function cameraMemorySlotForCode(code) {
+    if (code === "Digit0") {
+        return 0;
+    }
+    if (/^Digit[1-9]$/.test(code)) {
+        return Number(code.slice("Digit".length));
+    }
+    return null;
+}
 export function normalizeKeyboardEvent(event) {
     if (event.type !== "keydown") {
         return null;
@@ -34,6 +43,28 @@ export function normalizeKeyboardEvent(event) {
             action: "announcements-toggle",
             source: "Alt+KeyA"
         };
+    }
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey && event.altKey) {
+        const slot = cameraMemorySlotForCode(event.code);
+        if (slot !== null) {
+            return {
+                device: "keyboard",
+                action: "camera-store-position",
+                slot,
+                source: `Alt+Digit${slot}`
+            };
+        }
+    }
+    if (!event.altKey && !event.metaKey && !event.shiftKey && event.ctrlKey) {
+        const slot = cameraMemorySlotForCode(event.code);
+        if (slot !== null) {
+            return {
+                device: "keyboard",
+                action: "camera-recall-position",
+                slot,
+                source: `Ctrl+Digit${slot}`
+            };
+        }
     }
     if (event.altKey || event.ctrlKey || event.metaKey) {
         return null;
