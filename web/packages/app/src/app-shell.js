@@ -3559,6 +3559,10 @@ export function mountAppShell(options) {
         telemetryElements.researchStatusMetric.focus();
         return true;
     };
+    const onOpenPolicy = () => {
+        telemetryElements.admissionPolicySelect.focus();
+        return true;
+    };
     const actionForHospitalPointer = (action, point) => {
         lastPlacementEvaluation = null;
         if (!action || !hospitalView || !point) {
@@ -3712,6 +3716,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-research") {
             if (onOpenResearch()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-policy") {
+            if (onOpenPolicy()) {
                 event.preventDefault();
             }
             return;

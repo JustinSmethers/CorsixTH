@@ -28,6 +28,7 @@ describe("input normalization contract", () => {
         const openCasebookAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyC", repeat: false, shiftKey: true });
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
         const research = normalizeKeyboardEvent({ type: "keydown", code: "F6", repeat: false });
+        const policy = normalizeKeyboardEvent({ type: "keydown", code: "F9", repeat: false });
         const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
         const muteMusic = normalizeKeyboardEvent({ type: "keydown", code: "KeyM", repeat: false, altKey: true });
         const cameraWest = normalizeKeyboardEvent({ type: "keydown", code: "ArrowLeft", repeat: false });
@@ -61,6 +62,7 @@ describe("input normalization contract", () => {
         expect(openCasebookAlt).toEqual({ device: "keyboard", action: "open-casebook", source: "Shift+KeyC" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
         expect(research).toEqual({ device: "keyboard", action: "open-research", source: "F6" });
+        expect(policy).toEqual({ device: "keyboard", action: "open-policy", source: "F9" });
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
         expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });
         expect(cameraWest).toEqual({ device: "keyboard", action: "camera-west", source: "ArrowLeft" });

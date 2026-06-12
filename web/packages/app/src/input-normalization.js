@@ -211,6 +211,13 @@ export function normalizeKeyboardEvent(event) {
             source: "F6"
         };
     }
+    if (event.code === "F9") {
+        return {
+            device: "keyboard",
+            action: "open-policy",
+            source: "F9"
+        };
+    }
     if (event.code === "ArrowLeft") {
         return {
             device: "keyboard",
