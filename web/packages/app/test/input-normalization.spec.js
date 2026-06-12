@@ -19,6 +19,7 @@ describe("input normalization contract", () => {
         const transparentWallsToggle = normalizeKeyboardEvent({ type: "keydown", code: "KeyX", repeat: false, shiftKey: true });
         const treat = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
         const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
+        const jukebox = normalizeKeyboardEvent({ type: "keydown", code: "KeyJ", repeat: false });
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
         const buildRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyF", repeat: false });
         const furnishCorridor = normalizeKeyboardEvent({ type: "keydown", code: "KeyG", repeat: false });
@@ -80,6 +81,7 @@ describe("input normalization contract", () => {
         expect(transparentWallsToggle).toEqual({ device: "keyboard", action: "transparent-walls-toggle", source: "Shift+KeyX" });
         expect(treat).toEqual({ device: "keyboard", action: "treat-patient", source: "KeyT" });
         expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
+        expect(jukebox).toEqual({ device: "keyboard", action: "open-jukebox", source: "KeyJ" });
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
         expect(buildRoom).toEqual({ device: "keyboard", action: "build-room", source: "KeyF" });
         expect(furnishCorridor).toEqual({ device: "keyboard", action: "open-furnish-corridor", source: "KeyG" });

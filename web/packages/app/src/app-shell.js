@@ -3611,6 +3611,11 @@ export function mountAppShell(options) {
         audioMixer.setVolume(volumePercent / 100);
         renderRuntime();
     };
+    const onOpenJukebox = () => {
+        telemetryElements.volumeSlider.focus();
+        actionStatus.textContent = "Action: jukebox opened";
+        return true;
+    };
     const onOpenHireStaff = () => {
         const firstEnabledHireButton = hireStaffButtons.find((button) => !button.disabled);
         if (!firstEnabledHireButton) {
@@ -4057,6 +4062,12 @@ export function mountAppShell(options) {
         if (action?.action === "audio-mute-toggle") {
             event.preventDefault();
             onMuteToggle();
+            return;
+        }
+        if (action?.action === "open-jukebox") {
+            if (onOpenJukebox()) {
+                event.preventDefault();
+            }
             return;
         }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);

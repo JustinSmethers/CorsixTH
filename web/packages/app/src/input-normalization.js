@@ -228,6 +228,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyH"
         };
     }
+    if (event.code === "KeyJ") {
+        return {
+            device: "keyboard",
+            action: "open-jukebox",
+            source: "KeyJ"
+        };
+    }
     if (event.code === "KeyZ") {
         return {
             device: "keyboard",

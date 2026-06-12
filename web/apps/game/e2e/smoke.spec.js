@@ -178,6 +178,12 @@ test("phase 7 audio flow: gesture-safe init and no Chromium autoplay policy viol
     await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 100% (muted)");
     await page.keyboard.press("Alt+KeyM");
     await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 100% (unmuted)");
+    await page.getByTestId("playfield").focus();
+    const audioVolumeBeforeJukebox = (await page.getByTestId("audio-volume-metric").textContent()) ?? "";
+    await page.keyboard.press("KeyJ");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "audio-volume");
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText(audioVolumeBeforeJukebox);
+    await expect(page.getByTestId("action-status")).toHaveText("Action: jukebox opened");
     await expect.poll(() => autoplayViolations).toEqual([]);
 });
 test("phase 7 keyboard shortcuts set original speed tiers", async ({ page }) => {
@@ -309,6 +315,9 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("KeyM");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadm");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("KeyJ");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadj");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("KeyG");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadg");
