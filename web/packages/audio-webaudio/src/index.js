@@ -23,7 +23,8 @@ class WebAudioMixer {
     sfxGainNode;
     state = {
         initialization: "waiting-for-user-gesture",
-        muted: false,
+        soundMuted: false,
+        musicMuted: false,
         paused: false,
         volume: 1,
         queuedCueIds: []
@@ -36,7 +37,9 @@ class WebAudioMixer {
     status() {
         return {
             initialization: this.state.initialization,
-            muted: this.state.muted,
+            muted: this.state.soundMuted && this.state.musicMuted,
+            soundMuted: this.state.soundMuted,
+            musicMuted: this.state.musicMuted,
             paused: this.state.paused,
             volume: this.state.volume,
             queuedCueCount: this.state.queuedCueIds.length,
@@ -87,15 +90,23 @@ class WebAudioMixer {
         if (this.state.paused) {
             return { played: false, cueId, reason: "paused" };
         }
-        if (this.state.muted) {
+        if (this.state.soundMuted) {
             return { played: false, cueId, reason: "muted" };
         }
         this.playCue(cueId);
         return { played: true, cueId, reason: "played" };
     }
     setMuted(muted) {
-        this.state.muted = muted;
+        this.state.soundMuted = muted;
+        this.state.musicMuted = muted;
         this.syncMasterGain();
+    }
+    setSoundMuted(muted) {
+        this.state.soundMuted = muted;
+        this.syncMasterGain();
+    }
+    setMusicMuted(muted) {
+        this.state.musicMuted = muted;
     }
     setVolume(volume) {
         this.state.volume = clamp(volume, 0, 1);
@@ -147,10 +158,10 @@ class WebAudioMixer {
         if (!this.masterGainNode) {
             return;
         }
-        this.masterGainNode.gain.value = this.state.muted ? 0 : this.state.volume;
+        this.masterGainNode.gain.value = this.state.soundMuted ? 0 : this.state.volume;
     }
     flushQueuedCues() {
-        if (this.state.muted || this.state.paused || this.state.initialization !== "running") {
+        if (this.state.soundMuted || this.state.paused || this.state.initialization !== "running") {
             return;
         }
         const queued = [...this.state.queuedCueIds];

@@ -67,6 +67,8 @@ describe("audio playback controls", () => {
         expect(mixer.status().volume).toBe(0.4);
         mixer.setMuted(true);
         expect(mixer.status().muted).toBe(true);
+        expect(mixer.status().soundMuted).toBe(true);
+        expect(mixer.status().musicMuted).toBe(true);
         expect(mixer.trigger("patient.admitted")).toEqual({
             played: false,
             cueId: "patient.admit",
@@ -75,8 +77,29 @@ describe("audio playback controls", () => {
         expect(context.oscillators).toHaveLength(0);
         mixer.setMuted(false);
         expect(mixer.status().muted).toBe(false);
+        expect(mixer.status().soundMuted).toBe(false);
+        expect(mixer.status().musicMuted).toBe(false);
         expect(mixer.trigger("patient.admitted").played).toBe(true);
         expect(context.oscillators).toHaveLength(1);
+        mixer.setSoundMuted(true);
+        expect(mixer.status().muted).toBe(false);
+        expect(mixer.status().soundMuted).toBe(true);
+        expect(mixer.status().musicMuted).toBe(false);
+        expect(mixer.trigger("patient.admitted")).toEqual({
+            played: false,
+            cueId: "patient.admit",
+            reason: "muted"
+        });
+        mixer.setMusicMuted(true);
+        expect(mixer.status().muted).toBe(true);
+        expect(mixer.status().soundMuted).toBe(true);
+        expect(mixer.status().musicMuted).toBe(true);
+        mixer.setSoundMuted(false);
+        expect(mixer.status().muted).toBe(false);
+        expect(mixer.status().soundMuted).toBe(false);
+        expect(mixer.status().musicMuted).toBe(true);
+        expect(mixer.trigger("patient.admitted").played).toBe(true);
+        expect(context.oscillators).toHaveLength(2);
         mixer.setVolume(-2);
         expect(mixer.status().volume).toBe(0);
         mixer.setVolume(10);

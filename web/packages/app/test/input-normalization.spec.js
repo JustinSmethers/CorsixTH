@@ -116,8 +116,8 @@ describe("input normalization contract", () => {
         expect(charts).toEqual({ device: "keyboard", action: "open-charts", source: "F8" });
         expect(policy).toEqual({ device: "keyboard", action: "open-policy", source: "F9" });
         expect(machineMenu).toEqual({ device: "keyboard", action: "open-machine-menu", source: "F10" });
-        expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
-        expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });
+        expect(muteSounds).toEqual({ device: "keyboard", action: "sound-mute-toggle", source: "Alt+KeyS" });
+        expect(muteMusic).toEqual({ device: "keyboard", action: "music-mute-toggle", source: "Alt+KeyM" });
         expect(toggleAnnouncements).toEqual({ device: "keyboard", action: "announcements-toggle", source: "Alt+KeyA" });
         expect(storeCameraSlot1).toEqual({ device: "keyboard", action: "camera-store-position", slot: 1, source: "Alt+Digit1" });
         expect(storeCameraSlot0).toEqual({ device: "keyboard", action: "camera-store-position", slot: 0, source: "Alt+Digit0" });

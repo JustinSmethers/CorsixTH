@@ -183,7 +183,9 @@ export function formatAudioStatus(audioStatus) {
     return `Audio: ${audioStatus.initialization}`;
 }
 export function formatAudioVolumeStatus(audioStatus) {
-    return `Audio volume: ${Math.round(audioStatus.volume * 100)}% (${audioStatus.muted ? "muted" : "unmuted"})`;
+    const sound = audioStatus.soundMuted ? "sound off" : "sound on";
+    const music = audioStatus.musicMuted ? "music off" : "music on";
+    return `Audio volume: ${Math.round(audioStatus.volume * 100)}% (${sound}, ${music})`;
 }
 export function formatStateHashStatus(telemetry) {
     return `State hash: ${telemetry.stateHash}`;
@@ -3650,6 +3652,16 @@ export function mountAppShell(options) {
         audioMixer.setMuted(!audioMixer.status().muted);
         renderRuntime();
     };
+    const onSoundMuteToggle = () => {
+        requestAudioInitialization(audioMixer, orchestrator, telemetryElements, renderRuntime);
+        audioMixer.setSoundMuted(!audioMixer.status().soundMuted);
+        renderRuntime();
+    };
+    const onMusicMuteToggle = () => {
+        requestAudioInitialization(audioMixer, orchestrator, telemetryElements, renderRuntime);
+        audioMixer.setMusicMuted(!audioMixer.status().musicMuted);
+        renderRuntime();
+    };
     const onVolumeInput = () => {
         requestAudioInitialization(audioMixer, orchestrator, telemetryElements, renderRuntime);
         const volumePercent = clamp(Number(telemetryElements.volumeSlider.value), 0, 100);
@@ -4127,6 +4139,16 @@ export function mountAppShell(options) {
         if (action?.action === "audio-mute-toggle") {
             event.preventDefault();
             onMuteToggle();
+            return;
+        }
+        if (action?.action === "sound-mute-toggle") {
+            event.preventDefault();
+            onSoundMuteToggle();
+            return;
+        }
+        if (action?.action === "music-mute-toggle") {
+            event.preventDefault();
+            onMusicMuteToggle();
             return;
         }
         if (action?.action === "open-jukebox") {

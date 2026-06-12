@@ -727,8 +727,9 @@ describe("app shell campaign objectives", () => {
         expect(formatPausedStatus({ paused: true })).toBe("Paused: yes");
         expect(formatPausedStatus({ paused: false })).toBe("Paused: no");
         expect(formatAudioStatus({ initialization: "waiting-for-user-gesture" })).toBe("Audio: waiting-for-user-gesture");
-        expect(formatAudioVolumeStatus({ volume: 0.6, muted: false })).toBe("Audio volume: 60% (unmuted)");
-        expect(formatAudioVolumeStatus({ volume: 0.25, muted: true })).toBe("Audio volume: 25% (muted)");
+        expect(formatAudioVolumeStatus({ volume: 0.6, soundMuted: false, musicMuted: false })).toBe("Audio volume: 60% (sound on, music on)");
+        expect(formatAudioVolumeStatus({ volume: 0.25, soundMuted: true, musicMuted: false })).toBe("Audio volume: 25% (sound off, music on)");
+        expect(formatAudioVolumeStatus({ volume: 0.25, soundMuted: true, musicMuted: true })).toBe("Audio volume: 25% (sound off, music off)");
         expect(formatStateHashStatus({ stateHash: "abc123" })).toBe("State hash: abc123");
         expect(formatResearchStatus({
             treatmentResearchLevel: 0,
