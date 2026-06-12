@@ -2471,7 +2471,7 @@ export function mountAppShell(options) {
           <p data-testid="treating-size" style="margin:0;"></p>
           <p data-testid="discharged" style="margin:0;"></p>
           <p data-testid="treatment-failures" style="margin:0;"></p>
-          <p data-testid="research-status" style="margin:0;"></p>
+          <p data-testid="research-status" tabindex="-1" style="margin:0;"></p>
           <p data-testid="research-effect" style="margin:0;"></p>
           <p data-testid="scenario-expertise" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="scenario-opponents" style="margin:0; grid-column:1 / -1;"></p>
@@ -3555,6 +3555,10 @@ export function mountAppShell(options) {
         casebookSummary.focus();
         return true;
     };
+    const onOpenResearch = () => {
+        telemetryElements.researchStatusMetric.focus();
+        return true;
+    };
     const actionForHospitalPointer = (action, point) => {
         lastPlacementEvaluation = null;
         if (!action || !hospitalView || !point) {
@@ -3706,6 +3710,12 @@ export function mountAppShell(options) {
             }
             return;
         }
+        if (action?.action === "open-research") {
+            if (onOpenResearch()) {
+                event.preventDefault();
+            }
+            return;
+        }
         if (action?.action === "cancel-action") {
             if (onCancelAction()) {
                 event.preventDefault();
@@ -3736,11 +3746,6 @@ export function mountAppShell(options) {
         if (action?.action === "next-level") {
             event.preventDefault();
             onNextLevel();
-            return;
-        }
-        if (action?.action === "start-research") {
-            event.preventDefault();
-            onStartResearch();
             return;
         }
         if (action?.action === "audio-mute-toggle") {

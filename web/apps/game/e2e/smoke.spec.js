@@ -216,6 +216,13 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("F5");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "casebook-summary");
     await page.getByTestId("playfield").focus();
+    const cashBeforeResearchFocus = (await page.getByTestId("cash").textContent()) ?? "";
+    const actionStatusBeforeResearchFocus = (await page.getByTestId("action-status").textContent()) ?? "";
+    await page.keyboard.press("F6");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "research-status");
+    await expect(page.getByTestId("cash")).toHaveText(cashBeforeResearchFocus);
+    await expect(page.getByTestId("action-status")).toHaveText(actionStatusBeforeResearchFocus);
+    await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyS");
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");
     await page.keyboard.press("Digit1");

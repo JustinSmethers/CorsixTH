@@ -60,7 +60,7 @@ describe("input normalization contract", () => {
         expect(restartLevel).toEqual({ device: "keyboard", action: "restart-level", source: "Shift+KeyR" });
         expect(openCasebookAlt).toEqual({ device: "keyboard", action: "open-casebook", source: "Shift+KeyC" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
-        expect(research).toEqual({ device: "keyboard", action: "start-research", source: "F6" });
+        expect(research).toEqual({ device: "keyboard", action: "open-research", source: "F6" });
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
         expect(muteMusic).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyM" });
         expect(cameraWest).toEqual({ device: "keyboard", action: "camera-west", source: "ArrowLeft" });

@@ -207,7 +207,7 @@ export function normalizeKeyboardEvent(event) {
     if (event.code === "F6") {
         return {
             device: "keyboard",
-            action: "start-research",
+            action: "open-research",
             source: "F6"
         };
     }

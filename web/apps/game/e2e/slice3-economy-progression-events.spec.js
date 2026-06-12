@@ -180,7 +180,7 @@ test("phase 7 slice 3 player journey: treatment research improves success bonus"
     await expect(page.getByTestId("research-status")).toHaveText("Research: treatment 0/3, invested 0");
     await expect(page.getByTestId("research-effect")).toHaveText("Research effect: +0% success, next 1500/6 ticks, throughput 1x/0 researchers");
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
-    await page.keyboard.press("F6");
+    await page.getByTestId("start-research").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: research started");
     await expect(page.getByTestId("cash")).toHaveText(`Cash: ${cashBefore - 1500}`);
     await expect(page.getByTestId("research-status")).toHaveText("Research: treatment 0/3 (6 ticks), invested 1500");
