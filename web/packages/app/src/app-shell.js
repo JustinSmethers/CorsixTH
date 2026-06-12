@@ -2868,6 +2868,14 @@ export function mountAppShell(options) {
             actionStatus.textContent = nextStatus;
         }
     };
+    const onCancelAction = () => {
+        if (!placementAction) {
+            return;
+        }
+        placementAction = null;
+        placementPreview = null;
+        renderRuntime();
+    };
     const activeSaveSlot = () => {
         const slot = saveSlotNameInput.value.trim();
         return slot.length > 0 ? slot : DEFAULT_SAVE_SLOT;
@@ -3649,6 +3657,11 @@ export function mountAppShell(options) {
         if (action?.action === "build-room") {
             event.preventDefault();
             onBuildDiagnosisRoom();
+            return;
+        }
+        if (action?.action === "cancel-action") {
+            event.preventDefault();
+            onCancelAction();
             return;
         }
         if (action?.action === "save-game") {

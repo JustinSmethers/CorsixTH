@@ -12,6 +12,7 @@ describe("input normalization contract", () => {
         const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
         const speedIncrease = normalizeKeyboardEvent({ type: "keydown", code: "KeyZ", repeat: false });
         const buildRoom = normalizeKeyboardEvent({ type: "keydown", code: "KeyF", repeat: false });
+        const cancelAction = normalizeKeyboardEvent({ type: "keydown", code: "Escape", repeat: false });
         const save = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false });
         const load = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false });
         const restart = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
@@ -32,6 +33,7 @@ describe("input normalization contract", () => {
         expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
         expect(speedIncrease).toEqual({ device: "keyboard", action: "speed-increase", source: "KeyZ" });
         expect(buildRoom).toEqual({ device: "keyboard", action: "build-room", source: "KeyF" });
+        expect(cancelAction).toEqual({ device: "keyboard", action: "cancel-action", source: "Escape" });
         expect(save).toEqual({ device: "keyboard", action: "save-game", source: "KeyS" });
         expect(load).toEqual({ device: "keyboard", action: "load-game", source: "KeyL" });
         expect(restart).toEqual({ device: "keyboard", action: "restart-level", source: "KeyR" });

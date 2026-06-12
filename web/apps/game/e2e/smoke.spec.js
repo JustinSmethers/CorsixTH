@@ -28,6 +28,10 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("LEVELS/SECOND.MAP");
     await page.keyboard.press("KeyF");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
+    await page.keyboard.press("KeyF");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
     await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await page.getByTestId("hospital-map-canvas").click({ position: { x: 384, y: 160 } });
