@@ -218,6 +218,13 @@ export function normalizeKeyboardEvent(event) {
             source: "F6"
         };
     }
+    if (event.code === "F7") {
+        return {
+            device: "keyboard",
+            action: "open-status",
+            source: "F7"
+        };
+    }
     if (event.code === "F9") {
         return {
             device: "keyboard",

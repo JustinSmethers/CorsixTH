@@ -201,6 +201,8 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("F5");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
+    await page.keyboard.press("F7");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("F9");
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "save-slot-name");
     await page.keyboard.press("KeyB");
@@ -231,6 +233,15 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "research-status");
     await expect(page.getByTestId("cash")).toHaveText(cashBeforeResearchFocus);
     await expect(page.getByTestId("action-status")).toHaveText(actionStatusBeforeResearchFocus);
+    await page.getByTestId("playfield").focus();
+    const cashBeforeStatusFocus = (await page.getByTestId("cash").textContent()) ?? "";
+    const actionStatusBeforeStatusFocus = (await page.getByTestId("action-status").textContent()) ?? "";
+    const levelObjectiveStatusBeforeFocus = (await page.getByTestId("level-objective-status").textContent()) ?? "";
+    await page.keyboard.press("F7");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "level-objective-status");
+    await expect(page.getByTestId("cash")).toHaveText(cashBeforeStatusFocus);
+    await expect(page.getByTestId("action-status")).toHaveText(actionStatusBeforeStatusFocus);
+    await expect(page.getByTestId("level-objective-status")).toHaveText(levelObjectiveStatusBeforeFocus);
     await page.getByTestId("playfield").focus();
     const admissionPolicyBeforeFocus = (await page.getByTestId("admission-policy-status").textContent()) ?? "";
     const pricingPolicyBeforeFocus = (await page.getByTestId("pricing-policy-status").textContent()) ?? "";

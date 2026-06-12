@@ -2529,7 +2529,7 @@ export function mountAppShell(options) {
           <p data-testid="milestone-level" style="margin:0;"></p>
           <p data-testid="unlocks" style="margin:0;"></p>
           <p data-testid="campaign-progress" style="margin:0;"></p>
-          <p data-testid="level-objective-status" style="margin:0;"></p>
+          <p data-testid="level-objective-status" tabindex="-1" style="margin:0;"></p>
           <p data-testid="level-objective-progress" style="margin:0;"></p>
           <p data-testid="level-objective-safety" style="margin:0; grid-column:1 / -1;"></p>
           <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; margin:2px 0;">
@@ -3559,6 +3559,10 @@ export function mountAppShell(options) {
         telemetryElements.researchStatusMetric.focus();
         return true;
     };
+    const onOpenStatus = () => {
+        telemetryElements.levelObjectiveStatusMetric.focus();
+        return true;
+    };
     const onOpenMap = () => {
         hospitalMapSelect.focus();
         return true;
@@ -3726,6 +3730,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-research") {
             if (onOpenResearch()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-status") {
+            if (onOpenStatus()) {
                 event.preventDefault();
             }
             return;
