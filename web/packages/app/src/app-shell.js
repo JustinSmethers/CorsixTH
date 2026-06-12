@@ -2482,6 +2482,15 @@ export function mountAppShell(options) {
           <span data-testid="selection-status" style="min-width:160px; color:#d8dca5; font-size:13px;">Selection: none</span>
         </div>
       </header>
+      <nav
+        data-testid="game-menu-bar"
+        hidden
+        style="margin:0 0 10px; padding:8px; border:1px solid #40545b; background:#182326;"
+      >
+        <button type="button" data-testid="game-menu-file">File</button>
+        <button type="button" data-testid="game-menu-options">Options</button>
+        <button type="button" data-testid="game-menu-help">Help</button>
+      </nav>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2796,6 +2805,8 @@ export function mountAppShell(options) {
     const loadGameButton = requiredElement(options.root, "[data-testid='load-game']");
     const refreshSaveSlotsButton = requiredElement(options.root, "[data-testid='refresh-save-slots']");
     const deleteSaveSlotButton = requiredElement(options.root, "[data-testid='delete-save-slot']");
+    const gameMenuBar = requiredElement(options.root, "[data-testid='game-menu-bar']");
+    const gameMenuFileButton = requiredElement(options.root, "[data-testid='game-menu-file']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -2935,9 +2946,15 @@ export function mountAppShell(options) {
             actionStatus.textContent = nextStatus;
         }
     };
-    const onCancelAction = () => {
+    const onCancelAction = (source = "") => {
         if (!placementAction) {
-            return false;
+            if (source !== "Escape") {
+                return false;
+            }
+            gameMenuBar.hidden = false;
+            gameMenuFileButton.focus();
+            actionStatus.textContent = "Action: menu bar shown";
+            return true;
         }
         placementAction = null;
         placementPreview = null;
@@ -4044,7 +4061,7 @@ export function mountAppShell(options) {
             return;
         }
         if (action?.action === "cancel-action") {
-            if (onCancelAction()) {
+            if (onCancelAction(action.source)) {
                 event.preventDefault();
             }
             return;

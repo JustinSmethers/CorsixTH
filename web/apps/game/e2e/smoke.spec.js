@@ -35,6 +35,11 @@ test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async 
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
     await page.keyboard.press("KeyF");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
+    await expect(page.getByTestId("game-menu-bar")).toBeHidden();
+    await page.keyboard.press("KeyF");
+    await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: build GP's Office");
     await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await page.keyboard.press("Enter");
@@ -370,6 +375,14 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "information-status");
     await expect(page.getByTestId("information-status")).toHaveText("Info: hidden");
     await expect(page.getByTestId("action-status")).toHaveText("Action: information hidden");
+    await page.getByTestId("playfield").focus();
+    const cashBeforeMenuBar = (await page.getByTestId("cash").textContent()) ?? "";
+    await expect(page.getByTestId("game-menu-bar")).toBeHidden();
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("game-menu-bar")).toBeVisible();
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "game-menu-file");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: menu bar shown");
+    await expect(page.getByTestId("cash")).toHaveText(cashBeforeMenuBar);
     await page.getByTestId("playfield").focus();
     const cashBeforeBankManagerFocus = (await page.getByTestId("cash").textContent()) ?? "";
     const loanStatusBeforeFocus = (await page.getByTestId("loan-status").textContent()) ?? "";
