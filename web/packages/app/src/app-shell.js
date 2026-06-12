@@ -3616,6 +3616,14 @@ export function mountAppShell(options) {
             onCameraSouth();
             return;
         }
+        if (action?.action === "pause-toggle") {
+            event.preventDefault();
+        }
+        if (action?.action === "send-patient-home") {
+            event.preventDefault();
+            onSendSelectedPatientHome();
+            return;
+        }
         if (action?.action === "save-game") {
             event.preventDefault();
             onSaveGame();

@@ -24,6 +24,16 @@ function conservativeAdmissionMaxHealth(seed, tick) {
     }
     return 48;
 }
+async function stepUntilText(page, testId, expectedText, maxSteps) {
+    const locator = page.getByTestId(testId);
+    for (let step = 0; step < maxSteps; step += 1) {
+        if ((await locator.textContent()) === expectedText) {
+            return;
+        }
+        await page.getByTestId("step").click();
+    }
+    await expect(locator).toHaveText(expectedText);
+}
 test("phase 7 slice 1 player journey: spawn, queue, diagnose, treat, discharge", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
@@ -40,16 +50,13 @@ test("phase 7 slice 1 player journey: spawn, queue, diagnose, treat, discharge",
     await expect(page.getByTestId("diagnosing-size")).toHaveText("Diagnosing: 0");
     await expect(page.getByTestId("diagnosed-size")).toHaveText("Diagnosed: 0");
     await expect(page.getByTestId("treating-size")).toHaveText("Treating: 0");
-    for (let i = 0; i < 8; i += 1) {
-        await page.getByTestId("step").click();
-    }
+    await stepUntilText(page, "diagnosed-size", "Diagnosed: 2", 32);
+    await page.getByTestId("treat").click();
     await expect(page.getByTestId("discharged")).toHaveText("Discharged: 1");
     await expect(page.getByTestId("diagnosed-size")).toHaveText("Diagnosed: 1");
     await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 0; penalties s1 80/-4, s2 130/-8, s3 200/-14");
     await expect(page.getByTestId("casebook-summary")).toContainText("Sleeping Illness");
-    for (let i = 0; i < 10; i += 1) {
-        await page.getByTestId("step").click();
-    }
+    await page.getByTestId("treat").click();
     await expect(page.getByTestId("discharged")).toHaveText("Discharged: 2");
     await expect(page.getByTestId("queue-size")).toHaveText("Queue: 0");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
@@ -84,7 +91,7 @@ test("phase 7 slice 1 player journey: open admissions generates deterministic ar
     await expect(page.getByTestId("admissions-status")).toHaveText("Admissions: closed");
     await expect(page.getByTestId("next-admission")).toHaveText(/^Next arrival: closed(?:;.*)?$/u);
 });
-test("phase 7 slice 1 player journey: manual severity controls high-risk treatment outcomes", async ({ page }) => {
+test("phase 7 slice 1 player journey: manual severity controls explicit treatment outcomes", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
@@ -93,13 +100,13 @@ test("phase 7 slice 1 player journey: manual severity controls high-risk treatme
     await page.getByTestId("admit").click();
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 2");
     await expect(page.getByTestId("queue-size")).toHaveText("Queue: 2");
-    for (let i = 0; i < 40; i += 1) {
-        await page.getByTestId("step").click();
-    }
+    await stepUntilText(page, "diagnosed-size", "Diagnosed: 2", 80);
+    await page.getByTestId("treat").click();
+    await page.getByTestId("treat").click();
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
-    await expect(page.getByTestId("discharged")).toHaveText("Discharged: 1");
-    await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 1; penalties s1 80/-4, s2 130/-8, s3 200/-14");
-    await expect(page.getByTestId("last-event")).toHaveText("Last event: patient-treatment-failed");
+    await expect(page.getByTestId("discharged")).toHaveText("Discharged: 2");
+    await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 0; penalties s1 80/-4, s2 130/-8, s3 200/-14");
+    await expect(page.getByTestId("last-event")).toHaveText("Last event: milestone-unlocked");
 });
 test("phase 7 slice 1 player journey: selected treatment targets the selected patient", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
@@ -122,7 +129,8 @@ test("phase 7 slice 1 player journey: selected treatment targets the selected pa
 });
 test("phase 7 slice 1 player journey: selected patients can be sent home", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
-    await page.getByTestId("pause-toggle").click();
+    await page.keyboard.press("KeyP");
+    await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.click({ button: "right", position: { x: 384, y: 160 } });
     await canvas.click({ button: "right", position: { x: 416, y: 176 } });
@@ -131,7 +139,7 @@ test("phase 7 slice 1 player journey: selected patients can be sent home", async
     await canvas.click({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: patient #2");
     await expect(page.getByTestId("send-selected-patient-home")).toBeEnabled();
-    await page.getByTestId("send-selected-patient-home").click();
+    await page.keyboard.press("KeyH");
     await expect(page.getByTestId("action-status")).toHaveText("Action: patient sent home");
     await expect(page.getByTestId("last-event")).toHaveText("Last event: patient-sent-home");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");

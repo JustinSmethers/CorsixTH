@@ -24,6 +24,13 @@ export function normalizeKeyboardEvent(event) {
             source: "Space"
         };
     }
+    if (event.code === "KeyP") {
+        return {
+            device: "keyboard",
+            action: "pause-toggle",
+            source: "KeyP"
+        };
+    }
     if (event.code === "Period") {
         return {
             device: "keyboard",
@@ -52,6 +59,13 @@ export function normalizeKeyboardEvent(event) {
             device: "keyboard",
             action: "treat-patient",
             source: "KeyT"
+        };
+    }
+    if (event.code === "KeyH") {
+        return {
+            device: "keyboard",
+            action: "send-patient-home",
+            source: "KeyH"
         };
     }
     if (event.code === "KeyS") {

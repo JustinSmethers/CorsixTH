@@ -2,12 +2,14 @@ import { normalizeKeyboardEvent, normalizeMouseEvent, normalizeTouchEvent } from
 describe("input normalization contract", () => {
     it("maps supported keyboard controls into deterministic app actions", () => {
         const pause = normalizeKeyboardEvent({ type: "keydown", code: "Space", repeat: false });
+        const pauseOriginal = normalizeKeyboardEvent({ type: "keydown", code: "KeyP", repeat: false });
         const step = normalizeKeyboardEvent({ type: "keydown", code: "Period", repeat: false });
         const admit = normalizeKeyboardEvent({ type: "keydown", code: "KeyA", repeat: false });
         const admitSeverity1 = normalizeKeyboardEvent({ type: "keydown", code: "Digit1", repeat: false });
         const admitSeverity2 = normalizeKeyboardEvent({ type: "keydown", code: "Digit2", repeat: false });
         const admitSeverity3 = normalizeKeyboardEvent({ type: "keydown", code: "Digit3", repeat: false });
         const treat = normalizeKeyboardEvent({ type: "keydown", code: "KeyT", repeat: false });
+        const sendHome = normalizeKeyboardEvent({ type: "keydown", code: "KeyH", repeat: false });
         const save = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false });
         const load = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false });
         const restart = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
@@ -18,12 +20,14 @@ describe("input normalization contract", () => {
         const cameraNorth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowUp", repeat: false });
         const cameraSouth = normalizeKeyboardEvent({ type: "keydown", code: "ArrowDown", repeat: false });
         expect(pause).toEqual({ device: "keyboard", action: "pause-toggle", source: "Space" });
+        expect(pauseOriginal).toEqual({ device: "keyboard", action: "pause-toggle", source: "KeyP" });
         expect(step).toEqual({ device: "keyboard", action: "step-tick", source: "Period" });
         expect(admit).toEqual({ device: "keyboard", action: "admit-patient", severity: 2, source: "KeyA" });
         expect(admitSeverity1).toEqual({ device: "keyboard", action: "admit-patient", severity: 1, source: "Digit1" });
         expect(admitSeverity2).toEqual({ device: "keyboard", action: "admit-patient", severity: 2, source: "Digit2" });
         expect(admitSeverity3).toEqual({ device: "keyboard", action: "admit-patient", severity: 3, source: "Digit3" });
         expect(treat).toEqual({ device: "keyboard", action: "treat-patient", source: "KeyT" });
+        expect(sendHome).toEqual({ device: "keyboard", action: "send-patient-home", source: "KeyH" });
         expect(save).toEqual({ device: "keyboard", action: "save-game", source: "KeyS" });
         expect(load).toEqual({ device: "keyboard", action: "load-game", source: "KeyL" });
         expect(restart).toEqual({ device: "keyboard", action: "restart-level", source: "KeyR" });
