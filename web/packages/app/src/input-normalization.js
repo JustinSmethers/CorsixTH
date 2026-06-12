@@ -235,6 +235,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyJ"
         };
     }
+    if (event.code === "KeyI") {
+        return {
+            device: "keyboard",
+            action: "information-toggle",
+            source: "KeyI"
+        };
+    }
     if (event.code === "KeyZ") {
         return {
             device: "keyboard",

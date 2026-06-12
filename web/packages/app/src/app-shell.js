@@ -2478,6 +2478,7 @@ export function mountAppShell(options) {
           </label>
           <span data-testid="save-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">Save: idle</span>
           <span data-testid="action-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">Action: idle</span>
+          <span data-testid="information-status" tabindex="-1" style="min-width:110px; color:#d7cfa6; font-size:13px;">Info: hidden</span>
           <span data-testid="selection-status" style="min-width:160px; color:#d8dca5; font-size:13px;">Selection: none</span>
         </div>
       </header>
@@ -2797,6 +2798,7 @@ export function mountAppShell(options) {
     const deleteSaveSlotButton = requiredElement(options.root, "[data-testid='delete-save-slot']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
+    const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
     const selectionStatus = requiredElement(options.root, "[data-testid='selection-status']");
     const casebookSummary = requiredElement(options.root, "[data-testid='casebook-summary']");
     const createOrchestratorOptions = () => {
@@ -3685,6 +3687,7 @@ export function mountAppShell(options) {
     };
     let advisorVisible = true;
     let announcementsVisible = true;
+    let informationVisible = false;
     let transparentWallsHeld = false;
     let transparentWallsToggled = false;
     const setAdvisorVisible = (visible) => {
@@ -3696,6 +3699,13 @@ export function mountAppShell(options) {
         telemetryElements.eventsMetric.hidden = !announcementsVisible;
         telemetryElements.lastEventMetric.hidden = !announcementsVisible;
         telemetryElements.recentEventsMetric.hidden = !announcementsVisible;
+    };
+    const onToggleInformation = () => {
+        informationVisible = !informationVisible;
+        informationStatus.textContent = informationVisible ? "Info: shown" : "Info: hidden";
+        informationStatus.focus();
+        actionStatus.textContent = informationVisible ? "Action: information shown" : "Action: information hidden";
+        return true;
     };
     const setTransparentWallsVisible = (visible) => {
         if (!hospitalView) {
@@ -4023,6 +4033,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-first-message") {
             if (onOpenFirstMessage()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "information-toggle") {
+            if (onToggleInformation()) {
                 event.preventDefault();
             }
             return;
