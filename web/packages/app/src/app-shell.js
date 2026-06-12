@@ -2595,9 +2595,9 @@ export function mountAppShell(options) {
             <button type="button" data-testid="next-level">Next Level</button>
           </div>
           <p data-testid="event-count" style="margin:0;"></p>
-          <p data-testid="last-event" style="margin:0;"></p>
+          <p data-testid="last-event" tabindex="-1" style="margin:0;"></p>
           <p data-testid="advisor-status" style="margin:0; grid-column:1 / -1;"></p>
-          <p data-testid="recent-events" style="margin:0; grid-column:1 / -1;"></p>
+          <p data-testid="recent-events" tabindex="-1" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="queue-pressure" style="margin:0;"></p>
           <p data-testid="queue-pressure-status" style="margin:0;"></p>
           <p data-testid="stressed-staff" style="margin:0;"></p>
@@ -3667,6 +3667,17 @@ export function mountAppShell(options) {
         telemetryElements.roomsInMaintenanceMetric.focus();
         return true;
     };
+    const onOpenFirstMessage = () => {
+        const telemetry = orchestrator.telemetry();
+        if (telemetry.lastEventType) {
+            telemetryElements.lastEventMetric.focus();
+            actionStatus.textContent = "Action: message opened";
+            return true;
+        }
+        telemetryElements.recentEventsMetric.focus();
+        actionStatus.textContent = "Action: no messages";
+        return true;
+    };
     let advisorVisible = true;
     let announcementsVisible = true;
     let transparentWallsHeld = false;
@@ -4001,6 +4012,12 @@ export function mountAppShell(options) {
         }
         if (action?.action === "open-machine-menu") {
             if (onOpenMachineMenu()) {
+                event.preventDefault();
+            }
+            return;
+        }
+        if (action?.action === "open-first-message") {
+            if (onOpenFirstMessage()) {
                 event.preventDefault();
             }
             return;

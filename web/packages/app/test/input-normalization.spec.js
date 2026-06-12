@@ -36,6 +36,7 @@ describe("input normalization contract", () => {
         const cancelActionAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyQ", repeat: false });
         const save = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false });
         const load = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false });
+        const openFirstMessage = normalizeKeyboardEvent({ type: "keydown", code: "KeyM", repeat: false });
         const researchAlt = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
         const saveMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, shiftKey: true });
         const loadMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, shiftKey: true });
@@ -94,6 +95,7 @@ describe("input normalization contract", () => {
         expect(cancelActionAlt).toEqual({ device: "keyboard", action: "cancel-action", source: "KeyQ" });
         expect(save).toEqual({ device: "keyboard", action: "save-game", source: "KeyS" });
         expect(load).toEqual({ device: "keyboard", action: "load-game", source: "KeyL" });
+        expect(openFirstMessage).toEqual({ device: "keyboard", action: "open-first-message", source: "KeyM" });
         expect(researchAlt).toEqual({ device: "keyboard", action: "open-research", source: "KeyR" });
         expect(saveMenu).toEqual({ device: "keyboard", action: "save-game", source: "Shift+KeyS" });
         expect(loadMenu).toEqual({ device: "keyboard", action: "load-game", source: "Shift+KeyL" });

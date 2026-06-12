@@ -333,6 +333,13 @@ export function normalizeKeyboardEvent(event) {
             source: "KeyL"
         };
     }
+    if (event.code === "KeyM") {
+        return {
+            device: "keyboard",
+            action: "open-first-message",
+            source: "KeyM"
+        };
+    }
     if (event.code === "KeyR") {
         return {
             device: "keyboard",

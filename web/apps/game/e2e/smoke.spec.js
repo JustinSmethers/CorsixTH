@@ -307,6 +307,9 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await page.keyboard.press("KeyR");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadr");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
+    await page.keyboard.press("KeyM");
+    await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadm");
+    await page.getByTestId("save-slot-name").fill("keyboard-save-load");
     await page.keyboard.press("KeyG");
     await expect(page.getByTestId("save-slot-name")).toHaveValue("keyboard-save-loadg");
     await page.getByTestId("save-slot-name").fill("keyboard-save-load");
@@ -448,6 +451,15 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");
     await page.keyboard.press("KeyA");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
+    await page.getByTestId("playfield").focus();
+    const cashBeforeMessageFocus = (await page.getByTestId("cash").textContent()) ?? "";
+    const lastEventBeforeMessageFocus = (await page.getByTestId("last-event").textContent()) ?? "";
+    await page.keyboard.press("KeyM");
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "last-event");
+    await expect(page.getByTestId("cash")).toHaveText(cashBeforeMessageFocus);
+    await expect(page.getByTestId("last-event")).toHaveText(lastEventBeforeMessageFocus);
+    await expect(page.getByTestId("action-status")).toHaveText("Action: message opened");
+    await page.getByTestId("playfield").focus();
     await page.keyboard.press("Shift+KeyL");
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
