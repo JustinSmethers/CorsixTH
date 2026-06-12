@@ -3649,7 +3649,8 @@ export function mountAppShell(options) {
             repeat: event.repeat,
             altKey: event.altKey,
             ctrlKey: event.ctrlKey,
-            metaKey: event.metaKey
+            metaKey: event.metaKey,
+            shiftKey: event.shiftKey
         });
         if (action?.action === "camera-west") {
             event.preventDefault();

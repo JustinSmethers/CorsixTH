@@ -199,11 +199,11 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     await expect(page.locator(":focus")).toHaveAttribute("data-testid", "hire-diagnostician");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
     await page.getByTestId("playfield").focus();
-    await page.keyboard.press("KeyS");
+    await page.keyboard.press("Shift+KeyS");
     await expect(page.getByTestId("save-status")).toContainText("keyboard-save-load");
     await page.keyboard.press("Digit1");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
-    await page.keyboard.press("KeyL");
+    await page.keyboard.press("Shift+KeyL");
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
 });

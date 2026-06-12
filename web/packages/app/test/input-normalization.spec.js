@@ -20,6 +20,9 @@ describe("input normalization contract", () => {
         const save = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false });
         const load = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false });
         const restart = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false });
+        const saveMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, shiftKey: true });
+        const loadMenu = normalizeKeyboardEvent({ type: "keydown", code: "KeyL", repeat: false, shiftKey: true });
+        const restartLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyR", repeat: false, shiftKey: true });
         const nextLevel = normalizeKeyboardEvent({ type: "keydown", code: "KeyN", repeat: false });
         const research = normalizeKeyboardEvent({ type: "keydown", code: "F6", repeat: false });
         const muteSounds = normalizeKeyboardEvent({ type: "keydown", code: "KeyS", repeat: false, altKey: true });
@@ -47,6 +50,9 @@ describe("input normalization contract", () => {
         expect(save).toEqual({ device: "keyboard", action: "save-game", source: "KeyS" });
         expect(load).toEqual({ device: "keyboard", action: "load-game", source: "KeyL" });
         expect(restart).toEqual({ device: "keyboard", action: "restart-level", source: "KeyR" });
+        expect(saveMenu).toEqual({ device: "keyboard", action: "save-game", source: "Shift+KeyS" });
+        expect(loadMenu).toEqual({ device: "keyboard", action: "load-game", source: "Shift+KeyL" });
+        expect(restartLevel).toEqual({ device: "keyboard", action: "restart-level", source: "Shift+KeyR" });
         expect(nextLevel).toEqual({ device: "keyboard", action: "next-level", source: "KeyN" });
         expect(research).toEqual({ device: "keyboard", action: "start-research", source: "F6" });
         expect(muteSounds).toEqual({ device: "keyboard", action: "audio-mute-toggle", source: "Alt+KeyS" });
@@ -59,9 +65,13 @@ describe("input normalization contract", () => {
     it("ignores keyboard repeats, modifiers, and unsupported keys", () => {
         const repeated = { type: "keydown", code: "Space", repeat: true };
         const modified = { type: "keydown", code: "KeyT", ctrlKey: true };
+        const quickSaveReserved = { type: "keydown", code: "KeyS", altKey: true, shiftKey: true };
+        const quitLevelReserved = { type: "keydown", code: "KeyQ", shiftKey: true };
         const unsupported = { type: "keydown", code: "KeyO" };
         expect(normalizeKeyboardEvent(repeated)).toBeNull();
         expect(normalizeKeyboardEvent(modified)).toBeNull();
+        expect(normalizeKeyboardEvent(quickSaveReserved)).toBeNull();
+        expect(normalizeKeyboardEvent(quitLevelReserved)).toBeNull();
         expect(normalizeKeyboardEvent(unsupported)).toBeNull();
     });
     it("maps mouse primary/secondary buttons with normalized coordinates", () => {

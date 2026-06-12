@@ -14,14 +14,14 @@ export function normalizeKeyboardEvent(event) {
     if (event.repeat) {
         return null;
     }
-    if (!event.ctrlKey && !event.metaKey && event.altKey && event.code === "KeyS") {
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey && event.altKey && event.code === "KeyS") {
         return {
             device: "keyboard",
             action: "audio-mute-toggle",
             source: "Alt+KeyS"
         };
     }
-    if (!event.ctrlKey && !event.metaKey && event.altKey && event.code === "KeyM") {
+    if (!event.ctrlKey && !event.metaKey && !event.shiftKey && event.altKey && event.code === "KeyM") {
         return {
             device: "keyboard",
             action: "audio-mute-toggle",
@@ -29,6 +29,30 @@ export function normalizeKeyboardEvent(event) {
         };
     }
     if (event.altKey || event.ctrlKey || event.metaKey) {
+        return null;
+    }
+    if (event.shiftKey && event.code === "KeyS") {
+        return {
+            device: "keyboard",
+            action: "save-game",
+            source: "Shift+KeyS"
+        };
+    }
+    if (event.shiftKey && event.code === "KeyL") {
+        return {
+            device: "keyboard",
+            action: "load-game",
+            source: "Shift+KeyL"
+        };
+    }
+    if (event.shiftKey && event.code === "KeyR") {
+        return {
+            device: "keyboard",
+            action: "restart-level",
+            source: "Shift+KeyR"
+        };
+    }
+    if (event.shiftKey && event.code === "KeyQ") {
         return null;
     }
     if (event.code === "Space") {
