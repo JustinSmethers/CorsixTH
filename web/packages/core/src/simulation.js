@@ -2784,7 +2784,9 @@ export class DeterministicSimulation {
     }
     isObjectPositionOccupied(position) {
         return this.rooms.some((room) => this.roomFootprintTiles(room.position, room.footprint).some((tile) => samePosition(tile, position))) ||
-            this.objects.some((object) => samePosition(object.position, position));
+            this.objects.some((object) => samePosition(object.position, position)) ||
+            this.staff.some((staff) => samePosition(staff.position, position)) ||
+            this.waitingPatients.some((patient) => samePosition(patient.position, position));
     }
     isRoomFootprintBuildable(position, footprint) {
         return this.roomFootprintTiles(position, footprint).every((tile) => this.isBuildablePosition(tile));

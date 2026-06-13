@@ -111,6 +111,22 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(patient?.movement?.path).not.toContainEqual({ x: 1, y: 4 });
         expect(patient?.movement?.path).toContainEqual({ x: 0, y: 4 });
     });
+    it("blocks object placement on staff and patient positions", () => {
+        const simulation = new DeterministicSimulation(7208, { bounds: { width: 12, height: 12 } });
+        simulation.execute({ type: "hire-staff", role: "handyman", position: { x: 6, y: 6 } });
+        simulation.execute({ type: "admit-patient", severity: 2, position: { x: 7, y: 7 } });
+        expect(simulation.evaluateObjectPlacement(7, { x: 6, y: 6 })).toMatchObject({
+            valid: false,
+            reason: "occupied"
+        });
+        expect(simulation.evaluateObjectPlacement(8, { x: 7, y: 7 })).toMatchObject({
+            valid: false,
+            reason: "occupied"
+        });
+        simulation.execute({ type: "place-object", objectIndex: 7, name: "Plant", position: { x: 6, y: 6 } });
+        simulation.execute({ type: "place-object", objectIndex: 8, name: "Bench", position: { x: 7, y: 7 } });
+        expect(simulation.getState().entities.objects).toEqual([]);
+    });
     it("uses imported routing distance points when choosing between open diagnosis rooms", () => {
         const weighted = new DeterministicSimulation(7212, {
             bounds: { width: 12, height: 12 },
