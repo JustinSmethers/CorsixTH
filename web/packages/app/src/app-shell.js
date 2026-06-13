@@ -594,6 +594,50 @@ export function formatCasebookWithLanguage(state, languageSummary = null) {
         return `${prefix}${patient.id} ${status} ${disease}${treatmentNeed} H${patient.health}/${patient.maxHealth}`;
     }).join("; ")}`;
 }
+export function formatCasebookRowsHtml(state, languageSummary = null) {
+    const patients = state.entities.waitingPatients;
+    if (patients.length === 0) {
+        return `<p data-testid="casebook-panel-empty" style="margin:0 0 8px; font-size:13px;">Casebook: no active patients</p>`;
+    }
+    const rows = patients.map((patient) => {
+        const disease = patient.diagnosisKnown ? patientDiseaseDisplayName(patient, languageSummary) : "unknown disease";
+        const status = patientStatusDisplayName(patient, languageSummary);
+        const need = patient.diagnosisKnown && patient.preferredTreatmentRoomType
+            ? roomTypeDisplayName(patient.preferredTreatmentRoomType, languageSummary)
+            : "";
+        const assignment = patient.assignedRoomId !== null && patient.assignedRoomId !== undefined ? `#${patient.assignedRoomId}` : "";
+        return `
+          <tr data-testid="casebook-panel-row" data-patient-id="${patient.id}">
+            <td style="padding:2px 4px;">#${patient.id}</td>
+            <td style="padding:2px 4px;">${escapeHtml(status)}</td>
+            <td style="padding:2px 4px;">${escapeHtml(disease)}</td>
+            <td style="padding:2px 4px;">${escapeHtml(need)}</td>
+            <td style="padding:2px 4px;">${escapeHtml(assignment)}</td>
+            <td style="padding:2px 4px; text-align:right;">${patient.health}/${patient.maxHealth}</td>
+            <td style="padding:2px 4px;">
+              <button type="button" data-testid="casebook-panel-select" data-casebook-action="select" data-patient-id="${patient.id}">Select</button>
+              <button type="button" data-testid="casebook-panel-prioritize" data-casebook-action="prioritize" data-patient-id="${patient.id}"${canPrioritizePatient(patient) ? "" : " disabled"}>Prioritize</button>
+              <button type="button" data-testid="casebook-panel-send-home" data-casebook-action="send-home" data-patient-id="${patient.id}">Send Home</button>
+            </td>
+          </tr>`;
+    }).join("");
+    return `
+        <table data-testid="casebook-panel-table" style="width:100%; border-collapse:collapse; margin:0 0 8px; font-size:13px;">
+          <thead>
+            <tr>
+              <th style="padding:2px 4px; text-align:left;">Patient</th>
+              <th style="padding:2px 4px; text-align:left;">Status</th>
+              <th style="padding:2px 4px; text-align:left;">Disease</th>
+              <th style="padding:2px 4px; text-align:left;">Need</th>
+              <th style="padding:2px 4px; text-align:left;">Room</th>
+              <th style="padding:2px 4px; text-align:right;">Health</th>
+              <th style="padding:2px 4px; text-align:left;">Action</th>
+            </tr>
+          </thead>
+          <tbody>${rows}
+          </tbody>
+        </table>`;
+}
 function patientDiseaseDisplayName(patient, languageSummary) {
     const importedName = languageSummary?.diseaseNames?.[patient.diseaseId];
     return typeof importedName === "string" && importedName.length > 0 ? importedName : patient.diseaseName;
@@ -2664,6 +2708,18 @@ export function mountAppShell(options) {
         <button type="button" data-testid="machine-menu-repair-selected-room">Repair Selected Room</button>
         <button type="button" data-testid="machine-menu-close">Close</button>
       </section>
+      <section
+        data-testid="casebook-panel"
+        hidden
+        role="dialog"
+        aria-label="Casebook"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Casebook</h2>
+        <p data-testid="casebook-panel-summary" style="margin:0 0 8px; font-size:13px;"></p>
+        <div data-testid="casebook-panel-rows"></div>
+        <button type="button" data-testid="casebook-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -3064,6 +3120,10 @@ export function mountAppShell(options) {
     const machineMenuObjectsMetric = requiredElement(options.root, "[data-testid='machine-menu-objects']");
     const machineMenuRepairSelectedRoomButton = requiredElement(options.root, "[data-testid='machine-menu-repair-selected-room']");
     const machineMenuCloseButton = requiredElement(options.root, "[data-testid='machine-menu-close']");
+    const casebookPanel = requiredElement(options.root, "[data-testid='casebook-panel']");
+    const casebookPanelSummary = requiredElement(options.root, "[data-testid='casebook-panel-summary']");
+    const casebookPanelRows = requiredElement(options.root, "[data-testid='casebook-panel-rows']");
+    const casebookPanelCloseButton = requiredElement(options.root, "[data-testid='casebook-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3108,6 +3168,8 @@ export function mountAppShell(options) {
     };
     const renderCasebook = () => {
         casebookSummary.textContent = formatCasebookWithLanguage(orchestrator.getState(), hospitalView?.languageSummary ?? null);
+        casebookPanelSummary.textContent = casebookSummary.textContent;
+        casebookPanelRows.innerHTML = formatCasebookRowsHtml(orchestrator.getState(), hospitalView?.languageSummary ?? null);
     };
     const renderLevelControls = () => {
         const telemetry = orchestrator.telemetry();
@@ -3319,6 +3381,12 @@ export function mountAppShell(options) {
         if (!machineMenuPanel.hidden) {
             machineMenuPanel.hidden = true;
             actionStatus.textContent = "Action: machine menu closed";
+            playfield.focus();
+            return true;
+        }
+        if (!casebookPanel.hidden) {
+            casebookPanel.hidden = true;
+            actionStatus.textContent = "Action: casebook closed";
             playfield.focus();
             return true;
         }
@@ -3700,6 +3768,34 @@ export function mountAppShell(options) {
         }, renderRuntime);
         updateActionStatus(events);
         renderRuntime();
+    };
+    const selectCasebookPatient = (patientId) => {
+        const patient = orchestrator.getState().entities.waitingPatients.find((candidate) => candidate.id === patientId);
+        if (!patient) {
+            return false;
+        }
+        selectedEntity = { type: "patient", id: patientId };
+        selectedTile = patientPosition(patient);
+        placementPreview = null;
+        actionStatus.textContent = "Action: selected patient";
+        renderRuntime();
+        return true;
+    };
+    const onCasebookPanelRowsClick = (event) => {
+        const button = event.target.closest("[data-casebook-action]");
+        if (!button) {
+            return;
+        }
+        const patientId = Number(button.dataset.patientId);
+        if (!selectCasebookPatient(patientId)) {
+            return;
+        }
+        if (button.dataset.casebookAction === "prioritize") {
+            onPrioritizeSelectedPatient();
+        }
+        if (button.dataset.casebookAction === "send-home") {
+            onSendSelectedPatientHome();
+        }
     };
     const onShootRat = () => {
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
@@ -4108,10 +4204,28 @@ export function mountAppShell(options) {
         return true;
     };
     const onOpenCasebook = () => {
-        casebookSummary.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
+        casebookPanel.hidden = false;
+        actionStatus.textContent = "Action: casebook opened";
+        renderRuntime();
+        const firstCasebookButton = casebookPanelRows.querySelector("button");
+        (firstCasebookButton ?? casebookPanelCloseButton).focus();
         return true;
     };
+    const onCloseCasebookPanel = () => {
+        casebookPanel.hidden = true;
+        actionStatus.textContent = "Action: casebook closed";
+        playfield.focus();
+    };
     const onOpenBankManager = () => {
+        casebookPanel.hidden = true;
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
         researchPanel.hidden = true;
@@ -4132,6 +4246,7 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenBankStats = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         staffPanel.hidden = true;
         researchPanel.hidden = true;
@@ -4151,6 +4266,7 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenStaff = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
         researchPanel.hidden = true;
@@ -4179,6 +4295,7 @@ export function mountAppShell(options) {
         return true;
     };
     const onOpenResearch = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
@@ -4198,6 +4315,7 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenStatus = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
@@ -4217,6 +4335,7 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenCharts = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
@@ -4240,6 +4359,7 @@ export function mountAppShell(options) {
         return true;
     };
     const onOpenPolicy = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
@@ -4259,6 +4379,7 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenMachineMenu = () => {
+        casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
@@ -4949,6 +5070,8 @@ export function mountAppShell(options) {
     policyPanelCloseButton.addEventListener("click", onClosePolicyPanel);
     machineMenuRepairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
     machineMenuCloseButton.addEventListener("click", onCloseMachineMenu);
+    casebookPanelRows.addEventListener("click", onCasebookPanelRowsClick);
+    casebookPanelCloseButton.addEventListener("click", onCloseCasebookPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -5053,6 +5176,8 @@ export function mountAppShell(options) {
             policyPanelCloseButton.removeEventListener("click", onClosePolicyPanel);
             machineMenuRepairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
             machineMenuCloseButton.removeEventListener("click", onCloseMachineMenu);
+            casebookPanelRows.removeEventListener("click", onCasebookPanelRowsClick);
+            casebookPanelCloseButton.removeEventListener("click", onCloseCasebookPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
