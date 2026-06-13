@@ -1,6 +1,7 @@
 import { canAdvanceToNextLevelFromTelemetry, canBuildRoomFromTelemetry, canFireStaff, canGiveDrinkToPatient, canHireStaffFromTelemetry, canPrioritizePatient, canRepayLoanFromTelemetry, canRepairRoomFromTelemetry, canRestartLevelFromHospitalView, canRestStaffFromTelemetry, canRunFinanceAuditFromTelemetry, canRunMarketingCampaignFromTelemetry, canRunAwardsFromTelemetry, canSellRoom, canSendPatientToilet, canStartInsuranceContractFromTelemetry, canStartEpidemicFromTelemetry, canStartEmergencyFromTelemetry, canStartResearchFromTelemetry, canStartVipInspectionFromTelemetry, canTakeLoanFromTelemetry, canToggleStaffBreakFromState, canToggleTreatmentRoomFromState, canTrainStaffFromTelemetry, createCampaignLevelObjectiveFromHospitalView, createCampaignMapSummaries, createOriginalUiStripControlZones, createRoomAvailabilityFromScenario, createRoomAvailabilityScheduleFromScenario, createRoomWearThresholdOverridesFromScenario, formatActionStatus, formatActiveStaffStatus, formatAdmissionPolicyStatus, formatAdmissionRulesStatus, formatAdmissionsStatus, formatAdmissionsToggleLabel, formatAudioStatus, formatAudioVolumeStatus, formatAutoBreakStaffStatus, formatAwaitingTreatmentPatientsStatus, formatBuildRoomButtonLabel, formatCampaignCompleteStatus, formatCanvasUnavailableStatus, formatCasebookRowsHtml, formatCasebookWithLanguage, formatCashStatus, formatChoosePlacementActionStatus, formatCriticalPatientsStatus, formatCumulativeCashflowStatus, formatDeletedSaveSlotStatus, formatDiagnosedPatientsStatus, formatDiagnosingPatientsStatus, formatDischargedPatientsStatus, formatEmergencyRewardStatus, formatEmergencyStatus, formatEpidemicStatus, formatEpidemicTermsStatus, formatEventRulesStatus, formatFinanceAuditStatus, formatFinanceLedgerStatus, formatFrontDeskStatus, formatFurnishCorridorRowsHtml, formatHireStaffButtonLabel, formatHospitalAwardStatus, formatHospitalCanvasSummary, formatHospitalMapOptionsHtml, formatHospitalRatingStatus, formatImportedMapUnavailableStatus, formatInsuranceContractStatus, formatInsuranceTermsStatus, formatLastEventStatus, formatLevelObjectiveProgress, formatLevelObjectiveSafety, formatLevelObjectiveStatus, formatLoadResultStatus, formatLoanInterestStatus, formatLoanStatus, formatMaintenanceStaffStatus, formatMarketingCampaignStatus, formatMilestoneStatus, formatMissingMapLoadStatus, formatMuteToggleLabel, formatNoSelectionStatus, formatNewMapStatus, formatNextAdmissionStatus, formatNextLevelStatus, formatObjectAvailabilityStatus, formatOnBreakStaffStatus, formatOpenDiagnosisRoomsStatus, formatOpenTreatmentRoomsStatus, formatOriginalUiCanvasUnavailableStatus, formatOriginalUiNoSpritesStatus, formatOriginalUiStripSummary, formatPatientBowelOverflowStatus, formatPatientDeathsStatus, formatPatientDrinksStatus, formatPatientLitterStatus, formatPatientMoodStatus, formatPatientsNeedingToiletStatus, formatPatientVomitsStatus, formatPausedStatus, formatPauseToggleLabel, formatPlacementMode, formatPlantCareStatus, formatPricingPolicyStatus, formatQuakeStatus, formatQueuedPatientsStatus, formatQueuePressureEventsStatus, formatQueuePressureStatus, formatQueuePressureValueStatus, formatRatControlStatus, formatRecentEventsStatus, formatReputationStatus, formatResearchEffectStatus, formatResearchStatus, formatRestartedLevelStatus, formatRoomAvailabilityHudStatus, formatRoomAvailabilityStatus, formatRoomMaintenanceCompleteEventsStatus, formatRoomMaintenanceStartEventsStatus, formatRoomMaintenanceStatus, formatRoutingRulesStatus, formatSalaryPressureStatus, formatSaveFailureStatus, formatSaveLifecycleStatus, formatSaveSlotOptionsHtml, formatSaveSlotsStatus, formatSaveTickStatus, formatScenarioExpertiseStatus, formatScenarioNetworkCriteriaStatus, formatScenarioOpponentProgressStatus, formatScenarioOpponentsStatus, formatScenarioResearchDetails, formatSeedStatus, formatSelectedEntityActionStatus, formatSelectedRoomToggleLabel, formatSelectedStaffBreakToggleLabel, formatSelectionStatusWithLanguage, formatSpecializedTreatmentQueueStatus, formatSpecializedTreatmentRoomsStatus, formatSpeedStatus, formatStaffBreakToggleLabel, formatStaffBurnoutEventsStatus, formatStaffMarketStatus, formatStaffRecoveryEventsStatus, formatStaffSkillStatus, formatStaffTrainingStatus, formatStateHashStatus, formatStressedStaffStatus, formatTickCashflowStatus, formatTickStatus, formatTiredStaffStatus, formatTreatedPatientsStatus, formatTreatingPatientsStatus, formatTreatmentFailuresStatus, formatTreatmentRoomToggleLabel, formatUnlockStatus, formatVeryTiredStaffStatus, formatVipInspectionStatus, formatVipInspectionTermsStatus, formatWaitingPatientsStatus, formatWalkingToDiagnosisPatientsStatus, formatWalkingToTreatmentPatientsStatus, nextSpeedMultiplier, selectOriginalUiSpriteSheetSummary, selectQDataUiSpriteSheetSummary } from "../src/app-shell";
 
 import { staffRoleMarkerColor } from "../src/app-shell";
+import { patientConditionLabels } from "../src/app-shell";
 
 describe("app shell campaign objectives", () => {
     it("selects the first visible original QDATA sheet for the playable UI strip", () => {
@@ -233,6 +234,7 @@ describe("app shell campaign objectives", () => {
                         diseaseId: "mild-cold",
                         diseaseName: "Mild Cold",
                         preferredTreatmentRoomType: "pharmacy",
+                        needsToilet: true,
                         health: 40,
                         maxHealth: 40
                     }
@@ -248,7 +250,7 @@ describe("app shell campaign objectives", () => {
             patientStatusNames: {
                 queued: "Queuing for %s"
             }
-        })).toContain("Queuing for Pharmacy Uncommon Cold>Pharmacy");
+        })).toContain("Queuing for Pharmacy Uncommon Cold>Pharmacy needs toilet H40/40");
     });
     it("renders expanded casebook rows with patient actions", () => {
         const html = formatCasebookRowsHtml({
@@ -262,6 +264,8 @@ describe("app shell campaign objectives", () => {
                         diseaseName: "Mild Cold",
                         preferredTreatmentRoomType: "pharmacy",
                         assignedRoomId: 5,
+                        vomited: true,
+                        droppedLitter: true,
                         health: 35,
                         maxHealth: 40
                     }
@@ -281,8 +285,22 @@ describe("app shell campaign objectives", () => {
         expect(html).toContain("data-testid=\"casebook-panel-table\"");
         expect(html).toContain("data-patient-id=\"2\"");
         expect(html).toContain("Uncommon Cold");
+        expect(html).toContain("Flags");
+        expect(html).toContain("vomited, litter");
         expect(html).toContain("35/40");
         expect(html).toContain("data-casebook-action=\"send-home\"");
+    });
+    it("formats patient condition flags for browser status surfaces", () => {
+        expect(patientConditionLabels({
+            vomited: true,
+            droppedLitter: true,
+            needsToilet: true,
+            bowelOverflowed: true,
+            drank: true,
+            usedToilet: true
+        })).toEqual(["vomited", "litter", "bowel overflow", "drank", "used toilet"]);
+        expect(patientConditionLabels({ needsToilet: true })).toEqual(["needs toilet"]);
+        expect(patientConditionLabels(null)).toEqual([]);
     });
     it("uses imported original staff role names in selection text", () => {
         expect(formatNoSelectionStatus()).toBe("Selection: none");
@@ -324,6 +342,38 @@ describe("app shell campaign objectives", () => {
                 waitingPatients: []
             }
         }, { type: "object", id: 3 })).toBe("Selection: Radiator #3 (tile 4,5, facing west, value 101, strength 9)");
+        expect(formatSelectionStatusWithLanguage({
+            entities: {
+                staff: [],
+                rooms: [],
+                objects: [],
+                waitingPatients: [
+                    {
+                        id: 5,
+                        status: "awaiting-treatment",
+                        diagnosisKnown: true,
+                        diseaseId: "mild-cold",
+                        diseaseName: "Mild Cold",
+                        preferredTreatmentRoomType: "pharmacy",
+                        assignedRoomId: 7,
+                        needsToilet: true,
+                        drank: true,
+                        health: 9,
+                        maxHealth: 40
+                    }
+                ]
+            }
+        }, { type: "patient", id: 5 }, {
+            diseaseNames: {
+                "mild-cold": "Uncommon Cold"
+            },
+            roomNames: {
+                pharmacy: "Pharmacy"
+            },
+            patientStatusNames: {
+                "awaiting-treatment": "Waiting for %s"
+            }
+        })).toBe("Selection: patient #5 (Waiting for Pharmacy, Uncommon Cold, needs Pharmacy, room #7, needs toilet, drank, health 9/40)");
     });
     it("uses distinct marker colors for playable staff roles", () => {
         const colors = ["diagnostician", "nurse", "handyman", "receptionist"].map(staffRoleMarkerColor);

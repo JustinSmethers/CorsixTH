@@ -577,6 +577,8 @@ export function formatSelectionStatusWithLanguage(state, selectedEntity, languag
     const assignment = resolved.value.assignedRoomId !== null && resolved.value.assignedRoomId !== undefined
         ? `, room #${resolved.value.assignedRoomId}`
         : "";
+    const conditions = patientConditionLabels(resolved.value);
+    const conditionDetail = conditions.length > 0 ? `, ${conditions.join(", ")}` : "";
     const prefix = Number.isInteger(resolved.value.emergencyWaveId)
         ? "emergency "
         : Number.isInteger(resolved.value.epidemicOutbreakId)
@@ -584,7 +586,7 @@ export function formatSelectionStatusWithLanguage(state, selectedEntity, languag
             : Number.isInteger(resolved.value.insuranceContractId)
                 ? "insurance "
                 : "";
-    return `Selection: ${prefix}patient #${resolved.value.id} (${status}, ${disease}${treatmentNeed}${assignment}, health ${resolved.value.health}/${resolved.value.maxHealth})`;
+    return `Selection: ${prefix}patient #${resolved.value.id} (${status}, ${disease}${treatmentNeed}${assignment}${conditionDetail}, health ${resolved.value.health}/${resolved.value.maxHealth})`;
 }
 export function formatNoSelectionStatus() {
     return "Selection: none";
@@ -622,6 +624,8 @@ export function formatCasebookWithLanguage(state, languageSummary = null) {
         const treatmentNeed = patient.diagnosisKnown && patient.preferredTreatmentRoomType
             ? `>${roomTypeDisplayName(patient.preferredTreatmentRoomType, languageSummary)}`
             : "";
+        const conditions = patientConditionLabels(patient);
+        const conditionDetail = conditions.length > 0 ? ` ${conditions.join("/")}` : "";
         const prefix = Number.isInteger(patient.emergencyWaveId)
             ? "E"
             : Number.isInteger(patient.epidemicOutbreakId)
@@ -629,7 +633,7 @@ export function formatCasebookWithLanguage(state, languageSummary = null) {
                 : Number.isInteger(patient.insuranceContractId)
                     ? "I"
                     : "#";
-        return `${prefix}${patient.id} ${status} ${disease}${treatmentNeed} H${patient.health}/${patient.maxHealth}`;
+        return `${prefix}${patient.id} ${status} ${disease}${treatmentNeed}${conditionDetail} H${patient.health}/${patient.maxHealth}`;
     }).join("; ")}`;
 }
 export function formatCasebookRowsHtml(state, languageSummary = null) {
@@ -644,6 +648,7 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
             ? roomTypeDisplayName(patient.preferredTreatmentRoomType, languageSummary)
             : "";
         const assignment = patient.assignedRoomId !== null && patient.assignedRoomId !== undefined ? `#${patient.assignedRoomId}` : "";
+        const conditions = patientConditionLabels(patient).join(", ");
         return `
           <tr data-testid="casebook-panel-row" data-patient-id="${patient.id}">
             <td style="padding:2px 4px;">#${patient.id}</td>
@@ -651,6 +656,7 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
             <td style="padding:2px 4px;">${escapeHtml(disease)}</td>
             <td style="padding:2px 4px;">${escapeHtml(need)}</td>
             <td style="padding:2px 4px;">${escapeHtml(assignment)}</td>
+            <td style="padding:2px 4px;">${escapeHtml(conditions)}</td>
             <td style="padding:2px 4px; text-align:right;">${patient.health}/${patient.maxHealth}</td>
             <td style="padding:2px 4px;">
               <button type="button" data-testid="casebook-panel-select" data-casebook-action="select" data-patient-id="${patient.id}">Select</button>
@@ -668,6 +674,7 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
               <th style="padding:2px 4px; text-align:left;">Disease</th>
               <th style="padding:2px 4px; text-align:left;">Need</th>
               <th style="padding:2px 4px; text-align:left;">Room</th>
+              <th style="padding:2px 4px; text-align:left;">Flags</th>
               <th style="padding:2px 4px; text-align:right;">Health</th>
               <th style="padding:2px 4px; text-align:left;">Action</th>
             </tr>
@@ -679,6 +686,28 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
 function patientDiseaseDisplayName(patient, languageSummary) {
     const importedName = languageSummary?.diseaseNames?.[patient.diseaseId];
     return typeof importedName === "string" && importedName.length > 0 ? importedName : patient.diseaseName;
+}
+export function patientConditionLabels(patient) {
+    const labels = [];
+    if (patient?.vomited === true) {
+        labels.push("vomited");
+    }
+    if (patient?.droppedLitter === true) {
+        labels.push("litter");
+    }
+    if (patient?.bowelOverflowed === true) {
+        labels.push("bowel overflow");
+    }
+    else if (patient?.needsToilet === true) {
+        labels.push("needs toilet");
+    }
+    if (patient?.drank === true) {
+        labels.push("drank");
+    }
+    if (patient?.usedToilet === true) {
+        labels.push("used toilet");
+    }
+    return labels;
 }
 function staffRoleDisplayName(role, languageSummary) {
     if (role === "diagnostician") {
