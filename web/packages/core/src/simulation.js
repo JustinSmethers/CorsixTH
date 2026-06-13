@@ -859,6 +859,7 @@ export function hashSimulationState(state) {
         objectIndex: object.objectIndex,
         name: object.name,
         cost: object.cost,
+        ...(object.orientation && object.orientation !== "north" ? { orientation: object.orientation } : {}),
         position: object.position
     }));
     const counters = {
@@ -1202,7 +1203,8 @@ export class DeterministicSimulation {
             this.placeObject(command.objectIndex, command.position, {
                 charge: true,
                 cost: command.cost,
-                name: command.name
+                name: command.name,
+                orientation: command.orientation
             });
             return this.getState();
         }
@@ -1335,6 +1337,7 @@ export class DeterministicSimulation {
             objectIndex: object.objectIndex,
             name: object.name,
             cost: object.cost,
+            orientation: object.orientation,
             position: { x: object.position.x, y: object.position.y }
         }));
         let queuedPatients = 0;
@@ -2193,6 +2196,7 @@ export class DeterministicSimulation {
             objectIndex,
             name: typeof options.name === "string" && options.name.length > 0 ? options.name : `object ${objectIndex}`,
             cost,
+            orientation: typeof options.orientation === "string" ? options.orientation : "north",
             position: { x: placement.position.x, y: placement.position.y }
         });
         this.nextObjectId += 1;

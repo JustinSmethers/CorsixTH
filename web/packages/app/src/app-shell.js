@@ -563,7 +563,7 @@ export function formatSelectionStatusWithLanguage(state, selectedEntity, languag
         return `Selection: ${roomTypeDisplayName(resolved.value.roomType, languageSummary)} room #${resolved.value.id} (${resolved.value.status}, wear ${resolved.value.wear}, maintenance ${resolved.value.maintenanceRemainingTicks}${patientDetail})`;
     }
     if (resolved.type === "object") {
-        return `Selection: ${resolved.value.name ?? `object ${resolved.value.objectIndex}`} #${resolved.value.id} (tile ${resolved.value.position.x},${resolved.value.position.y}, value ${resolved.value.cost})`;
+        return `Selection: ${resolved.value.name ?? `object ${resolved.value.objectIndex}`} #${resolved.value.id} (tile ${resolved.value.position.x},${resolved.value.position.y}, facing ${resolved.value.orientation ?? "north"}, value ${resolved.value.cost})`;
     }
     const disease = resolved.value.diagnosisKnown ? patientDiseaseDisplayName(resolved.value, languageSummary) : "unknown disease";
     const status = patientStatusDisplayName(resolved.value, languageSummary);
@@ -2276,7 +2276,8 @@ function drawPlacementPreview(context, placementPreview, view) {
         placementPreview.position &&
         isTileVisible(view, placementPreview.position)) {
         drawObjectMarker(context, {
-            objectIndex: placementPreview.objectIndex
+            objectIndex: placementPreview.objectIndex,
+            orientation: placementPreview.orientation
         }, tileToHospitalScreen(view, placementPreview.position));
     }
 }
@@ -2383,6 +2384,13 @@ function drawStaffMarker(context, staff, center) {
     context.restore();
 }
 function drawObjectMarker(context, object, center) {
+    const orientation = object.orientation ?? "north";
+    const direction = {
+        north: { x: 0, y: -1 },
+        east: { x: 1, y: 0 },
+        south: { x: 0, y: 1 },
+        west: { x: -1, y: 0 }
+    }[orientation] ?? { x: 0, y: -1 };
     context.save();
     context.fillStyle = "#d7c27a";
     context.strokeStyle = "#102027";
@@ -2391,6 +2399,10 @@ function drawObjectMarker(context, object, center) {
     context.rect(center.x - 5, center.y - 17, 10, 10);
     context.fill();
     context.stroke();
+    context.fillStyle = "#102027";
+    context.beginPath();
+    context.arc(center.x + direction.x * 8, center.y - 12 + direction.y * 8, 2.5, 0, Math.PI * 2);
+    context.fill();
     context.fillStyle = "#102027";
     context.font = "9px system-ui, sans-serif";
     context.textAlign = "center";
@@ -3750,7 +3762,7 @@ export function mountAppShell(options) {
         return true;
     };
     const onRotatePlacement = () => {
-        if (!placementAction || placementAction.action !== "build-room") {
+        if (!placementAction || (placementAction.action !== "build-room" && placementAction.action !== "place-object")) {
             return false;
         }
         placementAction = {
@@ -4735,7 +4747,8 @@ export function mountAppShell(options) {
             objectName,
             cost: Number.isInteger(cost) && cost > 0 ? cost : 0,
             source: "ui:furnish-corridor",
-            label: `place ${objectName}`
+            label: `place ${objectName}`,
+            orientation: "north"
         };
         placementPreview = null;
         selectedEntity = null;

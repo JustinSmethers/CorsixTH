@@ -1136,6 +1136,7 @@ function cloneCommand(command) {
             objectIndex: command.objectIndex,
             ...(command.name ? { name: command.name } : {}),
             ...(Number.isInteger(command.cost) ? { cost: command.cost } : {}),
+            ...(command.orientation ? { orientation: command.orientation } : {}),
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
     }

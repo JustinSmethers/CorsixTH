@@ -2739,6 +2739,7 @@ describe("app orchestrator", () => {
             objectIndex: 11,
             objectName: "Radiator",
             cost: 101,
+            orientation: "south",
             source: "ui:furnish-corridor",
             pointer: { x: 32, y: 32 }
         })).toEqual(["object.placed"]);
@@ -5110,6 +5111,7 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             objectName: "Bench",
             cost: 125,
+            orientation: "east",
             source: "ui:furnish-corridor",
             pointer: { x: 32, y: 32 }
         })).toMatchObject({
@@ -5117,6 +5119,7 @@ describe("app orchestrator", () => {
             type: "object",
             valid: true,
             cost: 125,
+            orientation: "east",
             position: { x: 4, y: 4 }
         });
         expect(orchestrator.dispatch({
@@ -5125,6 +5128,7 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             objectName: "Bench",
             cost: 125,
+            orientation: "east",
             source: "ui:furnish-corridor",
             pointer: { x: 32, y: 32 }
         })).toEqual(["object.placed"]);
@@ -5134,6 +5138,7 @@ describe("app orchestrator", () => {
                 objectIndex: 4,
                 name: "Bench",
                 cost: 125,
+                orientation: "east",
                 position: { x: 4, y: 4 }
             })
         ]);
@@ -5144,6 +5149,7 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             name: "Bench",
             cost: 125,
+            orientation: "east",
             position: { x: 4, y: 4 }
         });
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());

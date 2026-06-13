@@ -314,12 +314,13 @@ describe("app shell campaign objectives", () => {
                         objectIndex: 11,
                         name: "Radiator",
                         cost: 101,
+                        orientation: "west",
                         position: { x: 4, y: 5 }
                     }
                 ],
                 waitingPatients: []
             }
-        }, { type: "object", id: 3 })).toBe("Selection: Radiator #3 (tile 4,5, value 101)");
+        }, { type: "object", id: 3 })).toBe("Selection: Radiator #3 (tile 4,5, facing west, value 101)");
     });
     it("uses imported original room names in room availability text", () => {
         expect(formatRoomAvailabilityStatus("diagnosis,treatment,specialist", {

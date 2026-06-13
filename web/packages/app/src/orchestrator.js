@@ -2142,7 +2142,8 @@ export class AppOrchestrator {
                 type: "place-object",
                 objectIndex: action.objectIndex,
                 ...(action.objectName ? { name: action.objectName } : {}),
-                ...(Number.isInteger(action.cost) ? { cost: action.cost } : {})
+                ...(Number.isInteger(action.cost) ? { cost: action.cost } : {}),
+                ...(action.orientation ? { orientation: action.orientation } : {})
             };
             const position = this.resolveGridPosition(action.pointer);
             if (position) {
@@ -2736,6 +2737,7 @@ export class AppOrchestrator {
         if (action.action === "place-object") {
             return {
                 action: "place-object",
+                ...(action.orientation ? { orientation: action.orientation } : {}),
                 ...this.simulation.evaluateObjectPlacement(action.objectIndex, position, {
                     charge: true,
                     cost: action.cost
@@ -3534,6 +3536,7 @@ function cloneGameCommand(command) {
             objectIndex: command.objectIndex,
             ...(command.name ? { name: command.name } : {}),
             ...(Number.isInteger(command.cost) ? { cost: command.cost } : {}),
+            ...(command.orientation ? { orientation: command.orientation } : {}),
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
     }

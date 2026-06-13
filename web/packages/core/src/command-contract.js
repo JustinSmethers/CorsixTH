@@ -72,6 +72,9 @@ function isRoomOperationalStatus(value) {
 function isTreatmentPricingPolicy(value) {
     return value === "discount" || value === "standard" || value === "premium";
 }
+function isPlacementOrientation(value) {
+    return value === "north" || value === "east" || value === "south" || value === "west";
+}
 export function isGameCommand(value) {
     if (!isRecord(value) || typeof value.type !== "string") {
         return false;
@@ -152,6 +155,7 @@ export function isGameCommand(value) {
             value.objectIndex >= 0 &&
             (value.name === undefined || typeof value.name === "string") &&
             (value.cost === undefined || (Number.isInteger(value.cost) && value.cost >= 0)) &&
+            (value.orientation === undefined || isPlacementOrientation(value.orientation)) &&
             (value.position === undefined || isGridPosition(value.position)));
     }
     if (value.type === "remove-object") {
