@@ -100,6 +100,17 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(patient?.movement?.path.some((tile) => blockedFootprint.has(`${tile.x},${tile.y}`))).toBe(false);
         expect(patient?.movement?.path).toContainEqual({ x: 1, y: 4 });
     });
+    it("routes patients around placed corridor objects", () => {
+        const simulation = new DeterministicSimulation(7207, { bounds: { width: 10, height: 10 } });
+        simulation.execute({ type: "open-room", roomType: "diagnosis", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "place-object", objectIndex: 7, name: "Plant", position: { x: 1, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 2, position: { x: 2, y: 7 } });
+        simulation.execute({ type: "tick", count: 1 });
+        const patient = simulation.getState().entities.waitingPatients[0];
+        expect(patient).toMatchObject({ status: "walking-to-diagnosis" });
+        expect(patient?.movement?.path).not.toContainEqual({ x: 1, y: 4 });
+        expect(patient?.movement?.path).toContainEqual({ x: 0, y: 4 });
+    });
     it("uses imported routing distance points when choosing between open diagnosis rooms", () => {
         const weighted = new DeterministicSimulation(7212, {
             bounds: { width: 12, height: 12 },

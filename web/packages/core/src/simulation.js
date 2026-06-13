@@ -2961,6 +2961,11 @@ export class DeterministicSimulation {
                 allowedPositions.push(...tiles);
             }
         }
+        for (const object of this.objects) {
+            if (object.position) {
+                blockedPositions.push(object.position);
+            }
+        }
         return { blockedPositions, allowedPositions };
     }
     roomAtPosition(position) {
