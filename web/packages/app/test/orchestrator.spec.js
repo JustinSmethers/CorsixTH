@@ -5076,13 +5076,13 @@ describe("app orchestrator", () => {
             objectName: "Bench",
             cost: 125,
             source: "ui:furnish-corridor",
-            pointer: { x: 16, y: 16 }
+            pointer: { x: 32, y: 32 }
         })).toMatchObject({
             action: "place-object",
             type: "object",
             valid: true,
             cost: 125,
-            position: { x: 2, y: 2 }
+            position: { x: 4, y: 4 }
         });
         expect(orchestrator.dispatch({
             device: "ui",
@@ -5091,7 +5091,7 @@ describe("app orchestrator", () => {
             objectName: "Bench",
             cost: 125,
             source: "ui:furnish-corridor",
-            pointer: { x: 16, y: 16 }
+            pointer: { x: 32, y: 32 }
         })).toEqual(["object.placed"]);
         expect(orchestrator.getState().entities.objects).toEqual([
             expect.objectContaining({
@@ -5099,7 +5099,7 @@ describe("app orchestrator", () => {
                 objectIndex: 4,
                 name: "Bench",
                 cost: 125,
-                position: { x: 2, y: 2 }
+                position: { x: 4, y: 4 }
             })
         ]);
         expect(orchestrator.telemetry().cash).toBe(cashBeforePlacement - 125);
@@ -5109,8 +5109,84 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             name: "Bench",
             cost: 125,
-            position: { x: 2, y: 2 }
+            position: { x: 4, y: 4 }
         });
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
+    });
+    it("blocks corridor objects on rooms, occupied object tiles, and non-buildable terrain", () => {
+        const terrain = createTerrain(64, 64);
+        setRect(terrain, 5, 5, 1, 1, { passable: true, buildable: false });
+        const orchestrator = new AppOrchestrator({
+            seed: 9025,
+            tickRateHz: 4,
+            pointerTileSize: 8,
+            terrain
+        });
+        expect(orchestrator.evaluatePlacement({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 7,
+            objectName: "Plant",
+            cost: 50,
+            source: "ui:furnish-corridor",
+            pointer: { x: 8, y: 8 }
+        })).toMatchObject({
+            action: "place-object",
+            valid: false,
+            reason: "occupied",
+            position: { x: 1, y: 1 }
+        });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 7,
+            objectName: "Plant",
+            cost: 50,
+            source: "ui:furnish-corridor",
+            pointer: { x: 8, y: 8 }
+        })).toEqual(["object.place-blocked"]);
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 7,
+            objectName: "Plant",
+            cost: 50,
+            source: "ui:furnish-corridor",
+            pointer: { x: 32, y: 32 }
+        })).toEqual(["object.placed"]);
+        expect(orchestrator.evaluatePlacement({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 8,
+            objectName: "Bin",
+            cost: 25,
+            source: "ui:furnish-corridor",
+            pointer: { x: 32, y: 32 }
+        })).toMatchObject({
+            action: "place-object",
+            valid: false,
+            reason: "occupied",
+            position: { x: 4, y: 4 }
+        });
+        expect(orchestrator.evaluatePlacement({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 9,
+            objectName: "Bench",
+            cost: 75,
+            source: "ui:furnish-corridor",
+            pointer: { x: 40, y: 40 }
+        })).toMatchObject({
+            action: "place-object",
+            valid: false,
+            reason: "non-buildable",
+            position: { x: 5, y: 5 }
+        });
+        expect(orchestrator.getState().entities.objects).toEqual([
+            expect.objectContaining({
+                objectIndex: 7,
+                position: { x: 4, y: 4 }
+            })
+        ]);
     });
 });

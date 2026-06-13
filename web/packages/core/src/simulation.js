@@ -2215,6 +2215,12 @@ export class DeterministicSimulation {
         if (!isPositionInBounds(requestedPosition, this.bounds)) {
             return { ...base, reason: "out-of-bounds" };
         }
+        if (!this.isBuildablePosition(requestedPosition)) {
+            return { ...base, reason: "non-buildable" };
+        }
+        if (this.isObjectPositionOccupied(requestedPosition)) {
+            return { ...base, reason: "occupied" };
+        }
         if (!this.canAffordPurchase(cost)) {
             return { ...base, reason: "insufficient-cash" };
         }
@@ -2751,6 +2757,10 @@ export class DeterministicSimulation {
             const occupiedTiles = this.roomFootprintTiles(room.position, room.footprint);
             return requestedTiles.some((requestedTile) => occupiedTiles.some((occupiedTile) => samePosition(requestedTile, occupiedTile)));
         });
+    }
+    isObjectPositionOccupied(position) {
+        return this.rooms.some((room) => this.roomFootprintTiles(room.position, room.footprint).some((tile) => samePosition(tile, position))) ||
+            this.objects.some((object) => samePosition(object.position, position));
     }
     isRoomFootprintBuildable(position, footprint) {
         return this.roomFootprintTiles(position, footprint).every((tile) => this.isBuildablePosition(tile));
