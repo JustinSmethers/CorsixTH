@@ -570,6 +570,25 @@ export function formatSelectionStatusWithLanguage(state, selectedEntity, languag
 export function formatNoSelectionStatus() {
     return "Selection: none";
 }
+function firstEditableRoomEntityFromState(state) {
+    const room = Array.isArray(state?.entities?.rooms)
+        ? [...state.entities.rooms].sort((left, right) => left.id - right.id)[0]
+        : null;
+    return room ? { type: "room", id: room.id } : null;
+}
+export function formatEditRoomPanelSummary(state, selectedEntity, languageSummary = null) {
+    const resolved = selectedEntityFromState(state, selectedEntity);
+    if (resolved?.type !== "room") {
+        const roomCount = Array.isArray(state?.entities?.rooms) ? state.entities.rooms.length : 0;
+        return roomCount > 0
+            ? `Edit room: ${roomCount} room${roomCount === 1 ? "" : "s"} available, none selected`
+            : "Edit room: no rooms built";
+    }
+    const room = resolved.value;
+    const name = roomTypeDisplayName(room.roomType, languageSummary);
+    const size = room.footprint ? `, ${room.footprint.width}x${room.footprint.height}` : "";
+    return `Edit room: ${name} room #${room.id} (${room.status}, wear ${room.wear}, maintenance ${room.maintenanceRemainingTicks}${size})`;
+}
 function formatCasebook(state) {
     return formatCasebookWithLanguage(state);
 }
@@ -2867,6 +2886,21 @@ export function mountAppShell(options) {
         <div data-testid="furnish-corridor-panel-rows"></div>
         <button type="button" data-testid="furnish-corridor-panel-close">Close</button>
       </section>
+      <section
+        data-testid="edit-room-panel"
+        hidden
+        role="dialog"
+        aria-label="Edit Room"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Edit Room</h2>
+        <p data-testid="edit-room-panel-summary" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="edit-room-panel-availability" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="edit-room-panel-toggle">Open Selected Room</button>
+        <button type="button" data-testid="edit-room-panel-repair">Repair Selected Room</button>
+        <button type="button" data-testid="edit-room-panel-sell">Sell Selected Room</button>
+        <button type="button" data-testid="edit-room-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -3298,6 +3332,13 @@ export function mountAppShell(options) {
     const furnishCorridorPanelSummary = requiredElement(options.root, "[data-testid='furnish-corridor-panel-summary']");
     const furnishCorridorPanelRows = requiredElement(options.root, "[data-testid='furnish-corridor-panel-rows']");
     const furnishCorridorPanelCloseButton = requiredElement(options.root, "[data-testid='furnish-corridor-panel-close']");
+    const editRoomPanel = requiredElement(options.root, "[data-testid='edit-room-panel']");
+    const editRoomPanelSummary = requiredElement(options.root, "[data-testid='edit-room-panel-summary']");
+    const editRoomPanelAvailabilityMetric = requiredElement(options.root, "[data-testid='edit-room-panel-availability']");
+    const editRoomPanelToggleButton = requiredElement(options.root, "[data-testid='edit-room-panel-toggle']");
+    const editRoomPanelRepairButton = requiredElement(options.root, "[data-testid='edit-room-panel-repair']");
+    const editRoomPanelSellButton = requiredElement(options.root, "[data-testid='edit-room-panel-sell']");
+    const editRoomPanelCloseButton = requiredElement(options.root, "[data-testid='edit-room-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3381,11 +3422,20 @@ export function mountAppShell(options) {
         sellSelectedRoomButton.disabled = !(resolved?.type === "room" && canSellRoom(resolved.value));
         repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
         machineMenuRepairSelectedRoomButton.disabled = repairSelectedRoomButton.disabled;
+        editRoomPanelSummary.textContent = formatEditRoomPanelSummary(state, selectedEntity, hospitalView?.languageSummary ?? null);
+        editRoomPanelAvailabilityMetric.textContent = formatRoomAvailabilityHudStatus(telemetry, hospitalView?.languageSummary ?? null);
+        editRoomPanelToggleButton.disabled = !canToggleTreatmentRoomFromState(state, resolved?.type === "room" ? resolved.value : null);
+        editRoomPanelRepairButton.disabled = repairSelectedRoomButton.disabled;
+        editRoomPanelSellButton.disabled = sellSelectedRoomButton.disabled;
         if (resolved?.type === "staff") {
             telemetryElements.staffBreakToggleButton.textContent = formatSelectedStaffBreakToggleLabel(resolved.value);
         }
         if (resolved?.type === "room") {
             telemetryElements.treatmentRoomToggleButton.textContent = formatSelectedRoomToggleLabel(resolved.value);
+            editRoomPanelToggleButton.textContent = formatSelectedRoomToggleLabel(resolved.value);
+        }
+        else {
+            editRoomPanelToggleButton.textContent = formatTreatmentRoomToggleLabel(telemetry);
         }
         telemetryElements.staffBreakToggleButton.disabled = !canToggleStaffBreakFromState(state, resolved?.type === "staff" ? resolved.value : null);
         telemetryElements.treatmentRoomToggleButton.disabled = !canToggleTreatmentRoomFromState(state, resolved?.type === "room" ? resolved.value : null);
@@ -3608,6 +3658,12 @@ export function mountAppShell(options) {
         if (!furnishCorridorPanel.hidden) {
             furnishCorridorPanel.hidden = true;
             actionStatus.textContent = "Action: furnish corridor closed";
+            playfield.focus();
+            return true;
+        }
+        if (!editRoomPanel.hidden) {
+            editRoomPanel.hidden = true;
+            actionStatus.textContent = "Action: edit room closed";
             playfield.focus();
             return true;
         }
@@ -4430,6 +4486,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = false;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         actionStatus.textContent = "Action: jukebox opened";
         renderRuntime();
         jukeboxPanelVolumeSlider.focus();
@@ -4461,6 +4518,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         casebookPanel.hidden = false;
         actionStatus.textContent = "Action: casebook opened";
         renderRuntime();
@@ -4486,6 +4544,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -4511,6 +4570,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -4535,6 +4595,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4561,6 +4622,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = false;
+        editRoomPanel.hidden = true;
         actionStatus.textContent = "Action: furnish corridor opened";
         renderRuntime();
         const firstFurnishButton = furnishCorridorPanelRows.querySelector("button:not(:disabled)");
@@ -4573,8 +4635,35 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenEditRoom = () => {
-        telemetryElements.roomAvailabilityMetric.focus();
+        const state = orchestrator.getState();
+        const resolved = selectedEntityFromState(state, selectedEntity);
+        if (resolved?.type !== "room") {
+            selectedEntity = firstEditableRoomEntityFromState(state);
+        }
+        casebookPanel.hidden = true;
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        mapPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = false;
+        actionStatus.textContent = "Action: edit room opened";
+        renderRuntime();
+        const firstEnabledEditButton = [editRoomPanelToggleButton, editRoomPanelRepairButton, editRoomPanelSellButton].find((button) => !button.disabled);
+        (firstEnabledEditButton ?? editRoomPanelCloseButton).focus();
         return true;
+    };
+    const onCloseEditRoomPanel = () => {
+        editRoomPanel.hidden = true;
+        actionStatus.textContent = "Action: edit room closed";
+        playfield.focus();
     };
     const onOpenResearch = () => {
         casebookPanel.hidden = true;
@@ -4589,6 +4678,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4613,6 +4703,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4637,6 +4728,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         chartsPanel.hidden = false;
         actionStatus.textContent = "Action: charts panel opened";
         renderRuntime();
@@ -4661,6 +4753,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         mapPanel.hidden = false;
         mapPanelSelect.value = hospitalView?.mapPath ?? "";
         actionStatus.textContent = "Action: town map opened";
@@ -4686,6 +4779,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         policyPanel.hidden = false;
         actionStatus.textContent = "Action: policy panel opened";
         renderRuntime();
@@ -4710,6 +4804,7 @@ export function mountAppShell(options) {
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         machineMenuPanel.hidden = false;
         actionStatus.textContent = "Action: machine menu opened";
         renderRuntime();
@@ -4735,6 +4830,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
+        editRoomPanel.hidden = true;
         messagePanel.hidden = false;
         actionStatus.textContent = telemetry.lastEventType ? "Action: message opened" : "Action: no messages";
         renderRuntime();
@@ -5428,6 +5524,10 @@ export function mountAppShell(options) {
     messagePanelCloseButton.addEventListener("click", onCloseMessagePanel);
     jukeboxPanelCloseButton.addEventListener("click", onCloseJukeboxPanel);
     furnishCorridorPanelCloseButton.addEventListener("click", onCloseFurnishCorridorPanel);
+    editRoomPanelToggleButton.addEventListener("click", onTreatmentRoomToggle);
+    editRoomPanelRepairButton.addEventListener("click", onRepairSelectedRoom);
+    editRoomPanelSellButton.addEventListener("click", onSellSelectedRoom);
+    editRoomPanelCloseButton.addEventListener("click", onCloseEditRoomPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -5543,6 +5643,10 @@ export function mountAppShell(options) {
             messagePanelCloseButton.removeEventListener("click", onCloseMessagePanel);
             jukeboxPanelCloseButton.removeEventListener("click", onCloseJukeboxPanel);
             furnishCorridorPanelCloseButton.removeEventListener("click", onCloseFurnishCorridorPanel);
+            editRoomPanelToggleButton.removeEventListener("click", onTreatmentRoomToggle);
+            editRoomPanelRepairButton.removeEventListener("click", onRepairSelectedRoom);
+            editRoomPanelSellButton.removeEventListener("click", onSellSelectedRoom);
+            editRoomPanelCloseButton.removeEventListener("click", onCloseEditRoomPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
