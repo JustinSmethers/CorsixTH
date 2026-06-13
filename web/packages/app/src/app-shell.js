@@ -2661,6 +2661,26 @@ export function mountAppShell(options) {
         <button type="button" data-testid="charts-panel-close">Close</button>
       </section>
       <section
+        data-testid="town-map-panel"
+        hidden
+        role="dialog"
+        aria-label="Map"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Map</h2>
+        <p data-testid="town-map-panel-current" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="town-map-panel-campaign" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="town-map-panel-objective" style="margin:0 0 8px; font-size:13px;"></p>
+        <p data-testid="town-map-panel-cash" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="town-map-panel-land" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="town-map-panel-details" style="margin:0 0 8px; font-size:13px;"></p>
+        <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
+          Level
+          <select data-testid="town-map-panel-select" aria-label="Town map panel level">${mapOptions}</select>
+        </label>
+        <button type="button" data-testid="town-map-panel-close">Close</button>
+      </section>
+      <section
         data-testid="policy-panel"
         hidden
         role="dialog"
@@ -3102,6 +3122,15 @@ export function mountAppShell(options) {
     const chartsPanelMarketingMetric = requiredElement(options.root, "[data-testid='charts-panel-marketing']");
     const chartsPanelInsuranceMetric = requiredElement(options.root, "[data-testid='charts-panel-insurance']");
     const chartsPanelCloseButton = requiredElement(options.root, "[data-testid='charts-panel-close']");
+    const mapPanel = requiredElement(options.root, "[data-testid='town-map-panel']");
+    const mapPanelCurrentMetric = requiredElement(options.root, "[data-testid='town-map-panel-current']");
+    const mapPanelCampaignMetric = requiredElement(options.root, "[data-testid='town-map-panel-campaign']");
+    const mapPanelObjectiveMetric = requiredElement(options.root, "[data-testid='town-map-panel-objective']");
+    const mapPanelCashMetric = requiredElement(options.root, "[data-testid='town-map-panel-cash']");
+    const mapPanelLandMetric = requiredElement(options.root, "[data-testid='town-map-panel-land']");
+    const mapPanelDetailsMetric = requiredElement(options.root, "[data-testid='town-map-panel-details']");
+    const mapPanelSelect = requiredElement(options.root, "[data-testid='town-map-panel-select']");
+    const mapPanelCloseButton = requiredElement(options.root, "[data-testid='town-map-panel-close']");
     const policyPanel = requiredElement(options.root, "[data-testid='policy-panel']");
     const policyPanelAdmissionsMetric = requiredElement(options.root, "[data-testid='policy-panel-admissions']");
     const policyPanelAdmissionStatusMetric = requiredElement(options.root, "[data-testid='policy-panel-admission-status']");
@@ -3173,7 +3202,17 @@ export function mountAppShell(options) {
     };
     const renderLevelControls = () => {
         const telemetry = orchestrator.telemetry();
+        const currentMap = campaignMapSummaryAt(hospitalView, campaignLevelIndex(hospitalView));
         telemetryElements.campaignProgressMetric.textContent = formatCampaignProgress(hospitalView, telemetry);
+        mapPanelCurrentMetric.textContent = hospitalView?.mapPath ? `Map: ${hospitalView.mapPath}` : "Map: unavailable";
+        mapPanelCampaignMetric.textContent = telemetryElements.campaignProgressMetric.textContent;
+        mapPanelObjectiveMetric.textContent = formatLevelObjectiveStatus(telemetry);
+        mapPanelCashMetric.textContent = formatCashStatus(telemetry);
+        mapPanelLandMetric.textContent = telemetry.scenarioLandCostPerTile == null ? "Land: unavailable" : `Land: ${telemetry.scenarioLandCostPerTile}/tile`;
+        mapPanelDetailsMetric.textContent = currentMap
+            ? `Map details: ${currentMap.width}x${currentMap.height}, parcels ${currentMap.parcelCount}, buildable ${currentMap.buildableTileCount}, objects ${currentMap.objectCount}`
+            : "Map details: unavailable";
+        mapPanelSelect.value = hospitalView?.mapPath ?? "";
         restartLevelButton.disabled = !canRestartLevelFromHospitalView(hospitalView);
         nextLevelButton.disabled = !canAdvanceToNextLevelFromTelemetry(hospitalView, telemetry);
     };
@@ -3369,6 +3408,12 @@ export function mountAppShell(options) {
         if (!chartsPanel.hidden) {
             chartsPanel.hidden = true;
             actionStatus.textContent = "Action: charts panel closed";
+            playfield.focus();
+            return true;
+        }
+        if (!mapPanel.hidden) {
+            mapPanel.hidden = true;
+            actionStatus.textContent = "Action: town map closed";
             playfield.focus();
             return true;
         }
@@ -4210,6 +4255,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         casebookPanel.hidden = false;
@@ -4231,6 +4277,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         bankManagerPanel.hidden = false;
@@ -4252,6 +4299,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         bankStatsPanel.hidden = false;
@@ -4272,6 +4320,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         staffPanel.hidden = false;
@@ -4301,6 +4350,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         researchPanel.hidden = false;
@@ -4321,6 +4371,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         researchPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         statusPanel.hidden = false;
@@ -4341,6 +4392,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         researchPanel.hidden = true;
         statusPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         chartsPanel.hidden = false;
@@ -4355,8 +4407,33 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenMap = () => {
-        hospitalMapSelect.focus();
+        casebookPanel.hidden = true;
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
+        mapPanel.hidden = false;
+        mapPanelSelect.value = hospitalView?.mapPath ?? "";
+        actionStatus.textContent = "Action: town map opened";
+        renderRuntime();
+        mapPanelSelect.focus();
         return true;
+    };
+    const onCloseMapPanel = () => {
+        mapPanel.hidden = true;
+        actionStatus.textContent = "Action: town map closed";
+        playfield.focus();
+    };
+    const onMapPanelSelectKeyDown = (event) => {
+        if (event.code !== "Escape") {
+            return;
+        }
+        event.preventDefault();
+        onCloseMapPanel();
     };
     const onOpenPolicy = () => {
         casebookPanel.hidden = true;
@@ -4366,6 +4443,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         machineMenuPanel.hidden = true;
         policyPanel.hidden = false;
         actionStatus.textContent = "Action: policy panel opened";
@@ -4386,6 +4464,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = false;
         actionStatus.textContent = "Action: machine menu opened";
@@ -4854,15 +4933,25 @@ export function mountAppShell(options) {
     const onContextMenu = (event) => {
         event.preventDefault();
     };
-    const onMapSelectChange = () => {
+    const changeActiveMap = (mapPath) => {
         if (!hospitalView) {
-            return;
+            return false;
         }
-        if (setHospitalViewMap(hospitalView, hospitalMapSelect.value)) {
+        if (setHospitalViewMap(hospitalView, mapPath)) {
+            hospitalMapSelect.value = hospitalView.mapPath;
+            mapPanelSelect.value = hospitalView.mapPath;
             resetOrchestratorForActiveMap();
             saveStatus.textContent = formatNewMapStatus(hospitalView.mapPath);
             renderRuntime();
+            return true;
         }
+        return false;
+    };
+    const onMapSelectChange = () => {
+        changeActiveMap(hospitalMapSelect.value);
+    };
+    const onMapPanelSelectChange = () => {
+        changeActiveMap(mapPanelSelect.value);
     };
     const onRestartLevel = () => {
         if (!canRestartLevelFromHospitalView(hospitalView)) {
@@ -5067,6 +5156,9 @@ export function mountAppShell(options) {
     researchPanelCloseButton.addEventListener("click", onCloseResearchPanel);
     statusPanelCloseButton.addEventListener("click", onCloseStatusPanel);
     chartsPanelCloseButton.addEventListener("click", onCloseChartsPanel);
+    mapPanelSelect.addEventListener("change", onMapPanelSelectChange);
+    mapPanelSelect.addEventListener("keydown", onMapPanelSelectKeyDown);
+    mapPanelCloseButton.addEventListener("click", onCloseMapPanel);
     policyPanelCloseButton.addEventListener("click", onClosePolicyPanel);
     machineMenuRepairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
     machineMenuCloseButton.addEventListener("click", onCloseMachineMenu);
@@ -5173,6 +5265,9 @@ export function mountAppShell(options) {
             researchPanelCloseButton.removeEventListener("click", onCloseResearchPanel);
             statusPanelCloseButton.removeEventListener("click", onCloseStatusPanel);
             chartsPanelCloseButton.removeEventListener("click", onCloseChartsPanel);
+            mapPanelSelect.removeEventListener("change", onMapPanelSelectChange);
+            mapPanelSelect.removeEventListener("keydown", onMapPanelSelectKeyDown);
+            mapPanelCloseButton.removeEventListener("click", onCloseMapPanel);
             policyPanelCloseButton.removeEventListener("click", onClosePolicyPanel);
             machineMenuRepairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
             machineMenuCloseButton.removeEventListener("click", onCloseMachineMenu);
