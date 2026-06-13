@@ -5276,4 +5276,74 @@ describe("app orchestrator", () => {
             })
         ]);
     });
+    it("blocks scenario-locked corridor object placement until it is available", () => {
+        const orchestrator = new AppOrchestrator({
+            seed: 9026,
+            tickRateHz: 4,
+            pointerTileSize: 8,
+            objectAvailability: [
+                { index: 7, name: "Plant", startCost: 50, startStrength: 7, startAvailable: false, whenAvailable: 1, availableForLevel: true },
+                { index: 8, name: "Bin", startCost: 25, startAvailable: false, whenAvailable: 0, availableForLevel: false }
+            ]
+        });
+        expect(orchestrator.evaluatePlacement({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 7,
+            objectName: "Plant",
+            cost: 50,
+            source: "ui:furnish-corridor",
+            pointer: { x: 32, y: 32 }
+        })).toMatchObject({
+            action: "place-object",
+            valid: false,
+            reason: "object-unavailable",
+            position: { x: 4, y: 4 }
+        });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 7,
+            objectName: "Plant",
+            cost: 50,
+            source: "ui:furnish-corridor",
+            pointer: { x: 32, y: 32 }
+        })).toEqual(["object.place-blocked"]);
+        orchestrator.advanceFrame(16_000);
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 7,
+            objectName: "Plant",
+            cost: 50,
+            strength: 7,
+            source: "ui:furnish-corridor",
+            pointer: { x: 32, y: 32 }
+        })).toEqual(["object.placed"]);
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 8,
+            objectName: "Bin",
+            cost: 25,
+            source: "ui:furnish-corridor",
+            pointer: { x: 40, y: 32 }
+        })).toEqual(["object.place-blocked"]);
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 99,
+            objectName: "Unknown",
+            cost: 1,
+            source: "ui:furnish-corridor",
+            pointer: { x: 48, y: 32 }
+        })).toEqual(["object.place-blocked"]);
+        expect(orchestrator.getState().entities.objects).toEqual([
+            expect.objectContaining({
+                objectIndex: 7,
+                strength: 7,
+                position: { x: 4, y: 4 }
+            })
+        ]);
+    });
 });

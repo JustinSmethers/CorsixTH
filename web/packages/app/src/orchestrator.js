@@ -2205,6 +2205,9 @@ export class AppOrchestrator {
             return [roomsAfter > roomsBefore ? "room.built" : "room.build-blocked"];
         }
         if (action.action === "place-object") {
+            if (!this.isObjectAvailableForTick(action.objectIndex, this.simulation.getState().tick)) {
+                return ["object.place-blocked"];
+            }
             const objectsBefore = this.simulation.getState().entities.objects?.length ?? 0;
             const command = {
                 type: "place-object",
@@ -2804,6 +2807,21 @@ export class AppOrchestrator {
             };
         }
         if (action.action === "place-object") {
+            if (!this.isObjectAvailableForTick(action.objectIndex, this.simulation.getState().tick)) {
+                const position = this.resolveGridPosition(action.pointer);
+                return {
+                    action: "place-object",
+                    type: "object",
+                    objectIndex: action.objectIndex,
+                    valid: false,
+                    reason: "object-unavailable",
+                    cost: Number.isInteger(action.cost) && action.cost > 0 ? action.cost : 0,
+                    ...(action.orientation ? { orientation: action.orientation } : {}),
+                    position,
+                    requestedPosition: position,
+                    tiles: position ? [position] : []
+                };
+            }
             return {
                 action: "place-object",
                 ...(action.orientation ? { orientation: action.orientation } : {}),
@@ -3286,6 +3304,13 @@ export class AppOrchestrator {
     }
     isRoomTypeAvailable(roomType) {
         return this.availableRoomTypesForTick(this.simulation.getState().tick).includes(roomType);
+    }
+    isObjectAvailableForTick(objectIndex, tick) {
+        if (!Number.isInteger(objectIndex) || objectIndex < 0 || this.objectAvailability.length === 0) {
+            return this.objectAvailability.length === 0;
+        }
+        const entry = this.objectAvailability.find((candidate) => candidate.index === objectIndex);
+        return entry ? this.isRoomAvailabilityEntryUnlockedForTick(entry, tick) : false;
     }
     scenarioObjectAvailabilityForTick(tick) {
         const entries = this.objectAvailability.length > 0 ? this.objectAvailability : this.roomAvailabilitySchedule;
