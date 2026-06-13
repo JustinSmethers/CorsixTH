@@ -70,6 +70,7 @@ const ACTION_STATUS_LABELS = {
     "speed.changed": "Action: speed changed",
     "cancel-action-blocked": "Action: cancel blocked",
     "confirm-action-blocked": "Action: confirm blocked",
+    "camera.unavailable": "Action: camera unavailable",
     "zoom.unavailable": "Action: zoom unavailable",
     "admission-policy.changed": "Action: admission policy changed",
     "pricing-policy.changed": "Action: pricing policy changed",
@@ -5580,21 +5581,41 @@ export function mountAppShell(options) {
         renderHospital();
     };
     const onCameraWest = () => {
+        if (!hospitalView?.map) {
+            actionStatus.textContent = formatActionStatus("camera.unavailable");
+            renderRuntime();
+            return;
+        }
         moveHospitalCamera(hospitalView, -HOSPITAL_CAMERA_STEP, 0);
         placementPreview = null;
         renderHospital();
     };
     const onCameraEast = () => {
+        if (!hospitalView?.map) {
+            actionStatus.textContent = formatActionStatus("camera.unavailable");
+            renderRuntime();
+            return;
+        }
         moveHospitalCamera(hospitalView, HOSPITAL_CAMERA_STEP, 0);
         placementPreview = null;
         renderHospital();
     };
     const onCameraNorth = () => {
+        if (!hospitalView?.map) {
+            actionStatus.textContent = formatActionStatus("camera.unavailable");
+            renderRuntime();
+            return;
+        }
         moveHospitalCamera(hospitalView, 0, -HOSPITAL_CAMERA_STEP);
         placementPreview = null;
         renderHospital();
     };
     const onCameraSouth = () => {
+        if (!hospitalView?.map) {
+            actionStatus.textContent = formatActionStatus("camera.unavailable");
+            renderRuntime();
+            return;
+        }
         moveHospitalCamera(hospitalView, 0, HOSPITAL_CAMERA_STEP);
         placementPreview = null;
         renderHospital();
