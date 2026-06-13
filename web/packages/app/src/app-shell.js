@@ -2542,6 +2542,25 @@ export function mountAppShell(options) {
         <button type="button" data-testid="bank-stats-run-audit">Run Audit</button>
         <button type="button" data-testid="bank-stats-close">Close</button>
       </section>
+      <section
+        data-testid="staff-panel"
+        hidden
+        role="dialog"
+        aria-label="Staff"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Staff</h2>
+        <p data-testid="staff-panel-active" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="staff-panel-break" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="staff-panel-training" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="staff-panel-skill" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="staff-panel-market" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="staff-panel-hire-diagnostician">Hire Doctor</button>
+        <button type="button" data-testid="staff-panel-hire-nurse">Hire Nurse</button>
+        <button type="button" data-testid="staff-panel-hire-handyman">Hire Handyman</button>
+        <button type="button" data-testid="staff-panel-hire-receptionist">Hire Receptionist</button>
+        <button type="button" data-testid="staff-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2876,6 +2895,23 @@ export function mountAppShell(options) {
     const bankStatsCumulativeMetric = requiredElement(options.root, "[data-testid='bank-stats-cumulative']");
     const bankStatsRunAuditButton = requiredElement(options.root, "[data-testid='bank-stats-run-audit']");
     const bankStatsCloseButton = requiredElement(options.root, "[data-testid='bank-stats-close']");
+    const staffPanel = requiredElement(options.root, "[data-testid='staff-panel']");
+    const staffPanelActiveMetric = requiredElement(options.root, "[data-testid='staff-panel-active']");
+    const staffPanelBreakMetric = requiredElement(options.root, "[data-testid='staff-panel-break']");
+    const staffPanelTrainingMetric = requiredElement(options.root, "[data-testid='staff-panel-training']");
+    const staffPanelSkillMetric = requiredElement(options.root, "[data-testid='staff-panel-skill']");
+    const staffPanelMarketMetric = requiredElement(options.root, "[data-testid='staff-panel-market']");
+    const staffPanelHireDiagnosticianButton = requiredElement(options.root, "[data-testid='staff-panel-hire-diagnostician']");
+    const staffPanelHireNurseButton = requiredElement(options.root, "[data-testid='staff-panel-hire-nurse']");
+    const staffPanelHireHandymanButton = requiredElement(options.root, "[data-testid='staff-panel-hire-handyman']");
+    const staffPanelHireReceptionistButton = requiredElement(options.root, "[data-testid='staff-panel-hire-receptionist']");
+    const staffPanelCloseButton = requiredElement(options.root, "[data-testid='staff-panel-close']");
+    const staffPanelHireButtons = [
+        staffPanelHireDiagnosticianButton,
+        staffPanelHireNurseButton,
+        staffPanelHireHandymanButton,
+        staffPanelHireReceptionistButton
+    ];
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -2970,6 +3006,11 @@ export function mountAppShell(options) {
         bankStatsCashflowMetric.textContent = formatTickCashflowStatus(telemetry);
         bankStatsCumulativeMetric.textContent = formatCumulativeCashflowStatus(telemetry);
         bankStatsRunAuditButton.disabled = !canRunFinanceAuditFromTelemetry(telemetry);
+        staffPanelActiveMetric.textContent = formatActiveStaffStatus(telemetry);
+        staffPanelBreakMetric.textContent = formatOnBreakStaffStatus(telemetry);
+        staffPanelTrainingMetric.textContent = formatStaffTrainingStatus(telemetry);
+        staffPanelSkillMetric.textContent = formatStaffSkillStatus(telemetry);
+        staffPanelMarketMetric.textContent = formatStaffMarketStatus(telemetry);
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
@@ -2986,6 +3027,14 @@ export function mountAppShell(options) {
         hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
         hireHandymanButton.disabled = !canHireStaffFromTelemetry("handyman", telemetry);
         hireReceptionistButton.disabled = !canHireStaffFromTelemetry("receptionist", telemetry);
+        staffPanelHireDiagnosticianButton.textContent = hireDiagnosticianButton.textContent;
+        staffPanelHireNurseButton.textContent = hireNurseButton.textContent;
+        staffPanelHireHandymanButton.textContent = hireHandymanButton.textContent;
+        staffPanelHireReceptionistButton.textContent = hireReceptionistButton.textContent;
+        staffPanelHireDiagnosticianButton.disabled = hireDiagnosticianButton.disabled;
+        staffPanelHireNurseButton.disabled = hireNurseButton.disabled;
+        staffPanelHireHandymanButton.disabled = hireHandymanButton.disabled;
+        staffPanelHireReceptionistButton.disabled = hireReceptionistButton.disabled;
         renderHospital();
         renderSelectionControls();
         renderLevelControls();
@@ -3043,6 +3092,12 @@ export function mountAppShell(options) {
         if (!bankStatsPanel.hidden) {
             bankStatsPanel.hidden = true;
             actionStatus.textContent = "Action: bank stats closed";
+            playfield.focus();
+            return true;
+        }
+        if (!staffPanel.hidden) {
+            staffPanel.hidden = true;
+            actionStatus.textContent = "Action: staff panel closed";
             playfield.focus();
             return true;
         }
@@ -3700,6 +3755,27 @@ export function mountAppShell(options) {
         actionStatus.textContent = formatChoosePlacementActionStatus();
         renderRuntime();
     };
+    const closeStaffPanelForPlacement = () => {
+        if (placementAction?.action === "hire-staff") {
+            staffPanel.hidden = true;
+        }
+    };
+    const onStaffPanelHireDiagnostician = () => {
+        onHireDiagnostician();
+        closeStaffPanelForPlacement();
+    };
+    const onStaffPanelHireNurse = () => {
+        onHireNurse();
+        closeStaffPanelForPlacement();
+    };
+    const onStaffPanelHireHandyman = () => {
+        onHireHandyman();
+        closeStaffPanelForPlacement();
+    };
+    const onStaffPanelHireReceptionist = () => {
+        onHireReceptionist();
+        closeStaffPanelForPlacement();
+    };
     const onSaveGame = () => {
         const slot = activeSaveSlot();
         saveSlotNameInput.value = slot;
@@ -3804,6 +3880,7 @@ export function mountAppShell(options) {
     };
     const onOpenBankManager = () => {
         bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -3818,6 +3895,7 @@ export function mountAppShell(options) {
     };
     const onOpenBankStats = () => {
         bankManagerPanel.hidden = true;
+        staffPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -3830,8 +3908,19 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenStaff = () => {
-        telemetryElements.activeStaffMetric.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = false;
+        actionStatus.textContent = "Action: staff panel opened";
+        renderRuntime();
+        const firstEnabledStaffButton = staffPanelHireButtons.find((button) => !button.disabled);
+        (firstEnabledStaffButton ?? staffPanelCloseButton).focus();
         return true;
+    };
+    const onCloseStaffPanel = () => {
+        staffPanel.hidden = true;
+        actionStatus.textContent = "Action: staff panel closed";
+        playfield.focus();
     };
     const onOpenFurnishCorridor = () => {
         telemetryElements.objectAvailabilityMetric.focus();
@@ -4523,6 +4612,11 @@ export function mountAppShell(options) {
     bankManagerCloseButton.addEventListener("click", onCloseBankManager);
     bankStatsRunAuditButton.addEventListener("click", onFinanceAudit);
     bankStatsCloseButton.addEventListener("click", onCloseBankStats);
+    staffPanelHireDiagnosticianButton.addEventListener("click", onStaffPanelHireDiagnostician);
+    staffPanelHireNurseButton.addEventListener("click", onStaffPanelHireNurse);
+    staffPanelHireHandymanButton.addEventListener("click", onStaffPanelHireHandyman);
+    staffPanelHireReceptionistButton.addEventListener("click", onStaffPanelHireReceptionist);
+    staffPanelCloseButton.addEventListener("click", onCloseStaffPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4613,6 +4707,11 @@ export function mountAppShell(options) {
             bankManagerCloseButton.removeEventListener("click", onCloseBankManager);
             bankStatsRunAuditButton.removeEventListener("click", onFinanceAudit);
             bankStatsCloseButton.removeEventListener("click", onCloseBankStats);
+            staffPanelHireDiagnosticianButton.removeEventListener("click", onStaffPanelHireDiagnostician);
+            staffPanelHireNurseButton.removeEventListener("click", onStaffPanelHireNurse);
+            staffPanelHireHandymanButton.removeEventListener("click", onStaffPanelHireHandyman);
+            staffPanelHireReceptionistButton.removeEventListener("click", onStaffPanelHireReceptionist);
+            staffPanelCloseButton.removeEventListener("click", onCloseStaffPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
