@@ -204,6 +204,55 @@ function normalizeRoomAvailabilitySchedule(schedule = []) {
     })
         .sort((left, right) => left.whenAvailable - right.whenAvailable || left.index - right.index);
 }
+function normalizeObjectAvailability(availability = []) {
+    if (availability === undefined) {
+        return [];
+    }
+    if (!Array.isArray(availability)) {
+        throw new Error("objectAvailability must be an array");
+    }
+    return availability
+        .map((entry, index) => {
+        if (!Number.isInteger(entry.index) || entry.index < 0) {
+            throw new Error(`objectAvailability[${index}].index must be a non-negative integer`);
+        }
+        const normalized = {
+            index: entry.index,
+            startAvailable: entry.startAvailable === true,
+            whenAvailable: Number.isInteger(entry.whenAvailable) && entry.whenAvailable >= 0 ? entry.whenAvailable : 0,
+            availableForLevel: entry.availableForLevel !== false
+        };
+        if (entry.startCost !== undefined) {
+            if (!Number.isInteger(entry.startCost) || entry.startCost < 0) {
+                throw new Error(`objectAvailability[${index}].startCost must be a non-negative integer`);
+            }
+            normalized.startCost = entry.startCost;
+        }
+        if (entry.startStrength !== undefined) {
+            if (!Number.isInteger(entry.startStrength) || entry.startStrength < 0) {
+                throw new Error(`objectAvailability[${index}].startStrength must be a non-negative integer`);
+            }
+            normalized.startStrength = entry.startStrength;
+        }
+        if (typeof entry.roomType === "string" && entry.roomType.length > 0) {
+            if (!ALLOWED_ROOM_TYPES.includes(entry.roomType)) {
+                throw new Error(`objectAvailability[${index}].roomType must be a supported room type`);
+            }
+            normalized.roomType = entry.roomType;
+        }
+        if (typeof entry.name === "string" && entry.name.length > 0) {
+            normalized.name = entry.name;
+        }
+        if (Number.isInteger(entry.researchRequired) && entry.researchRequired > 0) {
+            normalized.researchRequired = entry.researchRequired;
+        }
+        if (typeof entry.expertiseCategory === "string" && entry.expertiseCategory.length > 0) {
+            normalized.expertiseCategory = entry.expertiseCategory;
+        }
+        return normalized;
+    })
+        .sort((left, right) => left.index - right.index);
+}
 function normalizeRoomCostOverrides(value = {}) {
     if (value === undefined) {
         return {};
@@ -873,6 +922,9 @@ function cloneRoomAvailability(roomAvailability) {
 }
 function cloneRoomAvailabilitySchedule(schedule) {
     return schedule.map((entry) => ({ ...entry }));
+}
+function cloneObjectAvailability(availability) {
+    return availability.map((entry) => ({ ...entry }));
 }
 function cloneRoomCostOverrides(overrides) {
     return { ...overrides };
@@ -1650,6 +1702,7 @@ export class AppOrchestrator {
     staffMarketSchedule;
     roomAvailability;
     roomAvailabilitySchedule;
+    objectAvailability;
     roomCostOverrides;
     roomWearThresholdOverrides;
     staffWageOverrides;
@@ -1701,7 +1754,19 @@ export class AppOrchestrator {
         this.diseasePool = normalizeDiseasePool(options.diseasePool);
         this.staffMarketSchedule = normalizeStaffMarketSchedule(options.staffMarketSchedule);
         this.roomAvailability = normalizeRoomAvailability(options.roomAvailability);
-        this.roomAvailabilitySchedule = normalizeRoomAvailabilitySchedule(options.roomAvailabilitySchedule);
+        this.objectAvailability = normalizeObjectAvailability(options.objectAvailability);
+        this.roomAvailabilitySchedule = normalizeRoomAvailabilitySchedule(options.roomAvailabilitySchedule ??
+            this.objectAvailability
+                .filter((object) => typeof object.roomType === "string")
+                .map((object) => ({
+                index: object.index,
+                roomType: object.roomType,
+                startAvailable: object.startAvailable,
+                whenAvailable: object.whenAvailable,
+                availableForLevel: object.availableForLevel,
+                ...(Number.isInteger(object.researchRequired) ? { researchRequired: object.researchRequired } : {}),
+                ...(object.expertiseCategory ? { expertiseCategory: object.expertiseCategory } : {})
+            })));
         this.roomCostOverrides = normalizeRoomCostOverrides(options.roomCostOverrides);
         this.roomWearThresholdOverrides = normalizeRoomWearThresholdOverrides(options.roomWearThresholdOverrides);
         this.staffWageOverrides = normalizeStaffWageOverrides(options.staffWageOverrides);
@@ -1815,6 +1880,7 @@ export class AppOrchestrator {
             ...(options.staffMarketSchedule ? { staffMarketSchedule: options.staffMarketSchedule } : snapshot.staffMarketSchedule ? { staffMarketSchedule: snapshot.staffMarketSchedule } : {}),
             ...(options.roomAvailability ? { roomAvailability: options.roomAvailability } : snapshot.roomAvailability ? { roomAvailability: snapshot.roomAvailability } : {}),
             ...(options.roomAvailabilitySchedule ? { roomAvailabilitySchedule: options.roomAvailabilitySchedule } : snapshot.roomAvailabilitySchedule ? { roomAvailabilitySchedule: snapshot.roomAvailabilitySchedule } : {}),
+            ...(options.objectAvailability ? { objectAvailability: options.objectAvailability } : snapshot.objectAvailability ? { objectAvailability: snapshot.objectAvailability } : {}),
             ...(options.roomCostOverrides ? { roomCostOverrides: options.roomCostOverrides } : snapshot.roomCostOverrides ? { roomCostOverrides: snapshot.roomCostOverrides } : {}),
             ...(options.roomWearThresholdOverrides ? { roomWearThresholdOverrides: options.roomWearThresholdOverrides } : snapshot.roomWearThresholdOverrides ? { roomWearThresholdOverrides: snapshot.roomWearThresholdOverrides } : {}),
             ...(options.staffWageOverrides ? { staffWageOverrides: options.staffWageOverrides } : snapshot.staffWageOverrides ? { staffWageOverrides: snapshot.staffWageOverrides } : {}),
@@ -1856,6 +1922,7 @@ export class AppOrchestrator {
             ...(this.staffMarketSchedule.length > 0 ? { staffMarketSchedule: cloneStaffMarketSchedule(this.staffMarketSchedule) } : {}),
             ...(this.roomAvailability !== null ? { roomAvailability: cloneRoomAvailability(this.roomAvailability) } : {}),
             ...(this.roomAvailabilitySchedule.length > 0 ? { roomAvailabilitySchedule: cloneRoomAvailabilitySchedule(this.roomAvailabilitySchedule) } : {}),
+            ...(this.objectAvailability.length > 0 ? { objectAvailability: cloneObjectAvailability(this.objectAvailability) } : {}),
             ...(Object.keys(this.roomCostOverrides).length > 0 ? { roomCostOverrides: cloneRoomCostOverrides(this.roomCostOverrides) } : {}),
             ...(Object.keys(this.roomWearThresholdOverrides).length > 0 ? { roomWearThresholdOverrides: cloneRoomWearThresholdOverrides(this.roomWearThresholdOverrides) } : {}),
             ...(Object.keys(this.staffWageOverrides).length > 0 ? { staffWageOverrides: cloneStaffWageOverrides(this.staffWageOverrides) } : {}),
@@ -3221,8 +3288,9 @@ export class AppOrchestrator {
         return this.availableRoomTypesForTick(this.simulation.getState().tick).includes(roomType);
     }
     scenarioObjectAvailabilityForTick(tick) {
+        const entries = this.objectAvailability.length > 0 ? this.objectAvailability : this.roomAvailabilitySchedule;
         const summary = {
-            total: this.roomAvailabilitySchedule.length,
+            total: entries.length,
             available: 0,
             locked: 0,
             disabled: 0,
@@ -3232,7 +3300,7 @@ export class AppOrchestrator {
             disabledIndices: [],
             researchLockedIndices: []
         };
-        for (const entry of this.roomAvailabilitySchedule) {
+        for (const entry of entries) {
             if (!entry.availableForLevel) {
                 summary.disabled += 1;
                 summary.disabledIndices.push(entry.index);

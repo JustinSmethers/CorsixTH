@@ -152,6 +152,10 @@ function sampleSnapshot() {
         diseasePool: [{ source: "visuals", token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3, weight: 5 }],
         staffMarketSchedule: [{ index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 5 }],
         roomAvailability: ["diagnosis", "treatment", "specialist"],
+        objectAvailability: [
+            { index: 5, name: "Plant", startCost: 100, startStrength: 7, startAvailable: true, whenAvailable: 0, availableForLevel: true },
+            { index: 13, name: "Cardiogram", roomType: "diagnosis", startCost: 1000, startStrength: 12, startAvailable: false, whenAvailable: 1, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
+        ],
         roomWearThresholdOverrides: { diagnosis: 12, specialist: 8 },
         admissionRules: { holdVisualMonths: 1, holdVisualPeepCount: 2 },
         researchSettings: { startRating: 95, researchPointsDivisor: 4, drugImproveRate: 5 },
@@ -183,6 +187,10 @@ describe("persistence schema and migration", () => {
         expect(reloaded.status).toBe("exact");
         expect(reloaded.issues).toEqual([]);
         expect(reloaded.envelope).toEqual(envelope);
+        expect(envelope.payload.objectAvailability).toEqual([
+            { index: 5, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 100, startStrength: 7, name: "Plant" },
+            { index: 13, startAvailable: false, whenAvailable: 1, availableForLevel: true, startCost: 1000, startStrength: 12, roomType: "diagnosis", name: "Cardiogram", researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
+        ]);
     });
     it("accepts imported no-cures level objectives in save snapshots", () => {
         const envelope = createSaveEnvelope({

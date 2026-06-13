@@ -2944,6 +2944,45 @@ describe("app orchestrator", () => {
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
+    it("preserves full imported object availability for room gates and corridor objects", () => {
+        const orchestrator = new AppOrchestrator({
+            seed: 9034,
+            tickRateHz: 4,
+            pointerTileSize: 8,
+            bounds: { width: 12, height: 12 },
+            roomAvailability: [],
+            objectAvailability: [
+                { index: 13, name: "Cardiogram", roomType: "diagnosis", startCost: 1000, startStrength: 12, startAvailable: true, whenAvailable: 0, availableForLevel: true },
+                { index: 24, name: "Cast Remover", roomType: "specialist", startCost: 2000, startStrength: 10, startAvailable: false, whenAvailable: 1, availableForLevel: true },
+                { index: 5, name: "Plant", startCost: 100, startStrength: 7, startAvailable: true, whenAvailable: 0, availableForLevel: true }
+            ]
+        });
+        expect(orchestrator.telemetry()).toMatchObject({
+            roomAvailabilityStatus: "diagnosis,treatment",
+            scenarioObjectAvailabilityCount: 3,
+            scenarioObjectAvailableCount: 2,
+            scenarioObjectLockedCount: 1,
+            scenarioObjectAvailableIndices: [5, 13],
+            scenarioObjectLockedIndices: [24]
+        });
+        orchestrator.advanceFrame(16_000);
+        expect(orchestrator.telemetry()).toMatchObject({
+            roomAvailabilityStatus: "diagnosis,treatment,specialist",
+            scenarioObjectAvailableCount: 3,
+            scenarioObjectLockedCount: 0
+        });
+        const snapshot = orchestrator.createPersistenceSnapshot();
+        expect(snapshot.objectAvailability).toEqual([
+            { index: 5, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 100, startStrength: 7, name: "Plant" },
+            { index: 13, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 1000, startStrength: 12, roomType: "diagnosis", name: "Cardiogram" },
+            { index: 24, startAvailable: false, whenAvailable: 1, availableForLevel: true, startCost: 2000, startStrength: 10, roomType: "specialist", name: "Cast Remover" }
+        ]);
+        expect(snapshot.roomAvailabilitySchedule).toEqual([
+            { index: 13, roomType: "diagnosis", startAvailable: true, whenAvailable: 0, availableForLevel: true },
+            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+        ]);
+        expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
+    });
     it("unlocks scenario object-gated rooms through researched expertise categories", () => {
         const orchestrator = new AppOrchestrator({
             seed: 9030,

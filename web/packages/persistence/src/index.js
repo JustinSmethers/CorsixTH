@@ -260,6 +260,7 @@ function normalizeSnapshot(snapshot) {
     const staffMarketSchedule = normalizeStaffMarketSchedule(snapshot.staffMarketSchedule);
     const roomAvailability = normalizeRoomAvailability(snapshot.roomAvailability);
     const roomAvailabilitySchedule = normalizeRoomAvailabilitySchedule(snapshot.roomAvailabilitySchedule);
+    const objectAvailability = normalizeObjectAvailability(snapshot.objectAvailability);
     const roomCostOverrides = normalizeRoomCostOverrides(snapshot.roomCostOverrides);
     const roomWearThresholdOverrides = normalizeRoomWearThresholdOverrides(snapshot.roomWearThresholdOverrides);
     const staffWageOverrides = normalizeStaffWageOverrides(snapshot.staffWageOverrides);
@@ -296,6 +297,7 @@ function normalizeSnapshot(snapshot) {
         ...(staffMarketSchedule.length > 0 ? { staffMarketSchedule } : {}),
         ...(roomAvailability.length > 0 ? { roomAvailability } : {}),
         ...(roomAvailabilitySchedule.length > 0 ? { roomAvailabilitySchedule } : {}),
+        ...(objectAvailability.length > 0 ? { objectAvailability } : {}),
         ...(Object.keys(roomCostOverrides).length > 0 ? { roomCostOverrides } : {}),
         ...(Object.keys(roomWearThresholdOverrides).length > 0 ? { roomWearThresholdOverrides } : {}),
         ...(Object.keys(staffWageOverrides).length > 0 ? { staffWageOverrides } : {}),
@@ -431,6 +433,53 @@ function normalizeRoomAvailabilitySchedule(schedule) {
             availableForLevel: entry.availableForLevel !== false
         };
     });
+}
+function normalizeObjectAvailability(availability) {
+    if (availability === undefined) {
+        return [];
+    }
+    if (!Array.isArray(availability)) {
+        throw new Error("Invalid save object availability");
+    }
+    return availability.map((entry, index) => {
+        if (!isRecord(entry)) {
+            throw new Error("Invalid save object availability entry");
+        }
+        const normalized = {
+            index: normalizeNonNegativeInteger(entry.index ?? index, "objectAvailability.index"),
+            startAvailable: entry.startAvailable === true,
+            whenAvailable: normalizeNonNegativeInteger(entry.whenAvailable ?? 0, "objectAvailability.whenAvailable"),
+            availableForLevel: entry.availableForLevel !== false
+        };
+        if (entry.startCost !== undefined) {
+            normalized.startCost = normalizeNonNegativeInteger(entry.startCost, "objectAvailability.startCost");
+        }
+        if (entry.startStrength !== undefined) {
+            normalized.startStrength = normalizeNonNegativeInteger(entry.startStrength, "objectAvailability.startStrength");
+        }
+        if (entry.roomType !== undefined) {
+            if (typeof entry.roomType !== "string" || entry.roomType.length === 0 || !ALLOWED_ROOM_TYPES.includes(entry.roomType)) {
+                throw new Error("Invalid save object availability room type");
+            }
+            normalized.roomType = entry.roomType;
+        }
+        if (entry.name !== undefined) {
+            if (typeof entry.name !== "string" || entry.name.length === 0) {
+                throw new Error("Invalid save object availability name");
+            }
+            normalized.name = entry.name;
+        }
+        if (entry.researchRequired !== undefined) {
+            normalized.researchRequired = normalizeNonNegativeInteger(entry.researchRequired, "objectAvailability.researchRequired");
+        }
+        if (entry.expertiseCategory !== undefined) {
+            if (typeof entry.expertiseCategory !== "string" || entry.expertiseCategory.length === 0) {
+                throw new Error("Invalid save object availability expertise category");
+            }
+            normalized.expertiseCategory = entry.expertiseCategory;
+        }
+        return normalized;
+    }).sort((left, right) => left.index - right.index);
 }
 function normalizeRoomCostOverrides(value) {
     if (value === undefined) {

@@ -2034,6 +2034,7 @@ function createRestoreOptionsFromHospitalView(view) {
     const staffMarketSchedule = currentMap?.scenario?.staffLevels;
     const roomAvailability = createRoomAvailabilityFromScenario(currentMap?.scenario);
     const roomAvailabilitySchedule = createRoomAvailabilityScheduleFromScenario(currentMap?.scenario);
+    const objectAvailability = currentMap?.scenario?.objectAvailability;
     const roomCostOverrides = currentMap?.scenario?.roomCostOverrides;
     const roomWearThresholdOverrides = createRoomWearThresholdOverridesFromScenario(currentMap?.scenario);
     const staffWageOverrides = currentMap?.scenario?.staffWageOverrides;
@@ -2067,6 +2068,7 @@ function createRestoreOptionsFromHospitalView(view) {
         ...(Array.isArray(staffMarketSchedule) && staffMarketSchedule.length > 0 ? { staffMarketSchedule } : {}),
         ...(Array.isArray(roomAvailability) && roomAvailability.length > 0 ? { roomAvailability } : {}),
         ...(Array.isArray(roomAvailabilitySchedule) && roomAvailabilitySchedule.length > 0 ? { roomAvailabilitySchedule } : {}),
+        ...(Array.isArray(objectAvailability) && objectAvailability.length > 0 ? { objectAvailability } : {}),
         ...(roomCostOverrides && Object.keys(roomCostOverrides).length > 0 ? { roomCostOverrides } : {}),
         ...(roomWearThresholdOverrides && Object.keys(roomWearThresholdOverrides).length > 0 ? { roomWearThresholdOverrides } : {}),
         ...(staffWageOverrides && Object.keys(staffWageOverrides).length > 0 ? { staffWageOverrides } : {}),
