@@ -4657,7 +4657,9 @@ export function mountAppShell(options) {
     const onOpenHireStaff = () => {
         const firstEnabledHireButton = hireStaffButtons.find((button) => !button.disabled);
         if (!firstEnabledHireButton) {
-            return false;
+            actionStatus.textContent = formatActionStatus("staff.hire-blocked");
+            renderRuntime();
+            return true;
         }
         firstEnabledHireButton.focus();
         return true;
