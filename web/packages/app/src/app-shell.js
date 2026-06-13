@@ -1866,6 +1866,68 @@ function scenarioObjectDisplayName(object, languageSummary) {
     }
     return Number.isInteger(object?.index) ? `object ${object.index}` : "object";
 }
+function scenarioObjectAvailabilityBucket(object, telemetry = {}, scenario = null) {
+    const availableIndices = scenarioObjectIndexSet(telemetry.scenarioObjectAvailableIndices);
+    const lockedIndices = scenarioObjectIndexSet(telemetry.scenarioObjectLockedIndices);
+    const disabledIndices = scenarioObjectIndexSet(telemetry.scenarioObjectDisabledIndices);
+    const researchLockedIndices = scenarioObjectIndexSet(telemetry.scenarioObjectResearchLockedIndices);
+    if (disabledIndices?.has(object.index)) {
+        return "disabled";
+    }
+    if (availableIndices?.has(object.index)) {
+        return "available";
+    }
+    if (researchLockedIndices?.has(object.index)) {
+        return "research";
+    }
+    if (lockedIndices?.has(object.index)) {
+        return "locked";
+    }
+    const diagnosisResearchRequired = scenarioDiagnosisResearchRequired(scenario);
+    if (object.availableForLevel === false) {
+        return "disabled";
+    }
+    if (object.startAvailable === true) {
+        return "available";
+    }
+    if (object.roomType === "diagnosis" && diagnosisResearchRequired !== null) {
+        return "research";
+    }
+    return "locked";
+}
+function scenarioCorridorObjects(scenario) {
+    const objectAvailability = scenario?.objectAvailability;
+    if (!Array.isArray(objectAvailability) || objectAvailability.length === 0) {
+        return [];
+    }
+    return objectAvailability.filter((object) => typeof object.roomType !== "string" || object.roomType.length === 0);
+}
+export function formatFurnishCorridorRowsHtml(scenario, telemetry = {}, languageSummary = null) {
+    const corridorObjects = scenarioCorridorObjects(scenario);
+    if (corridorObjects.length === 0) {
+        return `<p data-testid="furnish-corridor-panel-empty" style="margin:0 0 8px; font-size:13px;">No corridor objects imported for this level.</p>`;
+    }
+    return corridorObjects
+        .map((object) => {
+        const name = scenarioObjectDisplayName(object, languageSummary);
+        const bucket = scenarioObjectAvailabilityBucket(object, telemetry, scenario);
+        const cost = Number.isFinite(object.startCost) ? ` - ${object.startCost}` : "";
+        return `<button type="button" data-testid="furnish-corridor-object" data-object-index="${escapeHtml(String(object.index ?? ""))}" data-object-status="${escapeHtml(bucket)}" ${bucket === "available" ? "" : "disabled"} style="display:block; width:100%; margin:0 0 6px; text-align:left;">${escapeHtml(name)}${escapeHtml(cost)} (${escapeHtml(bucket)})</button>`;
+    })
+        .join("");
+}
+export function formatFurnishCorridorSummary(scenario, telemetry = {}) {
+    const corridorObjects = scenarioCorridorObjects(scenario);
+    if (corridorObjects.length === 0) {
+        return "Corridor objects: none imported";
+    }
+    const counts = corridorObjects.reduce((accumulator, object) => {
+        const bucket = scenarioObjectAvailabilityBucket(object, telemetry, scenario);
+        accumulator[bucket] = (accumulator[bucket] ?? 0) + 1;
+        return accumulator;
+    }, {});
+    return `Corridor objects: ${counts.available ?? 0}/${corridorObjects.length} available, locked ${counts.locked ?? 0}, research ${counts.research ?? 0}, disabled ${counts.disabled ?? 0}`;
+}
 function formatScenarioAwardSuffix(telemetry) {
     if (!telemetry.scenarioAwardCriteriaSummary || telemetry.scenarioAwardCriteriaSummary === "none") {
         return "";
@@ -2793,6 +2855,18 @@ export function mountAppShell(options) {
         <button type="button" data-testid="jukebox-panel-music-mute">Music</button>
         <button type="button" data-testid="jukebox-panel-close">Close</button>
       </section>
+      <section
+        data-testid="furnish-corridor-panel"
+        hidden
+        role="dialog"
+        aria-label="Furnish Corridor"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Furnish Corridor</h2>
+        <p data-testid="furnish-corridor-panel-summary" style="margin:0 0 8px; font-size:13px;"></p>
+        <div data-testid="furnish-corridor-panel-rows"></div>
+        <button type="button" data-testid="furnish-corridor-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -3220,6 +3294,10 @@ export function mountAppShell(options) {
     const jukeboxPanelSoundMuteButton = requiredElement(options.root, "[data-testid='jukebox-panel-sound-mute']");
     const jukeboxPanelMusicMuteButton = requiredElement(options.root, "[data-testid='jukebox-panel-music-mute']");
     const jukeboxPanelCloseButton = requiredElement(options.root, "[data-testid='jukebox-panel-close']");
+    const furnishCorridorPanel = requiredElement(options.root, "[data-testid='furnish-corridor-panel']");
+    const furnishCorridorPanelSummary = requiredElement(options.root, "[data-testid='furnish-corridor-panel-summary']");
+    const furnishCorridorPanelRows = requiredElement(options.root, "[data-testid='furnish-corridor-panel-rows']");
+    const furnishCorridorPanelCloseButton = requiredElement(options.root, "[data-testid='furnish-corridor-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3323,6 +3401,8 @@ export function mountAppShell(options) {
         jukeboxPanelMasterMuteButton.textContent = formatMuteToggleLabel(audioStatus);
         jukeboxPanelSoundMuteButton.textContent = audioStatus.soundMuted ? "Sound On" : "Sound Off";
         jukeboxPanelMusicMuteButton.textContent = audioStatus.musicMuted ? "Music On" : "Music Off";
+        furnishCorridorPanelSummary.textContent = formatFurnishCorridorSummary(currentMap?.scenario ?? null, telemetry);
+        furnishCorridorPanelRows.innerHTML = formatFurnishCorridorRowsHtml(currentMap?.scenario ?? null, telemetry, hospitalView?.languageSummary ?? null);
         bankManagerLoanMetric.textContent = formatLoanStatus(telemetry);
         bankManagerInterestMetric.textContent = formatLoanInterestStatus(telemetry);
         bankManagerCashflowMetric.textContent = formatTickCashflowStatus(telemetry);
@@ -3522,6 +3602,12 @@ export function mountAppShell(options) {
         if (!jukeboxPanel.hidden) {
             jukeboxPanel.hidden = true;
             actionStatus.textContent = "Action: jukebox closed";
+            playfield.focus();
+            return true;
+        }
+        if (!furnishCorridorPanel.hidden) {
+            furnishCorridorPanel.hidden = true;
+            actionStatus.textContent = "Action: furnish corridor closed";
             playfield.focus();
             return true;
         }
@@ -4343,6 +4429,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = false;
+        furnishCorridorPanel.hidden = true;
         actionStatus.textContent = "Action: jukebox opened";
         renderRuntime();
         jukeboxPanelVolumeSlider.focus();
@@ -4373,6 +4460,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         casebookPanel.hidden = false;
         actionStatus.textContent = "Action: casebook opened";
         renderRuntime();
@@ -4397,6 +4485,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -4421,6 +4510,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -4444,6 +4534,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4457,8 +4548,29 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenFurnishCorridor = () => {
-        telemetryElements.objectAvailabilityMetric.focus();
+        casebookPanel.hidden = true;
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        mapPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = false;
+        actionStatus.textContent = "Action: furnish corridor opened";
+        renderRuntime();
+        const firstFurnishButton = furnishCorridorPanelRows.querySelector("button:not(:disabled)");
+        (firstFurnishButton ?? furnishCorridorPanelCloseButton).focus();
         return true;
+    };
+    const onCloseFurnishCorridorPanel = () => {
+        furnishCorridorPanel.hidden = true;
+        actionStatus.textContent = "Action: furnish corridor closed";
+        playfield.focus();
     };
     const onOpenEditRoom = () => {
         telemetryElements.roomAvailabilityMetric.focus();
@@ -4476,6 +4588,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4499,6 +4612,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4522,6 +4636,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         chartsPanel.hidden = false;
         actionStatus.textContent = "Action: charts panel opened";
         renderRuntime();
@@ -4545,6 +4660,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         mapPanel.hidden = false;
         mapPanelSelect.value = hospitalView?.mapPath ?? "";
         actionStatus.textContent = "Action: town map opened";
@@ -4569,6 +4685,7 @@ export function mountAppShell(options) {
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         policyPanel.hidden = false;
         actionStatus.textContent = "Action: policy panel opened";
         renderRuntime();
@@ -4592,6 +4709,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         messagePanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         machineMenuPanel.hidden = false;
         actionStatus.textContent = "Action: machine menu opened";
         renderRuntime();
@@ -4616,6 +4734,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         jukeboxPanel.hidden = true;
+        furnishCorridorPanel.hidden = true;
         messagePanel.hidden = false;
         actionStatus.textContent = telemetry.lastEventType ? "Action: message opened" : "Action: no messages";
         renderRuntime();
@@ -5308,6 +5427,7 @@ export function mountAppShell(options) {
     casebookPanelCloseButton.addEventListener("click", onCloseCasebookPanel);
     messagePanelCloseButton.addEventListener("click", onCloseMessagePanel);
     jukeboxPanelCloseButton.addEventListener("click", onCloseJukeboxPanel);
+    furnishCorridorPanelCloseButton.addEventListener("click", onCloseFurnishCorridorPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -5422,6 +5542,7 @@ export function mountAppShell(options) {
             casebookPanelCloseButton.removeEventListener("click", onCloseCasebookPanel);
             messagePanelCloseButton.removeEventListener("click", onCloseMessagePanel);
             jukeboxPanelCloseButton.removeEventListener("click", onCloseJukeboxPanel);
+            furnishCorridorPanelCloseButton.removeEventListener("click", onCloseFurnishCorridorPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
