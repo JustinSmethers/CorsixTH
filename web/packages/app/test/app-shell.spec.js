@@ -698,9 +698,15 @@ describe("app shell campaign objectives", () => {
             valid: false,
             reason: "unknown-rule"
         })).toBe("Placement: move Doctor blocked: unknown-rule");
+        expect(formatPlacementMode({ label: "place Plant" }, {
+            valid: false,
+            requestedPosition: { x: 4, y: 4 },
+            reason: "object-unavailable"
+        })).toBe("Placement: place Plant at 4,4 blocked: object unavailable in scenario");
         expect(formatActionStatus(["room.built"], null)).toBe("Action: room built");
         expect(formatActionStatus(["room.build-blocked"], { reason: "occupied" })).toBe("Action: room blocked: occupied");
         expect(formatActionStatus(["staff.move-blocked"], { reason: "invalid-terrain" })).toBe("Action: staff move blocked: invalid terrain");
+        expect(formatActionStatus(["object.place-blocked"], { reason: "object-unavailable" })).toBe("Action: object placement blocked: object unavailable in scenario");
         expect(formatActionStatus(["not-a-player-event"], null)).toBeNull();
         expect(formatActionStatus([], null)).toBeNull();
         expect(formatChoosePlacementActionStatus()).toBe("Action: choose placement");

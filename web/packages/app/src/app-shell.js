@@ -59,7 +59,8 @@ const PLACEMENT_REASON_LABELS = {
     "insufficient-cash": "not enough cash",
     "no-traversable-position": "no clear path",
     "staff-market-empty": "no scenario staff available",
-    "room-unavailable": "room unavailable in scenario"
+    "room-unavailable": "room unavailable in scenario",
+    "object-unavailable": "object unavailable in scenario"
 };
 const ACTION_STATUS_LABELS = {
     "admissions.opened": "Action: admissions open",
