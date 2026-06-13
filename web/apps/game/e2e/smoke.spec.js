@@ -210,9 +210,24 @@ test("phase 7 audio flow: gesture-safe init and no Chromium autoplay policy viol
     await page.getByTestId("playfield").focus();
     const audioVolumeBeforeJukebox = (await page.getByTestId("audio-volume-metric").textContent()) ?? "";
     await page.keyboard.press("KeyJ");
-    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "audio-volume");
+    await expect(page.getByTestId("jukebox-panel")).toBeVisible();
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "jukebox-panel-volume");
+    await expect(page.getByTestId("jukebox-panel-volume-status")).toHaveText(audioVolumeBeforeJukebox);
     await expect(page.getByTestId("audio-volume-metric")).toHaveText(audioVolumeBeforeJukebox);
     await expect(page.getByTestId("action-status")).toHaveText("Action: jukebox opened");
+    await page.getByTestId("jukebox-panel-volume").evaluate((input) => {
+        input.value = "25";
+        input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 25% (sound on, music on)");
+    await expect(page.getByTestId("jukebox-panel-volume-status")).toHaveText("Audio volume: 25% (sound on, music on)");
+    await page.getByTestId("jukebox-panel-sound-mute").click();
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 25% (sound off, music on)");
+    await page.getByTestId("jukebox-panel-music-mute").click();
+    await expect(page.getByTestId("audio-volume-metric")).toHaveText("Audio volume: 25% (sound off, music off)");
+    await page.keyboard.press("Escape");
+    await expect(page.getByTestId("jukebox-panel")).toBeHidden();
+    await expect(page.getByTestId("action-status")).toHaveText("Action: jukebox closed");
     await expect.poll(() => autoplayViolations).toEqual([]);
 });
 test("phase 7 keyboard shortcuts set original speed tiers", async ({ page }) => {

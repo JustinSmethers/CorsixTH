@@ -2774,6 +2774,25 @@ export function mountAppShell(options) {
         <p data-testid="message-panel-recent" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="message-panel-close">Close</button>
       </section>
+      <section
+        data-testid="jukebox-panel"
+        hidden
+        role="dialog"
+        aria-label="Jukebox"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Jukebox</h2>
+        <p data-testid="jukebox-panel-status" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="jukebox-panel-volume-status" style="margin:0 0 8px; font-size:13px;"></p>
+        <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
+          Volume
+          <input type="range" min="0" max="100" step="1" value="100" data-testid="jukebox-panel-volume" />
+        </label>
+        <button type="button" data-testid="jukebox-panel-master-mute">Mute</button>
+        <button type="button" data-testid="jukebox-panel-sound-mute">Sound</button>
+        <button type="button" data-testid="jukebox-panel-music-mute">Music</button>
+        <button type="button" data-testid="jukebox-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -3193,6 +3212,14 @@ export function mountAppShell(options) {
     const messagePanelLastMetric = requiredElement(options.root, "[data-testid='message-panel-last']");
     const messagePanelRecentMetric = requiredElement(options.root, "[data-testid='message-panel-recent']");
     const messagePanelCloseButton = requiredElement(options.root, "[data-testid='message-panel-close']");
+    const jukeboxPanel = requiredElement(options.root, "[data-testid='jukebox-panel']");
+    const jukeboxPanelStatusMetric = requiredElement(options.root, "[data-testid='jukebox-panel-status']");
+    const jukeboxPanelVolumeStatusMetric = requiredElement(options.root, "[data-testid='jukebox-panel-volume-status']");
+    const jukeboxPanelVolumeSlider = requiredElement(options.root, "[data-testid='jukebox-panel-volume']");
+    const jukeboxPanelMasterMuteButton = requiredElement(options.root, "[data-testid='jukebox-panel-master-mute']");
+    const jukeboxPanelSoundMuteButton = requiredElement(options.root, "[data-testid='jukebox-panel-sound-mute']");
+    const jukeboxPanelMusicMuteButton = requiredElement(options.root, "[data-testid='jukebox-panel-music-mute']");
+    const jukeboxPanelCloseButton = requiredElement(options.root, "[data-testid='jukebox-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3289,6 +3316,13 @@ export function mountAppShell(options) {
         const currentMap = campaignMapSummaryAt(hospitalView, campaignLevelIndex(hospitalView));
         renderTelemetry(telemetryElements, orchestrator, audioMixer, hospitalView?.languageSummary ?? null, currentMap?.scenario ?? null);
         const telemetry = orchestrator.telemetry();
+        const audioStatus = audioMixer.status();
+        jukeboxPanelStatusMetric.textContent = formatAudioStatus(audioStatus);
+        jukeboxPanelVolumeStatusMetric.textContent = formatAudioVolumeStatus(audioStatus);
+        jukeboxPanelVolumeSlider.value = String(Math.round(audioStatus.volume * 100));
+        jukeboxPanelMasterMuteButton.textContent = formatMuteToggleLabel(audioStatus);
+        jukeboxPanelSoundMuteButton.textContent = audioStatus.soundMuted ? "Sound On" : "Sound Off";
+        jukeboxPanelMusicMuteButton.textContent = audioStatus.musicMuted ? "Music On" : "Music Off";
         bankManagerLoanMetric.textContent = formatLoanStatus(telemetry);
         bankManagerInterestMetric.textContent = formatLoanInterestStatus(telemetry);
         bankManagerCashflowMetric.textContent = formatTickCashflowStatus(telemetry);
@@ -3482,6 +3516,12 @@ export function mountAppShell(options) {
         if (!messagePanel.hidden) {
             messagePanel.hidden = true;
             actionStatus.textContent = "Action: message closed";
+            playfield.focus();
+            return true;
+        }
+        if (!jukeboxPanel.hidden) {
+            jukeboxPanel.hidden = true;
+            actionStatus.textContent = "Action: jukebox closed";
             playfield.focus();
             return true;
         }
@@ -4279,16 +4319,39 @@ export function mountAppShell(options) {
         audioMixer.setMusicMuted(!audioMixer.status().musicMuted);
         renderRuntime();
     };
-    const onVolumeInput = () => {
+    const setAudioVolumePercent = (volumePercent) => {
         requestAudioInitialization(audioMixer, orchestrator, telemetryElements, renderRuntime);
-        const volumePercent = clamp(Number(telemetryElements.volumeSlider.value), 0, 100);
         audioMixer.setVolume(volumePercent / 100);
         renderRuntime();
     };
+    const onVolumeInput = () => {
+        setAudioVolumePercent(clamp(Number(telemetryElements.volumeSlider.value), 0, 100));
+    };
+    const onJukeboxPanelVolumeInput = () => {
+        setAudioVolumePercent(clamp(Number(jukeboxPanelVolumeSlider.value), 0, 100));
+    };
     const onOpenJukebox = () => {
-        telemetryElements.volumeSlider.focus();
+        casebookPanel.hidden = true;
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        mapPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
+        jukeboxPanel.hidden = false;
         actionStatus.textContent = "Action: jukebox opened";
+        renderRuntime();
+        jukeboxPanelVolumeSlider.focus();
         return true;
+    };
+    const onCloseJukeboxPanel = () => {
+        jukeboxPanel.hidden = true;
+        actionStatus.textContent = "Action: jukebox closed";
+        playfield.focus();
     };
     const onOpenHireStaff = () => {
         const firstEnabledHireButton = hireStaffButtons.find((button) => !button.disabled);
@@ -4309,6 +4372,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         casebookPanel.hidden = false;
         actionStatus.textContent = "Action: casebook opened";
         renderRuntime();
@@ -4332,6 +4396,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -4355,6 +4420,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -4377,6 +4443,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4408,6 +4475,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4430,6 +4498,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4452,6 +4521,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         chartsPanel.hidden = false;
         actionStatus.textContent = "Action: charts panel opened";
         renderRuntime();
@@ -4474,6 +4544,7 @@ export function mountAppShell(options) {
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         mapPanel.hidden = false;
         mapPanelSelect.value = hospitalView?.mapPath ?? "";
         actionStatus.textContent = "Action: town map opened";
@@ -4497,6 +4568,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         machineMenuPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         policyPanel.hidden = false;
         actionStatus.textContent = "Action: policy panel opened";
         renderRuntime();
@@ -4519,6 +4591,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         messagePanel.hidden = true;
+        jukeboxPanel.hidden = true;
         machineMenuPanel.hidden = false;
         actionStatus.textContent = "Action: machine menu opened";
         renderRuntime();
@@ -4542,6 +4615,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        jukeboxPanel.hidden = true;
         messagePanel.hidden = false;
         actionStatus.textContent = telemetry.lastEventType ? "Action: message opened" : "Action: no messages";
         renderRuntime();
@@ -5167,6 +5241,10 @@ export function mountAppShell(options) {
     telemetryElements.admissionsToggleButton.addEventListener("click", onAdmissionsToggle);
     telemetryElements.muteToggleButton.addEventListener("click", onMuteToggle);
     telemetryElements.volumeSlider.addEventListener("input", onVolumeInput);
+    jukeboxPanelMasterMuteButton.addEventListener("click", onMuteToggle);
+    jukeboxPanelSoundMuteButton.addEventListener("click", onSoundMuteToggle);
+    jukeboxPanelMusicMuteButton.addEventListener("click", onMusicMuteToggle);
+    jukeboxPanelVolumeSlider.addEventListener("input", onJukeboxPanelVolumeInput);
     stepButton.addEventListener("click", onStep);
     admitButton.addEventListener("click", onAdmit);
     treatButton.addEventListener("click", onTreat);
@@ -5229,6 +5307,7 @@ export function mountAppShell(options) {
     casebookPanelRows.addEventListener("click", onCasebookPanelRowsClick);
     casebookPanelCloseButton.addEventListener("click", onCloseCasebookPanel);
     messagePanelCloseButton.addEventListener("click", onCloseMessagePanel);
+    jukeboxPanelCloseButton.addEventListener("click", onCloseJukeboxPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -5276,6 +5355,10 @@ export function mountAppShell(options) {
             telemetryElements.admissionsToggleButton.removeEventListener("click", onAdmissionsToggle);
             telemetryElements.muteToggleButton.removeEventListener("click", onMuteToggle);
             telemetryElements.volumeSlider.removeEventListener("input", onVolumeInput);
+            jukeboxPanelMasterMuteButton.removeEventListener("click", onMuteToggle);
+            jukeboxPanelSoundMuteButton.removeEventListener("click", onSoundMuteToggle);
+            jukeboxPanelMusicMuteButton.removeEventListener("click", onMusicMuteToggle);
+            jukeboxPanelVolumeSlider.removeEventListener("input", onJukeboxPanelVolumeInput);
             stepButton.removeEventListener("click", onStep);
             admitButton.removeEventListener("click", onAdmit);
             treatButton.removeEventListener("click", onTreat);
@@ -5338,6 +5421,7 @@ export function mountAppShell(options) {
             casebookPanelRows.removeEventListener("click", onCasebookPanelRowsClick);
             casebookPanelCloseButton.removeEventListener("click", onCloseCasebookPanel);
             messagePanelCloseButton.removeEventListener("click", onCloseMessagePanel);
+            jukeboxPanelCloseButton.removeEventListener("click", onCloseJukeboxPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
