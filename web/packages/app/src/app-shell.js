@@ -4117,6 +4117,8 @@ export function mountAppShell(options) {
     const onSendSelectedPatientHome = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
         if (resolved?.type !== "patient") {
+            actionStatus.textContent = formatActionStatus("patient.send-home-empty");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
@@ -4225,6 +4227,8 @@ export function mountAppShell(options) {
     const onMoveSelectedStaff = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
         if (resolved?.type !== "staff") {
+            actionStatus.textContent = formatActionStatus("staff.move-blocked");
+            renderRuntime();
             return;
         }
         placementAction = {
@@ -4325,6 +4329,8 @@ export function mountAppShell(options) {
     const onRepairSelectedRoom = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
         if (resolved?.type !== "room") {
+            actionStatus.textContent = formatActionStatus("room.repair-blocked");
+            renderRuntime();
             return;
         }
         if (!canRepairRoomFromTelemetry(resolved.value, orchestrator.telemetry())) {
