@@ -767,7 +767,9 @@ describe("app shell campaign objectives", () => {
             reason: "object-unavailable"
         })).toBe("Placement: place Plant at 4,4 blocked: object unavailable in scenario");
         expect(formatActionStatus(["room.built"], null)).toBe("Action: room built");
+        expect(formatActionStatus("room.build-blocked")).toBe("Action: room blocked");
         expect(formatActionStatus(["room.build-blocked"], { reason: "occupied" })).toBe("Action: room blocked: occupied");
+        expect(formatActionStatus("staff.hire-blocked", { reason: "staff-market-empty" })).toBe("Action: staff blocked: no scenario staff available");
         expect(formatActionStatus(["staff.move-blocked"], { reason: "invalid-terrain" })).toBe("Action: staff move blocked: invalid terrain");
         expect(formatActionStatus(["staff.move-blocked"], { reason: "missing-staff" })).toBe("Action: staff move blocked: staff unavailable");
         expect(formatActionStatus(["object.place-blocked"], { reason: "object-unavailable" })).toBe("Action: object placement blocked: object unavailable in scenario");

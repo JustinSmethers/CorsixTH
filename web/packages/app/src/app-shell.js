@@ -429,7 +429,7 @@ export function formatPlacementMode(placementAction, placementPreview) {
     return `Placement: ${placementAction.label}${orientation}${location} blocked: ${placementReasonLabel(placementPreview.reason)}`;
 }
 export function formatActionStatus(events, placementEvaluation) {
-    const event = events?.[0];
+    const event = typeof events === "string" ? events : events?.[0];
     const base = ACTION_STATUS_LABELS[event];
     if (!base) {
         return null;
