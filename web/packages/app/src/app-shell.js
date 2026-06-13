@@ -2082,15 +2082,35 @@ function canvasPointerFromEvent(event, canvas) {
         y: Math.round((event.clientY - rect.top) * canvas.height / rect.height)
     };
 }
-function isEditableKeyboardTarget(target) {
+function isTextEditingKeyboardTarget(target) {
     if (!target) {
         return false;
     }
     const tagName = target.tagName;
     return target.isContentEditable === true ||
         tagName === "INPUT" ||
-        tagName === "SELECT" ||
         tagName === "TEXTAREA";
+}
+function isSelectKeyboardTarget(target) {
+    return target?.tagName === "SELECT";
+}
+function shouldSuppressAppShortcut(event, action) {
+    if (isTextEditingKeyboardTarget(event.target)) {
+        return true;
+    }
+    if (!isSelectKeyboardTarget(event.target)) {
+        return false;
+    }
+    if (!action) {
+        return true;
+    }
+    if (action.action === "pause-toggle" && action.source === "Space") {
+        return true;
+    }
+    return action.action === "camera-west" ||
+        action.action === "camera-east" ||
+        action.action === "camera-north" ||
+        action.action === "camera-south";
 }
 function drawDiamond(context, center, color) {
     context.save();
@@ -2740,6 +2760,20 @@ export function mountAppShell(options) {
         <div data-testid="casebook-panel-rows"></div>
         <button type="button" data-testid="casebook-panel-close">Close</button>
       </section>
+      <section
+        data-testid="message-panel"
+        hidden
+        role="dialog"
+        aria-label="Messages"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Messages</h2>
+        <p data-testid="message-panel-advisor" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="message-panel-count" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="message-panel-last" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="message-panel-recent" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="message-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -3153,6 +3187,12 @@ export function mountAppShell(options) {
     const casebookPanelSummary = requiredElement(options.root, "[data-testid='casebook-panel-summary']");
     const casebookPanelRows = requiredElement(options.root, "[data-testid='casebook-panel-rows']");
     const casebookPanelCloseButton = requiredElement(options.root, "[data-testid='casebook-panel-close']");
+    const messagePanel = requiredElement(options.root, "[data-testid='message-panel']");
+    const messagePanelAdvisorMetric = requiredElement(options.root, "[data-testid='message-panel-advisor']");
+    const messagePanelCountMetric = requiredElement(options.root, "[data-testid='message-panel-count']");
+    const messagePanelLastMetric = requiredElement(options.root, "[data-testid='message-panel-last']");
+    const messagePanelRecentMetric = requiredElement(options.root, "[data-testid='message-panel-recent']");
+    const messagePanelCloseButton = requiredElement(options.root, "[data-testid='message-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3297,6 +3337,10 @@ export function mountAppShell(options) {
         policyPanelRoutingRulesMetric.textContent = formatRoutingRulesStatus(telemetry);
         policyPanelAdmissionPolicySelect.value = telemetry.admissionPolicy;
         policyPanelPricingPolicySelect.value = telemetry.treatmentPricingPolicy;
+        messagePanelAdvisorMetric.textContent = telemetry.advisorStatus;
+        messagePanelCountMetric.textContent = formatEventRulesStatus(telemetry);
+        messagePanelLastMetric.textContent = formatLastEventStatus(telemetry);
+        messagePanelRecentMetric.textContent = formatRecentEventsStatus(telemetry);
         machineMenuMaintenanceMetric.textContent = formatRoomMaintenanceStatus(telemetry);
         machineMenuStaffMetric.textContent = formatMaintenanceStaffStatus(telemetry, hospitalView?.languageSummary ?? null);
         machineMenuStartsMetric.textContent = formatRoomMaintenanceStartEventsStatus(telemetry);
@@ -3432,6 +3476,12 @@ export function mountAppShell(options) {
         if (!casebookPanel.hidden) {
             casebookPanel.hidden = true;
             actionStatus.textContent = "Action: casebook closed";
+            playfield.focus();
+            return true;
+        }
+        if (!messagePanel.hidden) {
+            messagePanel.hidden = true;
+            actionStatus.textContent = "Action: message closed";
             playfield.focus();
             return true;
         }
@@ -4258,6 +4308,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         casebookPanel.hidden = false;
         actionStatus.textContent = "Action: casebook opened";
         renderRuntime();
@@ -4280,6 +4331,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -4302,6 +4354,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -4323,6 +4376,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4353,6 +4407,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4374,6 +4429,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4395,6 +4451,7 @@ export function mountAppShell(options) {
         mapPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         chartsPanel.hidden = false;
         actionStatus.textContent = "Action: charts panel opened";
         renderRuntime();
@@ -4416,6 +4473,7 @@ export function mountAppShell(options) {
         chartsPanel.hidden = true;
         policyPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         mapPanel.hidden = false;
         mapPanelSelect.value = hospitalView?.mapPath ?? "";
         actionStatus.textContent = "Action: town map opened";
@@ -4428,13 +4486,6 @@ export function mountAppShell(options) {
         actionStatus.textContent = "Action: town map closed";
         playfield.focus();
     };
-    const onMapPanelSelectKeyDown = (event) => {
-        if (event.code !== "Escape") {
-            return;
-        }
-        event.preventDefault();
-        onCloseMapPanel();
-    };
     const onOpenPolicy = () => {
         casebookPanel.hidden = true;
         bankManagerPanel.hidden = true;
@@ -4445,6 +4496,7 @@ export function mountAppShell(options) {
         chartsPanel.hidden = true;
         mapPanel.hidden = true;
         machineMenuPanel.hidden = true;
+        messagePanel.hidden = true;
         policyPanel.hidden = false;
         actionStatus.textContent = "Action: policy panel opened";
         renderRuntime();
@@ -4466,6 +4518,7 @@ export function mountAppShell(options) {
         chartsPanel.hidden = true;
         mapPanel.hidden = true;
         policyPanel.hidden = true;
+        messagePanel.hidden = true;
         machineMenuPanel.hidden = false;
         actionStatus.textContent = "Action: machine menu opened";
         renderRuntime();
@@ -4479,14 +4532,26 @@ export function mountAppShell(options) {
     };
     const onOpenFirstMessage = () => {
         const telemetry = orchestrator.telemetry();
-        if (telemetry.lastEventType) {
-            telemetryElements.lastEventMetric.focus();
-            actionStatus.textContent = "Action: message opened";
-            return true;
-        }
-        telemetryElements.recentEventsMetric.focus();
-        actionStatus.textContent = "Action: no messages";
+        casebookPanel.hidden = true;
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        mapPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
+        messagePanel.hidden = false;
+        actionStatus.textContent = telemetry.lastEventType ? "Action: message opened" : "Action: no messages";
+        renderRuntime();
+        messagePanelCloseButton.focus();
         return true;
+    };
+    const onCloseMessagePanel = () => {
+        messagePanel.hidden = true;
+        actionStatus.textContent = "Action: message closed";
+        playfield.focus();
     };
     let advisorVisible = true;
     let announcementsVisible = true;
@@ -4640,9 +4705,6 @@ export function mountAppShell(options) {
         updateActionStatus(events, lastPlacementEvaluation);
     };
     const onKeyDown = (event) => {
-        if (isEditableKeyboardTarget(event.target)) {
-            return;
-        }
         const action = normalizeKeyboardEvent({
             type: event.type,
             code: event.code,
@@ -4652,6 +4714,9 @@ export function mountAppShell(options) {
             metaKey: event.metaKey,
             shiftKey: event.shiftKey
         });
+        if (shouldSuppressAppShortcut(event, action)) {
+            return;
+        }
         if (action?.action === "camera-west") {
             event.preventDefault();
             onCameraWest();
@@ -4913,9 +4978,6 @@ export function mountAppShell(options) {
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, action, renderRuntime);
     };
     const onKeyUp = (event) => {
-        if (isEditableKeyboardTarget(event.target)) {
-            return;
-        }
         const action = normalizeKeyboardReleaseEvent({
             type: event.type,
             code: event.code,
@@ -4924,6 +4986,9 @@ export function mountAppShell(options) {
             metaKey: event.metaKey,
             shiftKey: event.shiftKey
         });
+        if (shouldSuppressAppShortcut(event, action)) {
+            return;
+        }
         if (action?.action === "transparent-walls-release") {
             if (onReleaseTransparentWalls()) {
                 event.preventDefault();
@@ -5157,13 +5222,13 @@ export function mountAppShell(options) {
     statusPanelCloseButton.addEventListener("click", onCloseStatusPanel);
     chartsPanelCloseButton.addEventListener("click", onCloseChartsPanel);
     mapPanelSelect.addEventListener("change", onMapPanelSelectChange);
-    mapPanelSelect.addEventListener("keydown", onMapPanelSelectKeyDown);
     mapPanelCloseButton.addEventListener("click", onCloseMapPanel);
     policyPanelCloseButton.addEventListener("click", onClosePolicyPanel);
     machineMenuRepairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
     machineMenuCloseButton.addEventListener("click", onCloseMachineMenu);
     casebookPanelRows.addEventListener("click", onCasebookPanelRowsClick);
     casebookPanelCloseButton.addEventListener("click", onCloseCasebookPanel);
+    messagePanelCloseButton.addEventListener("click", onCloseMessagePanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -5266,13 +5331,13 @@ export function mountAppShell(options) {
             statusPanelCloseButton.removeEventListener("click", onCloseStatusPanel);
             chartsPanelCloseButton.removeEventListener("click", onCloseChartsPanel);
             mapPanelSelect.removeEventListener("change", onMapPanelSelectChange);
-            mapPanelSelect.removeEventListener("keydown", onMapPanelSelectKeyDown);
             mapPanelCloseButton.removeEventListener("click", onCloseMapPanel);
             policyPanelCloseButton.removeEventListener("click", onClosePolicyPanel);
             machineMenuRepairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
             machineMenuCloseButton.removeEventListener("click", onCloseMachineMenu);
             casebookPanelRows.removeEventListener("click", onCasebookPanelRowsClick);
             casebookPanelCloseButton.removeEventListener("click", onCloseCasebookPanel);
+            messagePanelCloseButton.removeEventListener("click", onCloseMessagePanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
