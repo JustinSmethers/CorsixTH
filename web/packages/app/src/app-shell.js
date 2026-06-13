@@ -2616,6 +2616,37 @@ export function mountAppShell(options) {
         <p data-testid="charts-panel-insurance" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="charts-panel-close">Close</button>
       </section>
+      <section
+        data-testid="policy-panel"
+        hidden
+        role="dialog"
+        aria-label="Policy"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Policy</h2>
+        <p data-testid="policy-panel-admissions" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="policy-panel-admission-status" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="policy-panel-pricing-status" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="policy-panel-admission-rules" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="policy-panel-routing-rules" style="margin:0 0 8px; font-size:13px;"></p>
+        <label style="display:flex; align-items:center; gap:6px; margin:0 0 6px; color:#c8d2d7; font-size:13px;">
+          Admission
+          <select data-testid="policy-panel-admission-policy" aria-label="Policy panel admission policy">
+            <option value="conservative">Conservative</option>
+            <option value="standard" selected>Standard</option>
+            <option value="aggressive">Aggressive</option>
+          </select>
+        </label>
+        <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
+          Pricing
+          <select data-testid="policy-panel-pricing-policy" aria-label="Policy panel pricing policy">
+            <option value="discount">Discount</option>
+            <option value="standard" selected>Standard</option>
+            <option value="premium">Premium</option>
+          </select>
+        </label>
+        <button type="button" data-testid="policy-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2998,6 +3029,15 @@ export function mountAppShell(options) {
     const chartsPanelMarketingMetric = requiredElement(options.root, "[data-testid='charts-panel-marketing']");
     const chartsPanelInsuranceMetric = requiredElement(options.root, "[data-testid='charts-panel-insurance']");
     const chartsPanelCloseButton = requiredElement(options.root, "[data-testid='charts-panel-close']");
+    const policyPanel = requiredElement(options.root, "[data-testid='policy-panel']");
+    const policyPanelAdmissionsMetric = requiredElement(options.root, "[data-testid='policy-panel-admissions']");
+    const policyPanelAdmissionStatusMetric = requiredElement(options.root, "[data-testid='policy-panel-admission-status']");
+    const policyPanelPricingStatusMetric = requiredElement(options.root, "[data-testid='policy-panel-pricing-status']");
+    const policyPanelAdmissionRulesMetric = requiredElement(options.root, "[data-testid='policy-panel-admission-rules']");
+    const policyPanelRoutingRulesMetric = requiredElement(options.root, "[data-testid='policy-panel-routing-rules']");
+    const policyPanelAdmissionPolicySelect = requiredElement(options.root, "[data-testid='policy-panel-admission-policy']");
+    const policyPanelPricingPolicySelect = requiredElement(options.root, "[data-testid='policy-panel-pricing-policy']");
+    const policyPanelCloseButton = requiredElement(options.root, "[data-testid='policy-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3122,6 +3162,13 @@ export function mountAppShell(options) {
         chartsPanelAuditMetric.textContent = formatFinanceAuditStatus(telemetry);
         chartsPanelMarketingMetric.textContent = formatMarketingCampaignStatus(telemetry);
         chartsPanelInsuranceMetric.textContent = formatInsuranceContractStatus(telemetry);
+        policyPanelAdmissionsMetric.textContent = formatAdmissionsStatus(telemetry);
+        policyPanelAdmissionStatusMetric.textContent = formatAdmissionPolicyStatus(telemetry);
+        policyPanelPricingStatusMetric.textContent = formatPricingPolicyStatus(telemetry);
+        policyPanelAdmissionRulesMetric.textContent = formatAdmissionRulesStatus(telemetry);
+        policyPanelRoutingRulesMetric.textContent = formatRoutingRulesStatus(telemetry);
+        policyPanelAdmissionPolicySelect.value = telemetry.admissionPolicy;
+        policyPanelPricingPolicySelect.value = telemetry.treatmentPricingPolicy;
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
@@ -3227,6 +3274,12 @@ export function mountAppShell(options) {
         if (!chartsPanel.hidden) {
             chartsPanel.hidden = true;
             actionStatus.textContent = "Action: charts panel closed";
+            playfield.focus();
+            return true;
+        }
+        if (!policyPanel.hidden) {
+            policyPanel.hidden = true;
+            actionStatus.textContent = "Action: policy panel closed";
             playfield.focus();
             return true;
         }
@@ -3366,23 +3419,35 @@ export function mountAppShell(options) {
         }, renderRuntime);
         updateActionStatus(events);
     };
-    const onAdmissionPolicySelect = () => {
+    const setAdmissionPolicy = (admissionPolicy, source) => {
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "admission-policy-set",
-            source: "ui:admission-policy",
-            admissionPolicy: telemetryElements.admissionPolicySelect.value
+            source,
+            admissionPolicy
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
+    const onAdmissionPolicySelect = () => {
+        setAdmissionPolicy(telemetryElements.admissionPolicySelect.value, "ui:admission-policy");
+    };
+    const onPolicyPanelAdmissionPolicySelect = () => {
+        setAdmissionPolicy(policyPanelAdmissionPolicySelect.value, "ui:policy-panel-admission-policy");
+    };
+    const setPricingPolicy = (pricingPolicy, source) => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "pricing-policy-set",
+            source,
+            pricingPolicy
         }, renderRuntime);
         updateActionStatus(events);
     };
     const onPricingPolicySelect = () => {
-        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
-            device: "ui",
-            action: "pricing-policy-set",
-            source: "ui:pricing-policy",
-            pricingPolicy: telemetryElements.pricingPolicySelect.value
-        }, renderRuntime);
-        updateActionStatus(events);
+        setPricingPolicy(telemetryElements.pricingPolicySelect.value, "ui:pricing-policy");
+    };
+    const onPolicyPanelPricingPolicySelect = () => {
+        setPricingPolicy(policyPanelPricingPolicySelect.value, "ui:policy-panel-pricing-policy");
     };
     const onTakeLoan = () => {
         if (!canTakeLoanFromTelemetry(orchestrator.telemetry())) {
@@ -4013,6 +4078,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        policyPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -4031,6 +4097,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        policyPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -4048,6 +4115,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        policyPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4074,6 +4142,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        policyPanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4091,6 +4160,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         researchPanel.hidden = true;
         chartsPanel.hidden = true;
+        policyPanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4108,6 +4178,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         researchPanel.hidden = true;
         statusPanel.hidden = true;
+        policyPanel.hidden = true;
         chartsPanel.hidden = false;
         actionStatus.textContent = "Action: charts panel opened";
         renderRuntime();
@@ -4124,8 +4195,22 @@ export function mountAppShell(options) {
         return true;
     };
     const onOpenPolicy = () => {
-        telemetryElements.admissionPolicySelect.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        policyPanel.hidden = false;
+        actionStatus.textContent = "Action: policy panel opened";
+        renderRuntime();
+        policyPanelAdmissionPolicySelect.focus();
         return true;
+    };
+    const onClosePolicyPanel = () => {
+        policyPanel.hidden = true;
+        actionStatus.textContent = "Action: policy panel closed";
+        playfield.focus();
     };
     const onOpenMachineMenu = () => {
         telemetryElements.roomsInMaintenanceMetric.focus();
@@ -4741,6 +4826,8 @@ export function mountAppShell(options) {
     telemetryElements.speedSelect.addEventListener("change", onSpeedSelect);
     telemetryElements.admissionPolicySelect.addEventListener("change", onAdmissionPolicySelect);
     telemetryElements.pricingPolicySelect.addEventListener("change", onPricingPolicySelect);
+    policyPanelAdmissionPolicySelect.addEventListener("change", onPolicyPanelAdmissionPolicySelect);
+    policyPanelPricingPolicySelect.addEventListener("change", onPolicyPanelPricingPolicySelect);
     telemetryElements.admissionsToggleButton.addEventListener("click", onAdmissionsToggle);
     telemetryElements.muteToggleButton.addEventListener("click", onMuteToggle);
     telemetryElements.volumeSlider.addEventListener("input", onVolumeInput);
@@ -4798,6 +4885,7 @@ export function mountAppShell(options) {
     researchPanelCloseButton.addEventListener("click", onCloseResearchPanel);
     statusPanelCloseButton.addEventListener("click", onCloseStatusPanel);
     chartsPanelCloseButton.addEventListener("click", onCloseChartsPanel);
+    policyPanelCloseButton.addEventListener("click", onClosePolicyPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4840,6 +4928,8 @@ export function mountAppShell(options) {
             telemetryElements.speedSelect.removeEventListener("change", onSpeedSelect);
             telemetryElements.admissionPolicySelect.removeEventListener("change", onAdmissionPolicySelect);
             telemetryElements.pricingPolicySelect.removeEventListener("change", onPricingPolicySelect);
+            policyPanelAdmissionPolicySelect.removeEventListener("change", onPolicyPanelAdmissionPolicySelect);
+            policyPanelPricingPolicySelect.removeEventListener("change", onPolicyPanelPricingPolicySelect);
             telemetryElements.admissionsToggleButton.removeEventListener("click", onAdmissionsToggle);
             telemetryElements.muteToggleButton.removeEventListener("click", onMuteToggle);
             telemetryElements.volumeSlider.removeEventListener("input", onVolumeInput);
@@ -4897,6 +4987,7 @@ export function mountAppShell(options) {
             researchPanelCloseButton.removeEventListener("click", onCloseResearchPanel);
             statusPanelCloseButton.removeEventListener("click", onCloseStatusPanel);
             chartsPanelCloseButton.removeEventListener("click", onCloseChartsPanel);
+            policyPanelCloseButton.removeEventListener("click", onClosePolicyPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
