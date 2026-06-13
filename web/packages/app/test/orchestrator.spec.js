@@ -2733,6 +2733,7 @@ describe("app orchestrator", () => {
     });
     it("sells placed corridor objects through deterministic commands and restore", () => {
         const orchestrator = new AppOrchestrator({ seed: 9026, tickRateHz: 4, pointerTileSize: 8 });
+        const valueBeforePlacement = orchestrator.telemetry().levelObjectiveCurrentHospitalValue;
         expect(orchestrator.dispatch({
             device: "ui",
             action: "place-object",
@@ -2746,6 +2747,7 @@ describe("app orchestrator", () => {
         const object = orchestrator.getState().entities.objects.find((candidate) => candidate.objectIndex === 11);
         expect(object).toBeTruthy();
         const cashAfterPlacement = orchestrator.telemetry().cash;
+        expect(orchestrator.telemetry().levelObjectiveCurrentHospitalValue).toBe(valueBeforePlacement);
         expect(orchestrator.dispatch({
             device: "ui",
             action: "sell-object",
@@ -2754,6 +2756,7 @@ describe("app orchestrator", () => {
         })).toEqual(["object.sold"]);
         expect(orchestrator.getState().entities.objects.find((candidate) => candidate.id === object.id)).toBeUndefined();
         expect(orchestrator.telemetry().cash).toBe(cashAfterPlacement + 50);
+        expect(orchestrator.telemetry().levelObjectiveCurrentHospitalValue).toBe(valueBeforePlacement - 51);
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.commandLog[snapshot.commandLog.length - 1]).toEqual({
             type: "remove-object",

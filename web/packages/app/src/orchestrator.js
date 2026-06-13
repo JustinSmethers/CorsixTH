@@ -1583,7 +1583,8 @@ function createAdvisorStatus(state, levelObjective) {
 function estimateHospitalValue(state) {
     const roomValue = state.entities.rooms.length * 5_000;
     const staffValue = state.entities.staff.length * 1_000;
-    return Math.max(0, state.cash + roomValue + staffValue);
+    const objectValue = (state.entities.objects ?? []).reduce((sum, object) => sum + (Number.isInteger(object.cost) ? object.cost : 0), 0);
+    return Math.max(0, state.cash + roomValue + staffValue + objectValue);
 }
 function networkCriterionValueForState(criterion, state) {
     switch (criterion.metric) {
