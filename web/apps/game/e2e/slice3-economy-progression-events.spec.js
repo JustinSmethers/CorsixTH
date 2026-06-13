@@ -103,8 +103,15 @@ test("phase 7 slice 3 player journey: finance ledger unlocks recoverable audits"
     await expect(page.getByTestId("finance-ledger")).toHaveText("Finance ledger: audit ready, audits 0, recovered 0");
     await expect(page.getByTestId("run-finance-audit")).toBeEnabled();
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
-    await page.getByTestId("run-finance-audit").click();
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("F2");
+    await expect(page.getByTestId("bank-stats-panel")).toBeVisible();
+    await expect(page.getByTestId("bank-stats-ledger")).toHaveText("Finance ledger: audit ready, audits 0, recovered 0");
+    await expect(page.getByTestId("bank-stats-run-audit")).toBeEnabled();
+    await page.getByTestId("bank-stats-run-audit").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: finance audit run");
+    await expect(page.getByTestId("bank-stats-ledger")).toHaveText("Finance ledger: audit cooldown 10 ticks, audits 1, recovered 350");
+    await expect(page.getByTestId("bank-stats-audit")).toHaveText("Finance audit: recover 350 cash, cooldown 10 ticks, recovered 350/1");
     await expect(page.getByTestId("finance-ledger")).toHaveText("Finance ledger: audit cooldown 10 ticks, audits 1, recovered 350");
     await expect(page.getByTestId("finance-audit")).toHaveText("Finance audit: recover 350 cash, cooldown 10 ticks, recovered 350/1");
     await expect(page.getByTestId("cash")).toHaveText(`Cash: ${cashBefore + 350}`);

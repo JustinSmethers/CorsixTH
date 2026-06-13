@@ -2527,6 +2527,21 @@ export function mountAppShell(options) {
         <button type="button" data-testid="bank-manager-repay-loan">Repay Loan</button>
         <button type="button" data-testid="bank-manager-close">Close</button>
       </section>
+      <section
+        data-testid="bank-stats-panel"
+        hidden
+        role="dialog"
+        aria-label="Bank Stats"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Bank Stats</h2>
+        <p data-testid="bank-stats-ledger" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="bank-stats-audit" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="bank-stats-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="bank-stats-cumulative" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="bank-stats-run-audit">Run Audit</button>
+        <button type="button" data-testid="bank-stats-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2854,6 +2869,13 @@ export function mountAppShell(options) {
     const bankManagerTakeLoanButton = requiredElement(options.root, "[data-testid='bank-manager-take-loan']");
     const bankManagerRepayLoanButton = requiredElement(options.root, "[data-testid='bank-manager-repay-loan']");
     const bankManagerCloseButton = requiredElement(options.root, "[data-testid='bank-manager-close']");
+    const bankStatsPanel = requiredElement(options.root, "[data-testid='bank-stats-panel']");
+    const bankStatsLedgerMetric = requiredElement(options.root, "[data-testid='bank-stats-ledger']");
+    const bankStatsAuditMetric = requiredElement(options.root, "[data-testid='bank-stats-audit']");
+    const bankStatsCashflowMetric = requiredElement(options.root, "[data-testid='bank-stats-cashflow']");
+    const bankStatsCumulativeMetric = requiredElement(options.root, "[data-testid='bank-stats-cumulative']");
+    const bankStatsRunAuditButton = requiredElement(options.root, "[data-testid='bank-stats-run-audit']");
+    const bankStatsCloseButton = requiredElement(options.root, "[data-testid='bank-stats-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -2943,6 +2965,11 @@ export function mountAppShell(options) {
         bankManagerCumulativeMetric.textContent = formatCumulativeCashflowStatus(telemetry);
         bankManagerTakeLoanButton.disabled = !canTakeLoanFromTelemetry(telemetry);
         bankManagerRepayLoanButton.disabled = !canRepayLoanFromTelemetry(telemetry);
+        bankStatsLedgerMetric.textContent = formatFinanceLedgerStatus(telemetry);
+        bankStatsAuditMetric.textContent = formatFinanceAuditStatus(telemetry);
+        bankStatsCashflowMetric.textContent = formatTickCashflowStatus(telemetry);
+        bankStatsCumulativeMetric.textContent = formatCumulativeCashflowStatus(telemetry);
+        bankStatsRunAuditButton.disabled = !canRunFinanceAuditFromTelemetry(telemetry);
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
@@ -3010,6 +3037,12 @@ export function mountAppShell(options) {
         if (!bankManagerPanel.hidden) {
             bankManagerPanel.hidden = true;
             actionStatus.textContent = "Action: bank manager closed";
+            playfield.focus();
+            return true;
+        }
+        if (!bankStatsPanel.hidden) {
+            bankStatsPanel.hidden = true;
+            actionStatus.textContent = "Action: bank stats closed";
             playfield.focus();
             return true;
         }
@@ -3770,6 +3803,7 @@ export function mountAppShell(options) {
         return true;
     };
     const onOpenBankManager = () => {
+        bankStatsPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -3783,8 +3817,17 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenBankStats = () => {
-        telemetryElements.financeLedgerMetric.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = false;
+        actionStatus.textContent = "Action: bank stats opened";
+        renderRuntime();
+        (bankStatsRunAuditButton.disabled ? bankStatsCloseButton : bankStatsRunAuditButton).focus();
         return true;
+    };
+    const onCloseBankStats = () => {
+        bankStatsPanel.hidden = true;
+        actionStatus.textContent = "Action: bank stats closed";
+        playfield.focus();
     };
     const onOpenStaff = () => {
         telemetryElements.activeStaffMetric.focus();
@@ -4478,6 +4521,8 @@ export function mountAppShell(options) {
     bankManagerTakeLoanButton.addEventListener("click", onTakeLoan);
     bankManagerRepayLoanButton.addEventListener("click", onRepayLoan);
     bankManagerCloseButton.addEventListener("click", onCloseBankManager);
+    bankStatsRunAuditButton.addEventListener("click", onFinanceAudit);
+    bankStatsCloseButton.addEventListener("click", onCloseBankStats);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4566,6 +4611,8 @@ export function mountAppShell(options) {
             bankManagerTakeLoanButton.removeEventListener("click", onTakeLoan);
             bankManagerRepayLoanButton.removeEventListener("click", onRepayLoan);
             bankManagerCloseButton.removeEventListener("click", onCloseBankManager);
+            bankStatsRunAuditButton.removeEventListener("click", onFinanceAudit);
+            bankStatsCloseButton.removeEventListener("click", onCloseBankStats);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
