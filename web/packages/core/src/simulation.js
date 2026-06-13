@@ -1300,14 +1300,157 @@ export class DeterministicSimulation {
             footprint: cloneFootprint(room.footprint),
             tiles: this.roomFootprintTiles(room.position, room.footprint)
         }));
+        let queuedPatients = 0;
+        let walkingToDiagnosisPatients = 0;
+        let diagnosingPatients = 0;
+        let diagnosedPatients = 0;
+        let awaitingTreatmentPatients = 0;
+        let walkingToTreatmentPatients = 0;
+        let treatingPatients = 0;
+        let criticalPatients = 0;
+        let lowestPatientHealth = null;
+        let currentPatientLitter = 0;
+        let patientsNeedingToilet = 0;
+        let happyPatients = 0;
+        let unhappyPatients = 0;
+        let veryUnhappyPatients = 0;
+        const hasPatientMoodThresholds = this.hasPatientMoodThresholds();
+        for (const patient of waitingPatients) {
+            if (patient.status === "queued") {
+                queuedPatients += 1;
+            }
+            if (patient.status === "walking-to-diagnosis") {
+                walkingToDiagnosisPatients += 1;
+            }
+            if (patient.status === "diagnosing") {
+                diagnosingPatients += 1;
+            }
+            if (patient.diagnosisKnown) {
+                diagnosedPatients += 1;
+            }
+            if (patient.status === "awaiting-treatment") {
+                awaitingTreatmentPatients += 1;
+            }
+            if (patient.status === "walking-to-treatment") {
+                walkingToTreatmentPatients += 1;
+            }
+            if (patient.status === "treating") {
+                treatingPatients += 1;
+            }
+            if (this.isPatientCritical(patient)) {
+                criticalPatients += 1;
+            }
+            lowestPatientHealth = lowestPatientHealth === null ? patient.health : Math.min(lowestPatientHealth, patient.health);
+            if (patient.droppedLitter) {
+                currentPatientLitter += 1;
+            }
+            if (patient.needsToilet) {
+                patientsNeedingToilet += 1;
+            }
+            if (hasPatientMoodThresholds) {
+                if (this.isPatientAtOrAboveMoodThreshold(patient, "happy")) {
+                    happyPatients += 1;
+                }
+                if (this.isPatientAtOrBelowMoodThreshold(patient, "unhappy")) {
+                    unhappyPatients += 1;
+                }
+                if (this.isPatientAtOrBelowMoodThreshold(patient, "veryUnhappy")) {
+                    veryUnhappyPatients += 1;
+                }
+            }
+        }
+        let activeStaff = 0;
+        let onBreakStaff = 0;
+        let activeTrainingStaff = 0;
+        let trainedStaff = 0;
+        let totalSkillLevel = 0;
+        let activeHandymen = 0;
+        let totalHandymen = 0;
+        let stressedStaff = 0;
+        let tiredStaff = 0;
+        let veryTiredStaff = 0;
+        let underpaidStaff = 0;
+        let overpaidStaff = 0;
+        let autoBreakStaff = 0;
+        const hasStaffFatigueThresholds = this.hasStaffFatigueThresholds();
+        const hasStaffSalaryThresholds = this.hasStaffSalaryThresholds();
+        for (const member of staff) {
+            if (member.status === "active") {
+                activeStaff += 1;
+            }
+            if (member.status === "on-break") {
+                onBreakStaff += 1;
+            }
+            if (member.trainingRemainingTicks > 0) {
+                activeTrainingStaff += 1;
+            }
+            if (member.skillLevel > 0) {
+                trainedStaff += 1;
+            }
+            totalSkillLevel += member.skillLevel;
+            if (member.role === "handyman") {
+                totalHandymen += 1;
+                if (member.status === "active") {
+                    activeHandymen += 1;
+                }
+            }
+            if (member.stress > 0) {
+                stressedStaff += 1;
+            }
+            if (hasStaffFatigueThresholds) {
+                if (this.isStaffAtOrAboveFatigueThreshold(member, "tiredTicks")) {
+                    tiredStaff += 1;
+                }
+                if (this.isStaffAtOrAboveFatigueThreshold(member, "veryTiredTicks")) {
+                    veryTiredStaff += 1;
+                }
+            }
+            if (hasStaffSalaryThresholds) {
+                if (this.isStaffAtOrBelowSalaryThreshold(member, "salaryTooLow")) {
+                    underpaidStaff += 1;
+                }
+                if (this.isStaffAtOrAboveSalaryThreshold(member, "salaryTooHigh")) {
+                    overpaidStaff += 1;
+                }
+            }
+            if (member.status === "on-break" && member.autoBreakRemainingTicks > 0) {
+                autoBreakStaff += 1;
+            }
+        }
+        let openDiagnosisRooms = 0;
+        let closedDiagnosisRooms = 0;
+        let openTreatmentRooms = 0;
+        let closedTreatmentRooms = 0;
+        let roomsInMaintenance = 0;
+        for (const room of rooms) {
+            if (room.roomType === "diagnosis") {
+                if (room.status === "open") {
+                    openDiagnosisRooms += 1;
+                }
+                else if (room.status === "closed") {
+                    closedDiagnosisRooms += 1;
+                }
+            }
+            if (isTreatmentRoomType(room.roomType)) {
+                if (room.status === "open") {
+                    openTreatmentRooms += 1;
+                }
+                else if (room.status === "closed") {
+                    closedTreatmentRooms += 1;
+                }
+            }
+            if (room.maintenanceRemainingTicks > 0) {
+                roomsInMaintenance += 1;
+            }
+        }
         const hospitalLoop = {
-            queuedPatients: waitingPatients.filter((patient) => patient.status === "queued").length,
-            walkingToDiagnosisPatients: waitingPatients.filter((patient) => patient.status === "walking-to-diagnosis").length,
-            diagnosingPatients: waitingPatients.filter((patient) => patient.status === "diagnosing").length,
-            diagnosedPatients: waitingPatients.filter((patient) => patient.diagnosisKnown).length,
-            awaitingTreatmentPatients: waitingPatients.filter((patient) => patient.status === "awaiting-treatment").length,
-            walkingToTreatmentPatients: waitingPatients.filter((patient) => patient.status === "walking-to-treatment").length,
-            treatingPatients: waitingPatients.filter((patient) => patient.status === "treating").length,
+            queuedPatients,
+            walkingToDiagnosisPatients,
+            diagnosingPatients,
+            diagnosedPatients,
+            awaitingTreatmentPatients,
+            walkingToTreatmentPatients,
+            treatingPatients,
             dischargedPatients: this.totalDischarges,
             patientDeaths: this.totalPatientDeaths,
             treatmentFailures: this.totalTreatmentFailures,
@@ -1316,23 +1459,23 @@ export class DeterministicSimulation {
             ...(this.totalPatientWalkouts > 0 ? { patientWalkouts: this.totalPatientWalkouts } : {})
         };
         const roomOperations = {
-            openDiagnosisRooms: rooms.filter((room) => room.roomType === "diagnosis" && room.status === "open").length,
-            closedDiagnosisRooms: rooms.filter((room) => room.roomType === "diagnosis" && room.status === "closed").length,
-            openTreatmentRooms: rooms.filter((room) => isTreatmentRoomType(room.roomType) && room.status === "open").length,
-            closedTreatmentRooms: rooms.filter((room) => isTreatmentRoomType(room.roomType) && room.status === "closed").length,
+            openDiagnosisRooms,
+            closedDiagnosisRooms,
+            openTreatmentRooms,
+            closedTreatmentRooms,
             activeDiagnosisRooms: countUniqueAssignments(this.diagnosisAssignments, "roomId"),
             activeTreatmentRooms: countUniqueAssignments(this.treatmentAssignments, "roomId")
         };
         const staffLifecycle = {
-            activeStaff: staff.filter((member) => member.status === "active").length,
-            onBreakStaff: staff.filter((member) => member.status === "on-break").length,
+            activeStaff,
+            onBreakStaff,
             diagnosingStaff: countUniqueAssignments(this.diagnosisAssignments, "staffId"),
             treatingStaff: countUniqueAssignments(this.treatmentAssignments, "staffId")
         };
         const staffTraining = {
-            activeTrainingStaff: staff.filter((member) => member.trainingRemainingTicks > 0).length,
-            trainedStaff: staff.filter((member) => member.skillLevel > 0).length,
-            totalSkillLevel: staff.reduce((sum, member) => sum + member.skillLevel, 0),
+            activeTrainingStaff,
+            trainedStaff,
+            totalSkillLevel,
             maxSkillLevel: staffMaxSkillLevel(),
             trainingCost: this.staffTrainingCostValue,
             trainingTicks: this.staffTrainingTicksValue,
@@ -1341,8 +1484,8 @@ export class DeterministicSimulation {
             trainingCompleted: this.totalStaffTrainingCompleted
         };
         const maintenanceStaff = {
-            activeHandymen: staff.filter((member) => member.role === "handyman" && member.status === "active").length,
-            totalHandymen: staff.filter((member) => member.role === "handyman").length,
+            activeHandymen,
+            totalHandymen,
             repairBonusTicks: maintenanceStaffRepairBonusTicks(),
             totalRepairEvents: this.maintenanceStaffRepairEvents
         };
@@ -1409,17 +1552,17 @@ export class DeterministicSimulation {
         const secondarySystems = {
             queuePressure: hospitalLoop.queuedPatients + hospitalLoop.awaitingTreatmentPatients,
             queuePressureStatus: hospitalLoop.queuedPatients + hospitalLoop.awaitingTreatmentPatients >= QUEUE_PRESSURE_HIGH_THRESHOLD ? "high" : "normal",
-            criticalPatients: waitingPatients.filter((patient) => this.isPatientCritical(patient)).length,
-            lowestPatientHealth: waitingPatients.length > 0 ? Math.min(...waitingPatients.map((patient) => patient.health)) : null,
+            criticalPatients,
+            lowestPatientHealth,
             patientDeaths: this.totalPatientDeaths,
             ...(this.totalPatientAbductions > 0 ? { patientAbductions: this.totalPatientAbductions } : {}),
             ...(this.patientBehavior.vomitLimit !== undefined ? { patientVomits: this.totalPatientVomits } : {}),
             ...(this.patientBehavior.litterDrop !== undefined || this.patientBehavior.litterCleanupChance !== undefined ? {
                 patientLitter: this.totalPatientLitter,
-                currentPatientLitter: waitingPatients.filter((patient) => patient.droppedLitter).length,
+                currentPatientLitter,
                 patientLitterCleaned: this.totalPatientLitterCleaned
             } : {}),
-            ...(this.patientBehavior.bowelFull !== undefined ? { patientsNeedingToilet: waitingPatients.filter((patient) => patient.needsToilet).length } : {}),
+            ...(this.patientBehavior.bowelFull !== undefined ? { patientsNeedingToilet } : {}),
             ...(this.patientBehavior.bowelOverflows !== undefined ? { patientBowelOverflows: this.totalPatientBowelOverflows } : {}),
             ...(this.totalPatientDrinks > 0 ? { patientDrinks: this.totalPatientDrinks } : {}),
             ...(this.totalRatsSighted > 0 ? {
@@ -1432,22 +1575,22 @@ export class DeterministicSimulation {
                 plantsWatered: this.totalPlantsWatered,
                 plantWateredPercentage: Math.floor((this.totalPlantsWatered / this.totalPlantWaterChecks) * 100)
             } : {}),
-            ...(this.hasPatientMoodThresholds() ? {
-                happyPatients: waitingPatients.filter((patient) => this.isPatientAtOrAboveMoodThreshold(patient, "happy")).length,
-                unhappyPatients: waitingPatients.filter((patient) => this.isPatientAtOrBelowMoodThreshold(patient, "unhappy")).length,
-                veryUnhappyPatients: waitingPatients.filter((patient) => this.isPatientAtOrBelowMoodThreshold(patient, "veryUnhappy")).length
+            ...(hasPatientMoodThresholds ? {
+                happyPatients,
+                unhappyPatients,
+                veryUnhappyPatients
             } : {}),
-            stressedStaff: staff.filter((member) => member.stress > 0).length,
-            ...(this.hasStaffFatigueThresholds() ? {
-                tiredStaff: staff.filter((member) => this.isStaffAtOrAboveFatigueThreshold(member, "tiredTicks")).length,
-                veryTiredStaff: staff.filter((member) => this.isStaffAtOrAboveFatigueThreshold(member, "veryTiredTicks")).length
+            stressedStaff,
+            ...(hasStaffFatigueThresholds ? {
+                tiredStaff,
+                veryTiredStaff
             } : {}),
-            ...(this.hasStaffSalaryThresholds() ? {
-                underpaidStaff: staff.filter((member) => this.isStaffAtOrBelowSalaryThreshold(member, "salaryTooLow")).length,
-                overpaidStaff: staff.filter((member) => this.isStaffAtOrAboveSalaryThreshold(member, "salaryTooHigh")).length
+            ...(hasStaffSalaryThresholds ? {
+                underpaidStaff,
+                overpaidStaff
             } : {}),
-            autoBreakStaff: staff.filter((member) => member.status === "on-break" && member.autoBreakRemainingTicks > 0).length,
-            roomsInMaintenance: rooms.filter((room) => room.maintenanceRemainingTicks > 0).length,
+            autoBreakStaff,
+            roomsInMaintenance,
             queuePressureEvents: this.queuePressureEvents,
             staffBurnoutEvents: this.staffBurnoutEvents,
             staffRecoveryEvents: this.staffRecoveryEvents,
