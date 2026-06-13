@@ -773,6 +773,8 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus(["staff.move-blocked"], { reason: "invalid-terrain" })).toBe("Action: staff move blocked: invalid terrain");
         expect(formatActionStatus(["staff.move-blocked"], { reason: "missing-staff" })).toBe("Action: staff move blocked: staff unavailable");
         expect(formatActionStatus(["object.place-blocked"], { reason: "object-unavailable" })).toBe("Action: object placement blocked: object unavailable in scenario");
+        expect(formatActionStatus("patient.drink-blocked")).toBe("Action: drink blocked");
+        expect(formatActionStatus("patient.toilet-blocked")).toBe("Action: toilet blocked");
         expect(formatActionStatus(["not-a-player-event"], null)).toBeNull();
         expect(formatActionStatus([], null)).toBeNull();
         expect(formatChoosePlacementActionStatus()).toBe("Action: choose placement");

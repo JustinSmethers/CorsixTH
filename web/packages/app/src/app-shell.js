@@ -4139,6 +4139,8 @@ export function mountAppShell(options) {
     const onGiveDrinkSelectedPatient = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
         if (resolved?.type !== "patient" || !canGiveDrinkToPatient(resolved.value, orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("patient.drink-blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
@@ -4153,6 +4155,8 @@ export function mountAppShell(options) {
     const onSendSelectedPatientToilet = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
         if (resolved?.type !== "patient" || !canSendPatientToilet(resolved.value, orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("patient.toilet-blocked");
+            renderRuntime();
             return;
         }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
