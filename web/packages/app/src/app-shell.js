@@ -48,7 +48,8 @@ const ROOM_TYPE_COLORS = {
 const STAFF_ROLE_COLORS = {
     diagnostician: "#d8b55a",
     nurse: "#d96c75",
-    handyman: "#7acb87"
+    handyman: "#7acb87",
+    receptionist: "#8fb7ff"
 };
 const PLACEMENT_REASON_LABELS = {
     "missing-position": "choose a tile",
@@ -2378,7 +2379,7 @@ function drawRoomMarker(context, room, view) {
     context.restore();
 }
 function drawStaffMarker(context, staff, center) {
-    const color = STAFF_ROLE_COLORS[staff.role] ?? "#ffffff";
+    const color = staffRoleMarkerColor(staff.role);
     context.save();
     context.fillStyle = color;
     context.strokeStyle = staff.trainingRemainingTicks > 0 ? "#ffdf5d" : staff.status === "active" ? "#102027" : "#9b3131";
@@ -2388,6 +2389,9 @@ function drawStaffMarker(context, staff, center) {
     context.fill();
     context.stroke();
     context.restore();
+}
+export function staffRoleMarkerColor(role) {
+    return STAFF_ROLE_COLORS[role] ?? "#ffffff";
 }
 function drawObjectMarker(context, object, center) {
     const orientation = object.orientation ?? "north";
