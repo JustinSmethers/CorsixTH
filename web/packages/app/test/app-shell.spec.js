@@ -150,6 +150,46 @@ describe("app shell campaign objectives", () => {
             "treat",
             "staff-break-toggle",
             "treatment-room-toggle",
+            "open-jukebox",
+            "open-furnish-corridor",
+            "open-edit-room",
+            "open-first-message",
+            "open-casebook",
+            "open-map",
+            "open-staff",
+            "open-research",
+            "open-policy",
+            "open-machine-menu"
+        ]);
+        expect(createOriginalUiStripControlZones({
+            originalUiSpriteSheet: {
+                sprites: Array.from({ length: 34 }, () => ({ width: 10, height: 10, indices: [1] }))
+            }
+        }, 548, 40).map((zone) => zone.id)).toEqual([
+            "pause-toggle",
+            "step",
+            "build-diagnosis-room",
+            "build-treatment-room",
+            "build-pharmacy-room",
+            "build-specialist-room",
+            "hire-diagnostician",
+            "hire-nurse",
+            "hire-handyman",
+            "hire-receptionist",
+            "admit",
+            "treat",
+            "staff-break-toggle",
+            "treatment-room-toggle",
+            "open-jukebox",
+            "open-furnish-corridor",
+            "open-edit-room",
+            "open-first-message",
+            "open-casebook",
+            "open-map",
+            "open-staff",
+            "open-research",
+            "open-policy",
+            "open-machine-menu",
             "take-loan",
             "repay-loan",
             "start-research",
@@ -163,9 +203,9 @@ describe("app shell campaign objectives", () => {
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
-                sprites: Array.from({ length: 35 }, () => ({ width: 10, height: 10, indices: [1] }))
+                sprites: Array.from({ length: 45 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
-        }, 564, 40).map((zone) => zone.id).slice(24)).toEqual([
+        }, 724, 40).map((zone) => zone.id).slice(34)).toEqual([
             "save-game",
             "load-game",
             "refresh-save-slots",
