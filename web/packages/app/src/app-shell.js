@@ -119,6 +119,8 @@ const ACTION_STATUS_LABELS = {
     "staff.move-blocked": "Action: staff move blocked",
     "staff.rested": "Action: staff rested",
     "staff.rest-blocked": "Action: staff rest blocked",
+    "staff.break-blocked": "Action: staff break blocked",
+    "treatment-room.toggle-blocked": "Action: treatment room toggle blocked",
     "patient.admitted": "Action: patient admitted",
     "patient.prioritized": "Action: patient prioritized",
     "patient.prioritize-empty": "Action: patient cannot be prioritized",
@@ -4337,6 +4339,8 @@ export function mountAppShell(options) {
         const resolved = selectedEntityFromState(state, selectedEntity);
         const staff = resolved?.type === "staff" ? resolved.value : defaultStaffBreakTargetFromState(state);
         if (!canToggleStaffBreakFromState(state, staff)) {
+            actionStatus.textContent = formatActionStatus("staff.break-blocked");
+            renderRuntime();
             return;
         }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
@@ -4351,6 +4355,8 @@ export function mountAppShell(options) {
         const resolved = selectedEntityFromState(state, selectedEntity);
         const room = resolved?.type === "room" ? resolved.value : defaultTreatmentRoomToggleTargetFromState(state);
         if (!canToggleTreatmentRoomFromState(state, room)) {
+            actionStatus.textContent = formatActionStatus("treatment-room.toggle-blocked");
+            renderRuntime();
             return;
         }
         dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
