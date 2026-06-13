@@ -187,10 +187,18 @@ test("phase 7 slice 3 player journey: treatment research improves success bonus"
     await expect(page.getByTestId("research-status")).toHaveText("Research: treatment 0/3, invested 0");
     await expect(page.getByTestId("research-effect")).toHaveText("Research effect: +0% success, next 1500/6 ticks, throughput 1x/0 researchers");
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
-    await page.getByTestId("start-research").click();
+    await page.getByTestId("playfield").focus();
+    await page.keyboard.press("F6");
+    await expect(page.getByTestId("research-panel")).toBeVisible();
+    await expect(page.getByTestId("research-panel-status")).toHaveText("Research: treatment 0/3, invested 0");
+    await expect(page.getByTestId("research-panel-effect")).toHaveText("Research effect: +0% success, next 1500/6 ticks, throughput 1x/0 researchers");
+    await expect(page.getByTestId("research-panel-start")).toBeEnabled();
+    await page.getByTestId("research-panel-start").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: research started");
     await expect(page.getByTestId("cash")).toHaveText(`Cash: ${cashBefore - 1500}`);
     await expect(page.getByTestId("research-status")).toHaveText("Research: treatment 0/3 (6 ticks), invested 1500");
+    await expect(page.getByTestId("research-panel-status")).toHaveText("Research: treatment 0/3 (6 ticks), invested 1500");
+    await expect(page.getByTestId("research-panel-start")).toBeDisabled();
     await expect(page.getByTestId("start-research")).toBeDisabled();
     for (let i = 0; i < 6; i += 1) {
         await page.getByTestId("step").click();

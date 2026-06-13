@@ -2561,6 +2561,21 @@ export function mountAppShell(options) {
         <button type="button" data-testid="staff-panel-hire-receptionist">Hire Receptionist</button>
         <button type="button" data-testid="staff-panel-close">Close</button>
       </section>
+      <section
+        data-testid="research-panel"
+        hidden
+        role="dialog"
+        aria-label="Research"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Research</h2>
+        <p data-testid="research-panel-status" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="research-panel-effect" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="research-panel-expertise" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="research-panel-objects" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="research-panel-start">Fund Research</button>
+        <button type="button" data-testid="research-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2912,6 +2927,13 @@ export function mountAppShell(options) {
         staffPanelHireHandymanButton,
         staffPanelHireReceptionistButton
     ];
+    const researchPanel = requiredElement(options.root, "[data-testid='research-panel']");
+    const researchPanelStatusMetric = requiredElement(options.root, "[data-testid='research-panel-status']");
+    const researchPanelEffectMetric = requiredElement(options.root, "[data-testid='research-panel-effect']");
+    const researchPanelExpertiseMetric = requiredElement(options.root, "[data-testid='research-panel-expertise']");
+    const researchPanelObjectsMetric = requiredElement(options.root, "[data-testid='research-panel-objects']");
+    const researchPanelStartButton = requiredElement(options.root, "[data-testid='research-panel-start']");
+    const researchPanelCloseButton = requiredElement(options.root, "[data-testid='research-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3011,6 +3033,11 @@ export function mountAppShell(options) {
         staffPanelTrainingMetric.textContent = formatStaffTrainingStatus(telemetry);
         staffPanelSkillMetric.textContent = formatStaffSkillStatus(telemetry);
         staffPanelMarketMetric.textContent = formatStaffMarketStatus(telemetry);
+        researchPanelStatusMetric.textContent = formatResearchStatus(telemetry);
+        researchPanelEffectMetric.textContent = formatResearchEffectStatus(telemetry);
+        researchPanelExpertiseMetric.textContent = formatScenarioExpertiseStatus(telemetry, hospitalView?.languageSummary ?? null);
+        researchPanelObjectsMetric.textContent = formatObjectAvailabilityStatus(telemetry, currentMap?.scenario ?? null, hospitalView?.languageSummary ?? null);
+        researchPanelStartButton.disabled = !canStartResearchFromTelemetry(telemetry);
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
@@ -3098,6 +3125,12 @@ export function mountAppShell(options) {
         if (!staffPanel.hidden) {
             staffPanel.hidden = true;
             actionStatus.textContent = "Action: staff panel closed";
+            playfield.focus();
+            return true;
+        }
+        if (!researchPanel.hidden) {
+            researchPanel.hidden = true;
+            actionStatus.textContent = "Action: research panel closed";
             playfield.focus();
             return true;
         }
@@ -3881,6 +3914,7 @@ export function mountAppShell(options) {
     const onOpenBankManager = () => {
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
+        researchPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -3896,6 +3930,7 @@ export function mountAppShell(options) {
     const onOpenBankStats = () => {
         bankManagerPanel.hidden = true;
         staffPanel.hidden = true;
+        researchPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -3910,6 +3945,7 @@ export function mountAppShell(options) {
     const onOpenStaff = () => {
         bankManagerPanel.hidden = true;
         bankStatsPanel.hidden = true;
+        researchPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -3931,8 +3967,19 @@ export function mountAppShell(options) {
         return true;
     };
     const onOpenResearch = () => {
-        telemetryElements.researchStatusMetric.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = false;
+        actionStatus.textContent = "Action: research panel opened";
+        renderRuntime();
+        (researchPanelStartButton.disabled ? researchPanelCloseButton : researchPanelStartButton).focus();
         return true;
+    };
+    const onCloseResearchPanel = () => {
+        researchPanel.hidden = true;
+        actionStatus.textContent = "Action: research panel closed";
+        playfield.focus();
     };
     const onOpenStatus = () => {
         telemetryElements.levelObjectiveStatusMetric.focus();
@@ -4617,6 +4664,8 @@ export function mountAppShell(options) {
     staffPanelHireHandymanButton.addEventListener("click", onStaffPanelHireHandyman);
     staffPanelHireReceptionistButton.addEventListener("click", onStaffPanelHireReceptionist);
     staffPanelCloseButton.addEventListener("click", onCloseStaffPanel);
+    researchPanelStartButton.addEventListener("click", onStartResearch);
+    researchPanelCloseButton.addEventListener("click", onCloseResearchPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4712,6 +4761,8 @@ export function mountAppShell(options) {
             staffPanelHireHandymanButton.removeEventListener("click", onStaffPanelHireHandyman);
             staffPanelHireReceptionistButton.removeEventListener("click", onStaffPanelHireReceptionist);
             staffPanelCloseButton.removeEventListener("click", onCloseStaffPanel);
+            researchPanelStartButton.removeEventListener("click", onStartResearch);
+            researchPanelCloseButton.removeEventListener("click", onCloseResearchPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
