@@ -2,6 +2,7 @@ import { canAdvanceToNextLevelFromTelemetry, canBuildRoomFromTelemetry, canFireS
 
 import { staffRoleMarkerColor } from "../src/app-shell";
 import { patientConditionLabels } from "../src/app-shell";
+import { formatNextLevelUnavailableStatus, formatRestartLevelUnavailableStatus } from "../src/app-shell";
 
 describe("app shell campaign objectives", () => {
     it("selects the first visible original QDATA sheet for the playable UI strip", () => {
@@ -806,7 +807,9 @@ describe("app shell campaign objectives", () => {
         expect(formatSaveFailureStatus("Load", "bad envelope")).toBe("Load failed: bad envelope");
         expect(formatNewMapStatus("LEVELS/EXAMPLE.MAP")).toBe("Save: new map LEVELS/EXAMPLE.MAP");
         expect(formatRestartedLevelStatus("LEVELS/SECOND.MAP")).toBe("Save: restarted LEVELS/SECOND.MAP");
+        expect(formatRestartLevelUnavailableStatus()).toBe("Save: restart unavailable");
         expect(formatNextLevelStatus("LEVELS/SECOND.MAP")).toBe("Save: next level LEVELS/SECOND.MAP");
+        expect(formatNextLevelUnavailableStatus()).toBe("Save: next level unavailable");
         expect(formatCampaignCompleteStatus()).toBe("Save: campaign complete");
     });
     it("formats gameplay control labels for the browser toolbar", () => {

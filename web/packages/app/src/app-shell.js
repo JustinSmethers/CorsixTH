@@ -490,8 +490,14 @@ export function formatNewMapStatus(mapPath) {
 export function formatRestartedLevelStatus(mapPath) {
     return `Save: restarted ${mapPath}`;
 }
+export function formatRestartLevelUnavailableStatus() {
+    return "Save: restart unavailable";
+}
 export function formatNextLevelStatus(mapPath) {
     return `Save: next level ${mapPath}`;
+}
+export function formatNextLevelUnavailableStatus() {
+    return "Save: next level unavailable";
 }
 export function formatCampaignCompleteStatus() {
     return "Save: campaign complete";
@@ -5483,6 +5489,8 @@ export function mountAppShell(options) {
     };
     const onRestartLevel = () => {
         if (!canRestartLevelFromHospitalView(hospitalView)) {
+            saveStatus.textContent = formatRestartLevelUnavailableStatus();
+            renderRuntime();
             return;
         }
         resetOrchestratorForActiveMap();
@@ -5491,6 +5499,8 @@ export function mountAppShell(options) {
     };
     const onNextLevel = () => {
         if (!canAdvanceToNextLevelFromTelemetry(hospitalView, orchestrator.telemetry())) {
+            saveStatus.textContent = formatNextLevelUnavailableStatus();
+            renderRuntime();
             return;
         }
         const nextMapPath = nextHospitalMapPath(hospitalView);
