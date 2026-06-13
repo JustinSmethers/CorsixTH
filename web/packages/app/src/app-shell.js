@@ -52,6 +52,7 @@ const STAFF_ROLE_COLORS = {
 };
 const PLACEMENT_REASON_LABELS = {
     "missing-position": "choose a tile",
+    "missing-staff": "staff unavailable",
     "out-of-bounds": "out of bounds",
     "invalid-terrain": "invalid terrain",
     "non-buildable": "not buildable",
