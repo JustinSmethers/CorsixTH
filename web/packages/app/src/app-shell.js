@@ -68,6 +68,7 @@ const ACTION_STATUS_LABELS = {
     "admissions.opened": "Action: admissions open",
     "admissions.closed": "Action: admissions closed",
     "speed.changed": "Action: speed changed",
+    "cancel-action-blocked": "Action: cancel blocked",
     "confirm-action-blocked": "Action: confirm blocked",
     "admission-policy.changed": "Action: admission policy changed",
     "pricing-policy.changed": "Action: pricing policy changed",
@@ -3796,7 +3797,9 @@ export function mountAppShell(options) {
         }
         if (!placementAction) {
             if (source !== "Escape") {
-                return false;
+                actionStatus.textContent = formatActionStatus("cancel-action-blocked");
+                renderRuntime();
+                return true;
             }
             gameMenuBar.hidden = false;
             gameMenuFileButton.focus();
