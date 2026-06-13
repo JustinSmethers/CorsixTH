@@ -2647,6 +2647,23 @@ export function mountAppShell(options) {
         </label>
         <button type="button" data-testid="policy-panel-close">Close</button>
       </section>
+      <section
+        data-testid="machine-menu-panel"
+        hidden
+        role="dialog"
+        aria-label="Machine Menu"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Machine Menu</h2>
+        <p data-testid="machine-menu-maintenance" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="machine-menu-staff" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="machine-menu-starts" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="machine-menu-completes" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="machine-menu-rooms" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="machine-menu-objects" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="machine-menu-repair-selected-room">Repair Selected Room</button>
+        <button type="button" data-testid="machine-menu-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -3038,6 +3055,15 @@ export function mountAppShell(options) {
     const policyPanelAdmissionPolicySelect = requiredElement(options.root, "[data-testid='policy-panel-admission-policy']");
     const policyPanelPricingPolicySelect = requiredElement(options.root, "[data-testid='policy-panel-pricing-policy']");
     const policyPanelCloseButton = requiredElement(options.root, "[data-testid='policy-panel-close']");
+    const machineMenuPanel = requiredElement(options.root, "[data-testid='machine-menu-panel']");
+    const machineMenuMaintenanceMetric = requiredElement(options.root, "[data-testid='machine-menu-maintenance']");
+    const machineMenuStaffMetric = requiredElement(options.root, "[data-testid='machine-menu-staff']");
+    const machineMenuStartsMetric = requiredElement(options.root, "[data-testid='machine-menu-starts']");
+    const machineMenuCompletesMetric = requiredElement(options.root, "[data-testid='machine-menu-completes']");
+    const machineMenuRoomsMetric = requiredElement(options.root, "[data-testid='machine-menu-rooms']");
+    const machineMenuObjectsMetric = requiredElement(options.root, "[data-testid='machine-menu-objects']");
+    const machineMenuRepairSelectedRoomButton = requiredElement(options.root, "[data-testid='machine-menu-repair-selected-room']");
+    const machineMenuCloseButton = requiredElement(options.root, "[data-testid='machine-menu-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3108,6 +3134,7 @@ export function mountAppShell(options) {
         fireSelectedStaffButton.disabled = !(resolved?.type === "staff" && canFireStaff(resolved.value));
         sellSelectedRoomButton.disabled = !(resolved?.type === "room" && canSellRoom(resolved.value));
         repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
+        machineMenuRepairSelectedRoomButton.disabled = repairSelectedRoomButton.disabled;
         if (resolved?.type === "staff") {
             telemetryElements.staffBreakToggleButton.textContent = formatSelectedStaffBreakToggleLabel(resolved.value);
         }
@@ -3169,6 +3196,12 @@ export function mountAppShell(options) {
         policyPanelRoutingRulesMetric.textContent = formatRoutingRulesStatus(telemetry);
         policyPanelAdmissionPolicySelect.value = telemetry.admissionPolicy;
         policyPanelPricingPolicySelect.value = telemetry.treatmentPricingPolicy;
+        machineMenuMaintenanceMetric.textContent = formatRoomMaintenanceStatus(telemetry);
+        machineMenuStaffMetric.textContent = formatMaintenanceStaffStatus(telemetry, hospitalView?.languageSummary ?? null);
+        machineMenuStartsMetric.textContent = formatRoomMaintenanceStartEventsStatus(telemetry);
+        machineMenuCompletesMetric.textContent = formatRoomMaintenanceCompleteEventsStatus(telemetry);
+        machineMenuRoomsMetric.textContent = formatRoomAvailabilityHudStatus(telemetry, hospitalView?.languageSummary ?? null);
+        machineMenuObjectsMetric.textContent = formatObjectAvailabilityStatus(telemetry, currentMap?.scenario ?? null, hospitalView?.languageSummary ?? null);
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
@@ -3280,6 +3313,12 @@ export function mountAppShell(options) {
         if (!policyPanel.hidden) {
             policyPanel.hidden = true;
             actionStatus.textContent = "Action: policy panel closed";
+            playfield.focus();
+            return true;
+        }
+        if (!machineMenuPanel.hidden) {
+            machineMenuPanel.hidden = true;
+            actionStatus.textContent = "Action: machine menu closed";
             playfield.focus();
             return true;
         }
@@ -4079,6 +4118,7 @@ export function mountAppShell(options) {
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
         policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -4098,6 +4138,7 @@ export function mountAppShell(options) {
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
         policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -4116,6 +4157,7 @@ export function mountAppShell(options) {
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
         policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4143,6 +4185,7 @@ export function mountAppShell(options) {
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
         policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4161,6 +4204,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         chartsPanel.hidden = true;
         policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4179,6 +4223,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         policyPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         chartsPanel.hidden = false;
         actionStatus.textContent = "Action: charts panel opened";
         renderRuntime();
@@ -4201,6 +4246,7 @@ export function mountAppShell(options) {
         researchPanel.hidden = true;
         statusPanel.hidden = true;
         chartsPanel.hidden = true;
+        machineMenuPanel.hidden = true;
         policyPanel.hidden = false;
         actionStatus.textContent = "Action: policy panel opened";
         renderRuntime();
@@ -4213,8 +4259,23 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenMachineMenu = () => {
-        telemetryElements.roomsInMaintenanceMetric.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = true;
+        policyPanel.hidden = true;
+        machineMenuPanel.hidden = false;
+        actionStatus.textContent = "Action: machine menu opened";
+        renderRuntime();
+        (machineMenuRepairSelectedRoomButton.disabled ? machineMenuCloseButton : machineMenuRepairSelectedRoomButton).focus();
         return true;
+    };
+    const onCloseMachineMenu = () => {
+        machineMenuPanel.hidden = true;
+        actionStatus.textContent = "Action: machine menu closed";
+        playfield.focus();
     };
     const onOpenFirstMessage = () => {
         const telemetry = orchestrator.telemetry();
@@ -4886,6 +4947,8 @@ export function mountAppShell(options) {
     statusPanelCloseButton.addEventListener("click", onCloseStatusPanel);
     chartsPanelCloseButton.addEventListener("click", onCloseChartsPanel);
     policyPanelCloseButton.addEventListener("click", onClosePolicyPanel);
+    machineMenuRepairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
+    machineMenuCloseButton.addEventListener("click", onCloseMachineMenu);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4988,6 +5051,8 @@ export function mountAppShell(options) {
             statusPanelCloseButton.removeEventListener("click", onCloseStatusPanel);
             chartsPanelCloseButton.removeEventListener("click", onCloseChartsPanel);
             policyPanelCloseButton.removeEventListener("click", onClosePolicyPanel);
+            machineMenuRepairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
+            machineMenuCloseButton.removeEventListener("click", onCloseMachineMenu);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
