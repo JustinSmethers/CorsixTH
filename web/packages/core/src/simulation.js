@@ -2261,7 +2261,7 @@ export class DeterministicSimulation {
         if (!this.isRoomFootprintBuildable(requestedPosition, footprint)) {
             return clonePlacementEvaluation({ ...base, reason: "non-buildable" });
         }
-        if (this.isRoomFootprintOccupied(requestedPosition, footprint)) {
+        if (this.isRoomFootprintOccupied(requestedPosition, footprint, { includeEntities: true })) {
             return clonePlacementEvaluation({ ...base, reason: "occupied" });
         }
         if (!this.canAffordPurchase(cost)) {
@@ -2775,12 +2775,19 @@ export class DeterministicSimulation {
             position.x + footprint.width <= this.bounds.width &&
             position.y + footprint.height <= this.bounds.height);
     }
-    isRoomFootprintOccupied(position, footprint) {
+    isRoomFootprintOccupied(position, footprint, options = {}) {
         const requestedTiles = this.roomFootprintTiles(position, footprint);
-        return this.rooms.some((room) => {
+        const overlapsRequestedTiles = (occupiedPosition) => requestedTiles.some((requestedTile) => samePosition(requestedTile, occupiedPosition));
+        const overlapsRooms = this.rooms.some((room) => {
             const occupiedTiles = this.roomFootprintTiles(room.position, room.footprint);
             return requestedTiles.some((requestedTile) => occupiedTiles.some((occupiedTile) => samePosition(requestedTile, occupiedTile)));
         });
+        if (overlapsRooms || options.includeEntities !== true) {
+            return overlapsRooms;
+        }
+        return this.objects.some((object) => overlapsRequestedTiles(object.position)) ||
+            this.staff.some((staff) => overlapsRequestedTiles(staff.position)) ||
+            this.waitingPatients.some((patient) => overlapsRequestedTiles(patient.position));
     }
     isObjectPositionOccupied(position) {
         return this.rooms.some((room) => this.roomFootprintTiles(room.position, room.footprint).some((tile) => samePosition(tile, position))) ||

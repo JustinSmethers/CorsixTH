@@ -127,6 +127,29 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         simulation.execute({ type: "place-object", objectIndex: 8, name: "Bench", position: { x: 7, y: 7 } });
         expect(simulation.getState().entities.objects).toEqual([]);
     });
+    it("blocks room placement over objects, staff, and patient positions", () => {
+        const simulation = new DeterministicSimulation(7209, { bounds: { width: 14, height: 14 } });
+        simulation.execute({ type: "place-object", objectIndex: 7, name: "Plant", position: { x: 6, y: 6 } });
+        simulation.execute({ type: "hire-staff", role: "handyman", position: { x: 9, y: 6 } });
+        simulation.execute({ type: "admit-patient", severity: 2, position: { x: 6, y: 9 } });
+        expect(simulation.evaluateRoomPlacement("diagnosis", { x: 5, y: 5 })).toMatchObject({
+            valid: false,
+            reason: "occupied"
+        });
+        expect(simulation.evaluateRoomPlacement("diagnosis", { x: 8, y: 5 })).toMatchObject({
+            valid: false,
+            reason: "occupied"
+        });
+        expect(simulation.evaluateRoomPlacement("diagnosis", { x: 5, y: 8 })).toMatchObject({
+            valid: false,
+            reason: "occupied"
+        });
+        const beforeRooms = simulation.getState().entities.rooms.length;
+        simulation.execute({ type: "open-room", roomType: "diagnosis", position: { x: 5, y: 5 } });
+        simulation.execute({ type: "open-room", roomType: "diagnosis", position: { x: 8, y: 5 } });
+        simulation.execute({ type: "open-room", roomType: "diagnosis", position: { x: 5, y: 8 } });
+        expect(simulation.getState().entities.rooms).toHaveLength(beforeRooms);
+    });
     it("uses imported routing distance points when choosing between open diagnosis rooms", () => {
         const weighted = new DeterministicSimulation(7212, {
             bounds: { width: 12, height: 12 },
