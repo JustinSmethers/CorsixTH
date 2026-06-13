@@ -2596,6 +2596,26 @@ export function mountAppShell(options) {
         <p data-testid="status-panel-unlocks" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="status-panel-close">Close</button>
       </section>
+      <section
+        data-testid="charts-panel"
+        hidden
+        role="dialog"
+        aria-label="Charts"
+        style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
+      >
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Charts</h2>
+        <p data-testid="charts-panel-cash" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-reputation" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-cumulative" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-loan" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-interest" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-ledger" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-audit" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-marketing" style="margin:0 0 4px; font-size:13px;"></p>
+        <p data-testid="charts-panel-insurance" style="margin:0 0 8px; font-size:13px;"></p>
+        <button type="button" data-testid="charts-panel-close">Close</button>
+      </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
@@ -2966,6 +2986,18 @@ export function mountAppShell(options) {
     const statusPanelMilestoneMetric = requiredElement(options.root, "[data-testid='status-panel-milestone']");
     const statusPanelUnlocksMetric = requiredElement(options.root, "[data-testid='status-panel-unlocks']");
     const statusPanelCloseButton = requiredElement(options.root, "[data-testid='status-panel-close']");
+    const chartsPanel = requiredElement(options.root, "[data-testid='charts-panel']");
+    const chartsPanelCashMetric = requiredElement(options.root, "[data-testid='charts-panel-cash']");
+    const chartsPanelReputationMetric = requiredElement(options.root, "[data-testid='charts-panel-reputation']");
+    const chartsPanelCashflowMetric = requiredElement(options.root, "[data-testid='charts-panel-cashflow']");
+    const chartsPanelCumulativeMetric = requiredElement(options.root, "[data-testid='charts-panel-cumulative']");
+    const chartsPanelLoanMetric = requiredElement(options.root, "[data-testid='charts-panel-loan']");
+    const chartsPanelInterestMetric = requiredElement(options.root, "[data-testid='charts-panel-interest']");
+    const chartsPanelLedgerMetric = requiredElement(options.root, "[data-testid='charts-panel-ledger']");
+    const chartsPanelAuditMetric = requiredElement(options.root, "[data-testid='charts-panel-audit']");
+    const chartsPanelMarketingMetric = requiredElement(options.root, "[data-testid='charts-panel-marketing']");
+    const chartsPanelInsuranceMetric = requiredElement(options.root, "[data-testid='charts-panel-insurance']");
+    const chartsPanelCloseButton = requiredElement(options.root, "[data-testid='charts-panel-close']");
     const saveStatus = requiredElement(options.root, "[data-testid='save-status']");
     const actionStatus = requiredElement(options.root, "[data-testid='action-status']");
     const informationStatus = requiredElement(options.root, "[data-testid='information-status']");
@@ -3080,6 +3112,16 @@ export function mountAppShell(options) {
         statusPanelCashMetric.textContent = formatCashStatus(telemetry);
         statusPanelMilestoneMetric.textContent = formatMilestoneStatus(telemetry);
         statusPanelUnlocksMetric.textContent = formatUnlockStatus(telemetry);
+        chartsPanelCashMetric.textContent = formatCashStatus(telemetry);
+        chartsPanelReputationMetric.textContent = formatReputationStatus(telemetry);
+        chartsPanelCashflowMetric.textContent = formatTickCashflowStatus(telemetry);
+        chartsPanelCumulativeMetric.textContent = formatCumulativeCashflowStatus(telemetry);
+        chartsPanelLoanMetric.textContent = formatLoanStatus(telemetry);
+        chartsPanelInterestMetric.textContent = formatLoanInterestStatus(telemetry);
+        chartsPanelLedgerMetric.textContent = formatFinanceLedgerStatus(telemetry);
+        chartsPanelAuditMetric.textContent = formatFinanceAuditStatus(telemetry);
+        chartsPanelMarketingMetric.textContent = formatMarketingCampaignStatus(telemetry);
+        chartsPanelInsuranceMetric.textContent = formatInsuranceContractStatus(telemetry);
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
@@ -3179,6 +3221,12 @@ export function mountAppShell(options) {
         if (!statusPanel.hidden) {
             statusPanel.hidden = true;
             actionStatus.textContent = "Action: status panel closed";
+            playfield.focus();
+            return true;
+        }
+        if (!chartsPanel.hidden) {
+            chartsPanel.hidden = true;
+            actionStatus.textContent = "Action: charts panel closed";
             playfield.focus();
             return true;
         }
@@ -3964,6 +4012,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         researchPanel.hidden = true;
         statusPanel.hidden = true;
+        chartsPanel.hidden = true;
         bankManagerPanel.hidden = false;
         actionStatus.textContent = "Action: bank manager opened";
         renderRuntime();
@@ -3981,6 +4030,7 @@ export function mountAppShell(options) {
         staffPanel.hidden = true;
         researchPanel.hidden = true;
         statusPanel.hidden = true;
+        chartsPanel.hidden = true;
         bankStatsPanel.hidden = false;
         actionStatus.textContent = "Action: bank stats opened";
         renderRuntime();
@@ -3997,6 +4047,7 @@ export function mountAppShell(options) {
         bankStatsPanel.hidden = true;
         researchPanel.hidden = true;
         statusPanel.hidden = true;
+        chartsPanel.hidden = true;
         staffPanel.hidden = false;
         actionStatus.textContent = "Action: staff panel opened";
         renderRuntime();
@@ -4022,6 +4073,7 @@ export function mountAppShell(options) {
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
         statusPanel.hidden = true;
+        chartsPanel.hidden = true;
         researchPanel.hidden = false;
         actionStatus.textContent = "Action: research panel opened";
         renderRuntime();
@@ -4038,6 +4090,7 @@ export function mountAppShell(options) {
         bankStatsPanel.hidden = true;
         staffPanel.hidden = true;
         researchPanel.hidden = true;
+        chartsPanel.hidden = true;
         statusPanel.hidden = false;
         actionStatus.textContent = "Action: status panel opened";
         renderRuntime();
@@ -4050,8 +4103,21 @@ export function mountAppShell(options) {
         playfield.focus();
     };
     const onOpenCharts = () => {
-        telemetryElements.tickCashflowMetric.focus();
+        bankManagerPanel.hidden = true;
+        bankStatsPanel.hidden = true;
+        staffPanel.hidden = true;
+        researchPanel.hidden = true;
+        statusPanel.hidden = true;
+        chartsPanel.hidden = false;
+        actionStatus.textContent = "Action: charts panel opened";
+        renderRuntime();
+        chartsPanelCloseButton.focus();
         return true;
+    };
+    const onCloseChartsPanel = () => {
+        chartsPanel.hidden = true;
+        actionStatus.textContent = "Action: charts panel closed";
+        playfield.focus();
     };
     const onOpenMap = () => {
         hospitalMapSelect.focus();
@@ -4731,6 +4797,7 @@ export function mountAppShell(options) {
     researchPanelStartButton.addEventListener("click", onStartResearch);
     researchPanelCloseButton.addEventListener("click", onCloseResearchPanel);
     statusPanelCloseButton.addEventListener("click", onCloseStatusPanel);
+    chartsPanelCloseButton.addEventListener("click", onCloseChartsPanel);
     telemetryElements.staffBreakToggleButton.addEventListener("click", onStaffBreakToggle);
     telemetryElements.treatmentRoomToggleButton.addEventListener("click", onTreatmentRoomToggle);
     originalUiStripCanvas.addEventListener("click", onOriginalUiStripClick);
@@ -4829,6 +4896,7 @@ export function mountAppShell(options) {
             researchPanelStartButton.removeEventListener("click", onStartResearch);
             researchPanelCloseButton.removeEventListener("click", onCloseResearchPanel);
             statusPanelCloseButton.removeEventListener("click", onCloseStatusPanel);
+            chartsPanelCloseButton.removeEventListener("click", onCloseChartsPanel);
             telemetryElements.staffBreakToggleButton.removeEventListener("click", onStaffBreakToggle);
             telemetryElements.treatmentRoomToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             originalUiStripCanvas.removeEventListener("click", onOriginalUiStripClick);
