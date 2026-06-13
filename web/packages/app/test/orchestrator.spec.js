@@ -2731,6 +2731,41 @@ describe("app orchestrator", () => {
         expect(orchestrator.getState().entities.rooms.find((candidate) => candidate.id === room.id)).toBeUndefined();
         expect(orchestrator.telemetry().cash).toBe(cashAfterBuild + 400);
     });
+    it("sells placed corridor objects through deterministic commands and restore", () => {
+        const orchestrator = new AppOrchestrator({ seed: 9026, tickRateHz: 4, pointerTileSize: 8 });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 11,
+            objectName: "Radiator",
+            cost: 101,
+            source: "ui:furnish-corridor",
+            pointer: { x: 32, y: 32 }
+        })).toEqual(["object.placed"]);
+        const object = orchestrator.getState().entities.objects.find((candidate) => candidate.objectIndex === 11);
+        expect(object).toBeTruthy();
+        const cashAfterPlacement = orchestrator.telemetry().cash;
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "sell-object",
+            objectId: object.id,
+            source: "ui:sell-selected-object"
+        })).toEqual(["object.sold"]);
+        expect(orchestrator.getState().entities.objects.find((candidate) => candidate.id === object.id)).toBeUndefined();
+        expect(orchestrator.telemetry().cash).toBe(cashAfterPlacement + 50);
+        const snapshot = orchestrator.createPersistenceSnapshot();
+        expect(snapshot.commandLog[snapshot.commandLog.length - 1]).toEqual({
+            type: "remove-object",
+            objectId: object.id
+        });
+        expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "sell-object",
+            objectId: object.id,
+            source: "ui:sell-selected-object"
+        })).toEqual(["object.sell-blocked"]);
+    });
     it("routes map placement actions into positioned room and staff commands", () => {
         const orchestrator = new AppOrchestrator({ seed: 9013, tickRateHz: 4, pointerTileSize: 8 });
         expect(orchestrator.dispatch({

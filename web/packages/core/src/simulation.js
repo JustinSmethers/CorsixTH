@@ -864,7 +864,7 @@ export function hashSimulationState(state) {
     const counters = {
         ...state.counters
     };
-    if (objects.length === 0) {
+    if (objects.length === 0 && state.counters.nextObjectId === 1) {
         delete counters.nextObjectId;
     }
     const normalized = {
@@ -1204,6 +1204,10 @@ export class DeterministicSimulation {
                 cost: command.cost,
                 name: command.name
             });
+            return this.getState();
+        }
+        if (command.type === "remove-object") {
+            this.removeObject(command.objectId, { refund: true });
             return this.getState();
         }
         if (command.type === "remove-room") {
@@ -2349,6 +2353,18 @@ export class DeterministicSimulation {
             const refund = Number.isFinite(room.purchaseCost) ? Math.floor(room.purchaseCost / 2) : roomSellRefund(room.roomType);
             this.creditPurchaseRefund(refund);
         }
+    }
+    removeObject(objectId, options = {}) {
+        const objectIndex = this.objects.findIndex((object) => object.id === objectId);
+        if (objectIndex < 0) {
+            return;
+        }
+        const object = this.objects[objectIndex];
+        this.objects.splice(objectIndex, 1);
+        if (options.refund === true) {
+            this.creditPurchaseRefund(Math.floor((object.cost ?? 0) / 2));
+        }
+        this.emitEvent("object-removed", `${object.id}|${object.objectIndex}`);
     }
     roomBuildCostForType(roomType) {
         return this.roomCostOverrides[roomType] ?? roomBuildCost(roomType);

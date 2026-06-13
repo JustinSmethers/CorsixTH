@@ -1139,6 +1139,9 @@ function cloneCommand(command) {
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
     }
+    if (command.type === "remove-object") {
+        return { type: "remove-object", objectId: command.objectId };
+    }
     if (command.type === "remove-room") {
         return { type: "remove-room", roomId: command.roomId };
     }

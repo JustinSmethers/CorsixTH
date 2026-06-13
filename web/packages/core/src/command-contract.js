@@ -16,6 +16,7 @@ export const GAME_COMMAND_TYPES = [
     "rest-staff",
     "open-room",
     "place-object",
+    "remove-object",
     "remove-room",
     "set-room-status",
     "repair-room",
@@ -152,6 +153,9 @@ export function isGameCommand(value) {
             (value.name === undefined || typeof value.name === "string") &&
             (value.cost === undefined || (Number.isInteger(value.cost) && value.cost >= 0)) &&
             (value.position === undefined || isGridPosition(value.position)));
+    }
+    if (value.type === "remove-object") {
+        return typeof value.objectId === "number" && Number.isInteger(value.objectId) && value.objectId > 0;
     }
     if (value.type === "remove-room") {
         return typeof value.roomId === "number" && Number.isInteger(value.roomId) && value.roomId > 0;

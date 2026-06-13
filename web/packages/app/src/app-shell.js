@@ -106,6 +106,8 @@ const ACTION_STATUS_LABELS = {
     "room.repair-blocked": "Action: room repair blocked",
     "object.placed": "Action: object placed",
     "object.place-blocked": "Action: object placement blocked",
+    "object.sold": "Action: object sold",
+    "object.sell-blocked": "Action: object sale blocked",
     "staff.hired": "Action: staff hired",
     "staff.hire-blocked": "Action: staff blocked",
     "staff.fired": "Action: staff fired",
@@ -510,6 +512,10 @@ function findSelectableEntityAtTile(state, tile) {
     if (staff) {
         return { type: "staff", id: staff.id };
     }
+    const object = [...(state.entities.objects ?? [])].reverse().find((candidate) => sameTile(candidate.position, tile));
+    if (object) {
+        return { type: "object", id: object.id };
+    }
     const rooms = [...state.entities.rooms].reverse();
     const room = rooms.find((candidate) => roomContainsTile(candidate, tile));
     if (room) {
@@ -528,6 +534,10 @@ function selectedEntityFromState(state, selectedEntity) {
     if (selectedEntity.type === "room") {
         const room = state.entities.rooms.find((candidate) => candidate.id === selectedEntity.id);
         return room ? { type: "room", value: room } : null;
+    }
+    if (selectedEntity.type === "object") {
+        const object = state.entities.objects?.find((candidate) => candidate.id === selectedEntity.id);
+        return object ? { type: "object", value: object } : null;
     }
     const patient = state.entities.waitingPatients.find((candidate) => candidate.id === selectedEntity.id);
     return patient ? { type: "patient", value: patient } : null;
@@ -551,6 +561,9 @@ export function formatSelectionStatusWithLanguage(state, selectedEntity, languag
             .join("/");
         const patientDetail = assignedPatients ? `, patients ${assignedPatients}` : "";
         return `Selection: ${roomTypeDisplayName(resolved.value.roomType, languageSummary)} room #${resolved.value.id} (${resolved.value.status}, wear ${resolved.value.wear}, maintenance ${resolved.value.maintenanceRemainingTicks}${patientDetail})`;
+    }
+    if (resolved.type === "object") {
+        return `Selection: ${resolved.value.name ?? `object ${resolved.value.objectIndex}`} #${resolved.value.id} (tile ${resolved.value.position.x},${resolved.value.position.y}, value ${resolved.value.cost})`;
     }
     const disease = resolved.value.diagnosisKnown ? patientDiseaseDisplayName(resolved.value, languageSummary) : "unknown disease";
     const status = patientStatusDisplayName(resolved.value, languageSummary);
@@ -2281,6 +2294,12 @@ function drawSelectionOverlay(context, selectedEntity, state, view) {
         }
         return;
     }
+    if (resolved.type === "object") {
+        if (isTileVisible(view, resolved.value.position)) {
+            drawDiamond(context, tileToHospitalScreen(view, resolved.value.position), "#f5f0a3");
+        }
+        return;
+    }
     const position = resolved.type === "staff" ? resolved.value.position : patientPosition(resolved.value);
     if (isTileVisible(view, position)) {
         drawDiamond(context, tileToHospitalScreen(view, position), "#f5f0a3");
@@ -2644,6 +2663,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="train-selected-staff">Train Staff</button>
           <button type="button" data-testid="fire-selected-staff">Fire Staff</button>
           <button type="button" data-testid="sell-selected-room">Sell Room</button>
+          <button type="button" data-testid="sell-selected-object">Sell Object</button>
           <button type="button" data-testid="repair-selected-room">Repair Room</button>
           <button type="button" data-testid="build-diagnosis-room">Build Diagnosis</button>
           <button type="button" data-testid="build-treatment-room">Build Treatment</button>
@@ -3236,6 +3256,7 @@ export function mountAppShell(options) {
     const trainSelectedStaffButton = requiredElement(options.root, "[data-testid='train-selected-staff']");
     const fireSelectedStaffButton = requiredElement(options.root, "[data-testid='fire-selected-staff']");
     const sellSelectedRoomButton = requiredElement(options.root, "[data-testid='sell-selected-room']");
+    const sellSelectedObjectButton = requiredElement(options.root, "[data-testid='sell-selected-object']");
     const repairSelectedRoomButton = requiredElement(options.root, "[data-testid='repair-selected-room']");
     const buildDiagnosisRoomButton = requiredElement(options.root, "[data-testid='build-diagnosis-room']");
     const buildTreatmentRoomButton = requiredElement(options.root, "[data-testid='build-treatment-room']");
@@ -3462,6 +3483,7 @@ export function mountAppShell(options) {
         trainSelectedStaffButton.disabled = !(resolved?.type === "staff" && canTrainStaffFromTelemetry(resolved.value, telemetry));
         fireSelectedStaffButton.disabled = !(resolved?.type === "staff" && canFireStaff(resolved.value));
         sellSelectedRoomButton.disabled = !(resolved?.type === "room" && canSellRoom(resolved.value));
+        sellSelectedObjectButton.disabled = resolved?.type !== "object";
         repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
         machineMenuRepairSelectedRoomButton.disabled = repairSelectedRoomButton.disabled;
         editRoomPanelSummary.textContent = formatEditRoomPanelSummary(state, selectedEntity, hospitalView?.languageSummary ?? null);
@@ -4215,6 +4237,23 @@ export function mountAppShell(options) {
             action: "sell-room",
             roomId: resolved.value.id,
             source: "ui:sell-selected-room"
+        }, renderRuntime);
+        selectedEntity = null;
+        updateActionStatus(events);
+        renderRuntime();
+    };
+    const onSellSelectedObject = () => {
+        const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
+        if (resolved?.type !== "object") {
+            actionStatus.textContent = formatActionStatus("object.sell-blocked");
+            renderRuntime();
+            return;
+        }
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "sell-object",
+            objectId: resolved.value.id,
+            source: "ui:sell-selected-object"
         }, renderRuntime);
         selectedEntity = null;
         updateActionStatus(events);
@@ -5565,6 +5604,7 @@ export function mountAppShell(options) {
     trainSelectedStaffButton.addEventListener("click", onTrainSelectedStaff);
     fireSelectedStaffButton.addEventListener("click", onFireSelectedStaff);
     sellSelectedRoomButton.addEventListener("click", onSellSelectedRoom);
+    sellSelectedObjectButton.addEventListener("click", onSellSelectedObject);
     repairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
     buildDiagnosisRoomButton.addEventListener("click", onBuildDiagnosisRoom);
     buildTreatmentRoomButton.addEventListener("click", onBuildTreatmentRoom);
@@ -5685,6 +5725,7 @@ export function mountAppShell(options) {
             trainSelectedStaffButton.removeEventListener("click", onTrainSelectedStaff);
             fireSelectedStaffButton.removeEventListener("click", onFireSelectedStaff);
             sellSelectedRoomButton.removeEventListener("click", onSellSelectedRoom);
+            sellSelectedObjectButton.removeEventListener("click", onSellSelectedObject);
             repairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
             buildDiagnosisRoomButton.removeEventListener("click", onBuildDiagnosisRoom);
             buildTreatmentRoomButton.removeEventListener("click", onBuildTreatmentRoom);

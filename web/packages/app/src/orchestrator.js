@@ -2087,6 +2087,12 @@ export class AppOrchestrator {
             const roomsAfter = this.simulation.getState().entities.rooms.length;
             return [roomsAfter < roomsBefore ? "room.sold" : "room.sell-blocked"];
         }
+        if (action.action === "sell-object") {
+            const objectsBefore = this.simulation.getState().entities.objects?.length ?? 0;
+            this.executeCommand({ type: "remove-object", objectId: action.objectId });
+            const objectsAfter = this.simulation.getState().entities.objects?.length ?? 0;
+            return [objectsAfter < objectsBefore ? "object.sold" : "object.sell-blocked"];
+        }
         if (action.action === "repair-room") {
             const roomBefore = this.simulation.getState().entities.rooms.find((room) => room.id === action.roomId);
             const needsRepair = Boolean(roomBefore && (roomBefore.wear > 0 || roomBefore.maintenanceRemainingTicks > 0));
@@ -3530,6 +3536,9 @@ function cloneGameCommand(command) {
             ...(Number.isInteger(command.cost) ? { cost: command.cost } : {}),
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
+    }
+    if (command.type === "remove-object") {
+        return { type: "remove-object", objectId: command.objectId };
     }
     if (command.type === "remove-room") {
         return { type: "remove-room", roomId: command.roomId };

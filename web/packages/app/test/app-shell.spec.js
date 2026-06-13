@@ -296,6 +296,7 @@ describe("app shell campaign objectives", () => {
                     }
                 ],
                 rooms: [],
+                objects: [],
                 waitingPatients: []
             }
         }, { type: "staff", id: 4 }, {
@@ -303,6 +304,22 @@ describe("app shell campaign objectives", () => {
                 doctor: "Doctor"
             }
         })).toContain("Selection: Doctor #4");
+        expect(formatSelectionStatusWithLanguage({
+            entities: {
+                staff: [],
+                rooms: [],
+                objects: [
+                    {
+                        id: 3,
+                        objectIndex: 11,
+                        name: "Radiator",
+                        cost: 101,
+                        position: { x: 4, y: 5 }
+                    }
+                ],
+                waitingPatients: []
+            }
+        }, { type: "object", id: 3 })).toBe("Selection: Radiator #3 (tile 4,5, value 101)");
     });
     it("uses imported original room names in room availability text", () => {
         expect(formatRoomAvailabilityStatus("diagnosis,treatment,specialist", {
