@@ -68,6 +68,7 @@ const ACTION_STATUS_LABELS = {
     "admissions.opened": "Action: admissions open",
     "admissions.closed": "Action: admissions closed",
     "speed.changed": "Action: speed changed",
+    "confirm-action-blocked": "Action: confirm blocked",
     "admission-policy.changed": "Action: admission policy changed",
     "pricing-policy.changed": "Action: pricing policy changed",
     "pricing-policy.unchanged": "Action: pricing policy unchanged",
@@ -3853,7 +3854,9 @@ export function mountAppShell(options) {
     const onConfirmAction = () => {
         lastPlacementEvaluation = null;
         if (!placementAction || !placementPreview || !selectedTile) {
-            return false;
+            actionStatus.textContent = formatActionStatus("confirm-action-blocked");
+            renderRuntime();
+            return true;
         }
         const nextAction = createPlacementDispatchAction(placementAction, selectedTile);
         lastPlacementEvaluation = orchestrator.evaluatePlacement(nextAction);
