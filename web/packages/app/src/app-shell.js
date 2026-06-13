@@ -104,6 +104,8 @@ const ACTION_STATUS_LABELS = {
     "room.sell-blocked": "Action: room sale blocked",
     "room.repaired": "Action: room repaired",
     "room.repair-blocked": "Action: room repair blocked",
+    "object.placed": "Action: object placed",
+    "object.place-blocked": "Action: object placement blocked",
     "staff.hired": "Action: staff hired",
     "staff.hire-blocked": "Action: staff blocked",
     "staff.fired": "Action: staff fired",
@@ -427,7 +429,7 @@ export function formatActionStatus(events, placementEvaluation) {
     if (!base) {
         return null;
     }
-    if ((event === "room.build-blocked" || event === "staff.hire-blocked" || event === "staff.move-blocked") && placementEvaluation?.reason) {
+    if ((event === "room.build-blocked" || event === "staff.hire-blocked" || event === "staff.move-blocked" || event === "object.place-blocked") && placementEvaluation?.reason) {
         return `${base}: ${placementReasonLabel(placementEvaluation.reason)}`;
     }
     return base;
@@ -1941,7 +1943,7 @@ export function formatFurnishCorridorRowsHtml(scenario, telemetry = {}, language
         const name = scenarioObjectDisplayName(object, languageSummary);
         const bucket = scenarioObjectAvailabilityBucket(object, telemetry, scenario);
         const cost = Number.isFinite(object.startCost) ? ` - ${object.startCost}` : "";
-        return `<button type="button" data-testid="furnish-corridor-object" data-object-index="${escapeHtml(String(object.index ?? ""))}" data-object-status="${escapeHtml(bucket)}" ${bucket === "available" ? "" : "disabled"} style="display:block; width:100%; margin:0 0 6px; text-align:left;">${escapeHtml(name)}${escapeHtml(cost)} (${escapeHtml(bucket)})</button>`;
+        return `<button type="button" data-testid="furnish-corridor-object" data-object-index="${escapeHtml(String(object.index ?? ""))}" data-object-name="${escapeHtml(name)}" data-object-cost="${escapeHtml(String(Number.isFinite(object.startCost) ? object.startCost : 0))}" data-object-status="${escapeHtml(bucket)}" ${bucket === "available" ? "" : "disabled"} style="display:block; width:100%; margin:0 0 6px; text-align:left;">${escapeHtml(name)}${escapeHtml(cost)} (${escapeHtml(bucket)})</button>`;
     })
         .join("");
 }
@@ -2257,6 +2259,13 @@ function drawPlacementPreview(context, placementPreview, view) {
             status: placementPreview.valid ? "active" : "blocked"
         }, tileToHospitalScreen(view, placementPreview.position));
     }
+    if (placementPreview.action === "place-object" &&
+        placementPreview.position &&
+        isTileVisible(view, placementPreview.position)) {
+        drawObjectMarker(context, {
+            objectIndex: placementPreview.objectIndex
+        }, tileToHospitalScreen(view, placementPreview.position));
+    }
 }
 function drawSelectionOverlay(context, selectedEntity, state, view) {
     const resolved = selectedEntityFromState(state, selectedEntity);
@@ -2354,11 +2363,28 @@ function drawStaffMarker(context, staff, center) {
     context.stroke();
     context.restore();
 }
+function drawObjectMarker(context, object, center) {
+    context.save();
+    context.fillStyle = "#d7c27a";
+    context.strokeStyle = "#102027";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.rect(center.x - 5, center.y - 17, 10, 10);
+    context.fill();
+    context.stroke();
+    context.fillStyle = "#102027";
+    context.font = "9px system-ui, sans-serif";
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+    context.fillText(String(object.objectIndex ?? "?"), center.x, center.y - 12);
+    context.restore();
+}
 function patientRenderPosition(patient) {
     return patient.position;
 }
 export function formatHospitalCanvasSummary(view, state, frameStats) {
-    return `${view.mapPath} viewport ${view.startX},${view.startY}; zoom ${formatHospitalZoomLevel(view)}; transparent walls ${view.transparentWalls ? "yes" : "no"}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}`;
+    const placedObjects = state.entities.objects?.length ?? 0;
+    return `${view.mapPath} viewport ${view.startX},${view.startY}; zoom ${formatHospitalZoomLevel(view)}; transparent walls ${view.transparentWalls ? "yes" : "no"}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}; placed objects ${placedObjects}`;
 }
 export function formatOriginalUiStripSummary(view, visibleSpriteCount, controls = []) {
     const sheetPath = view.originalUiSpriteSheetPath || "imported sheet";
@@ -2424,6 +2450,12 @@ function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placemen
             continue;
         }
         drawStaffMarker(context, staff, tileToHospitalScreen(view, staff.position));
+    }
+    for (const object of state.entities.objects ?? []) {
+        if (!isTileVisible(view, object.position)) {
+            continue;
+        }
+        drawObjectMarker(context, object, tileToHospitalScreen(view, object.position));
     }
     for (const patient of state.entities.waitingPatients) {
         drawPatientRoute(context, patient, view);
@@ -3559,6 +3591,9 @@ export function mountAppShell(options) {
             y: tile.y * orchestrator.pointerTileSize
         },
         ...(placement.roomType ? { roomType: placement.roomType } : {}),
+        ...(Number.isInteger(placement.objectIndex) ? { objectIndex: placement.objectIndex } : {}),
+        ...(placement.objectName ? { objectName: placement.objectName } : {}),
+        ...(Number.isInteger(placement.cost) ? { cost: placement.cost } : {}),
         ...(placement.orientation ? { orientation: placement.orientation } : {}),
         ...(placement.role ? { role: placement.role } : {}),
         ...(placement.staffId ? { staffId: placement.staffId } : {})
@@ -4644,6 +4679,32 @@ export function mountAppShell(options) {
         actionStatus.textContent = "Action: furnish corridor closed";
         playfield.focus();
     };
+    const onFurnishCorridorPanelRowsClick = (event) => {
+        const button = event.target instanceof Element ? event.target.closest("[data-testid='furnish-corridor-object']") : null;
+        if (!button || button.disabled) {
+            return;
+        }
+        const objectIndex = Number(button.getAttribute("data-object-index"));
+        if (!Number.isInteger(objectIndex) || objectIndex < 0) {
+            return;
+        }
+        const objectName = button.getAttribute("data-object-name") || `object ${objectIndex}`;
+        const cost = Number(button.getAttribute("data-object-cost") ?? "0");
+        placementAction = {
+            action: "place-object",
+            objectIndex,
+            objectName,
+            cost: Number.isInteger(cost) && cost > 0 ? cost : 0,
+            source: "ui:furnish-corridor",
+            label: `place ${objectName}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        furnishCorridorPanel.hidden = true;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+        playfield.focus();
+    };
     const onOpenEditRoom = () => {
         const state = orchestrator.getState();
         const resolved = selectedEntityFromState(state, selectedEntity);
@@ -5543,6 +5604,7 @@ export function mountAppShell(options) {
     casebookPanelCloseButton.addEventListener("click", onCloseCasebookPanel);
     messagePanelCloseButton.addEventListener("click", onCloseMessagePanel);
     jukeboxPanelCloseButton.addEventListener("click", onCloseJukeboxPanel);
+    furnishCorridorPanelRows.addEventListener("click", onFurnishCorridorPanelRowsClick);
     furnishCorridorPanelCloseButton.addEventListener("click", onCloseFurnishCorridorPanel);
     editRoomPanelToggleButton.addEventListener("click", onTreatmentRoomToggle);
     editRoomPanelRepairButton.addEventListener("click", onRepairSelectedRoom);
@@ -5662,6 +5724,7 @@ export function mountAppShell(options) {
             casebookPanelCloseButton.removeEventListener("click", onCloseCasebookPanel);
             messagePanelCloseButton.removeEventListener("click", onCloseMessagePanel);
             jukeboxPanelCloseButton.removeEventListener("click", onCloseJukeboxPanel);
+            furnishCorridorPanelRows.removeEventListener("click", onFurnishCorridorPanelRowsClick);
             furnishCorridorPanelCloseButton.removeEventListener("click", onCloseFurnishCorridorPanel);
             editRoomPanelToggleButton.removeEventListener("click", onTreatmentRoomToggle);
             editRoomPanelRepairButton.removeEventListener("click", onRepairSelectedRoom);

@@ -5066,4 +5066,51 @@ describe("app orchestrator", () => {
             source: "ui:repair-selected-room"
         })).toEqual(["room.repair-blocked"]);
     });
+    it("places corridor objects through deterministic command history and restore", () => {
+        const orchestrator = new AppOrchestrator({ seed: 9024, tickRateHz: 4, pointerTileSize: 8 });
+        const cashBeforePlacement = orchestrator.telemetry().cash;
+        expect(orchestrator.evaluatePlacement({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 4,
+            objectName: "Bench",
+            cost: 125,
+            source: "ui:furnish-corridor",
+            pointer: { x: 16, y: 16 }
+        })).toMatchObject({
+            action: "place-object",
+            type: "object",
+            valid: true,
+            cost: 125,
+            position: { x: 2, y: 2 }
+        });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "place-object",
+            objectIndex: 4,
+            objectName: "Bench",
+            cost: 125,
+            source: "ui:furnish-corridor",
+            pointer: { x: 16, y: 16 }
+        })).toEqual(["object.placed"]);
+        expect(orchestrator.getState().entities.objects).toEqual([
+            expect.objectContaining({
+                id: 1,
+                objectIndex: 4,
+                name: "Bench",
+                cost: 125,
+                position: { x: 2, y: 2 }
+            })
+        ]);
+        expect(orchestrator.telemetry().cash).toBe(cashBeforePlacement - 125);
+        const snapshot = orchestrator.createPersistenceSnapshot();
+        expect(snapshot.commandLog[snapshot.commandLog.length - 1]).toEqual({
+            type: "place-object",
+            objectIndex: 4,
+            name: "Bench",
+            cost: 125,
+            position: { x: 2, y: 2 }
+        });
+        expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
+    });
 });

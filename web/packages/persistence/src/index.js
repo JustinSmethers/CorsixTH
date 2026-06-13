@@ -1130,6 +1130,15 @@ function cloneCommand(command) {
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
     }
+    if (command.type === "place-object") {
+        return {
+            type: "place-object",
+            objectIndex: command.objectIndex,
+            ...(command.name ? { name: command.name } : {}),
+            ...(Number.isInteger(command.cost) ? { cost: command.cost } : {}),
+            ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
+        };
+    }
     if (command.type === "remove-room") {
         return { type: "remove-room", roomId: command.roomId };
     }

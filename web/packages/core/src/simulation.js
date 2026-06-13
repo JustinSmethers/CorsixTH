@@ -852,6 +852,21 @@ export function hashSimulationState(state) {
     const includeMaintenanceStaff = state.maintenanceStaff.activeHandymen > 0 ||
         state.maintenanceStaff.totalRepairEvents > 0;
     const includeAwards = state.awards.ceremoniesRun > 0;
+    const objects = [...(state.entities.objects ?? [])]
+        .sort((left, right) => left.id - right.id)
+        .map((object) => ({
+        id: object.id,
+        objectIndex: object.objectIndex,
+        name: object.name,
+        cost: object.cost,
+        position: object.position
+    }));
+    const counters = {
+        ...state.counters
+    };
+    if (objects.length === 0) {
+        delete counters.nextObjectId;
+    }
     const normalized = {
         tick: state.tick,
         patientsWaiting: state.patientsWaiting,
@@ -860,7 +875,7 @@ export function hashSimulationState(state) {
         reputation: state.reputation,
         rngState: state.rngState,
         bounds: state.bounds,
-        counters: state.counters,
+        counters,
         scheduledAdmissions: state.scheduledAdmissions,
         hospitalLoop: state.hospitalLoop,
         staffLifecycle: state.staffLifecycle,
@@ -927,7 +942,8 @@ export function hashSimulationState(state) {
                 maintenanceRemainingTicks: room.maintenanceRemainingTicks,
                 position: room.position,
                 footprint: room.footprint
-            }))
+            })),
+            ...(objects.length > 0 ? { objects } : {})
         }
     };
     if (state.terrain.signature !== DEFAULT_TERRAIN_SIGNATURE) {
@@ -945,6 +961,7 @@ export class DeterministicSimulation {
     waitingPatients = [];
     staff = [];
     rooms = [];
+    objects = [];
     bounds;
     roomCostOverrides;
     roomWearThresholdOverrides;
@@ -982,6 +999,7 @@ export class DeterministicSimulation {
     nextEntityId = 1;
     nextStaffId = 1;
     nextRoomId = 1;
+    nextObjectId = 1;
     nextEventId = 1;
     cash;
     reputation;
@@ -1180,6 +1198,14 @@ export class DeterministicSimulation {
             this.openRoom(command.roomType, command.position, { charge: true });
             return this.getState();
         }
+        if (command.type === "place-object") {
+            this.placeObject(command.objectIndex, command.position, {
+                charge: true,
+                cost: command.cost,
+                name: command.name
+            });
+            return this.getState();
+        }
         if (command.type === "remove-room") {
             this.removeRoom(command.roomId, { refund: true });
             return this.getState();
@@ -1299,6 +1325,13 @@ export class DeterministicSimulation {
             position: { x: room.position.x, y: room.position.y },
             footprint: cloneFootprint(room.footprint),
             tiles: this.roomFootprintTiles(room.position, room.footprint)
+        }));
+        const objects = this.objects.map((object) => ({
+            id: object.id,
+            objectIndex: object.objectIndex,
+            name: object.name,
+            cost: object.cost,
+            position: { x: object.position.x, y: object.position.y }
         }));
         let queuedPatients = 0;
         let walkingToDiagnosisPatients = 0;
@@ -1615,7 +1648,7 @@ export class DeterministicSimulation {
             admissionPoints: this.admissionPoints.map((point) => clonePosition(point)),
             routingSettings: { ...this.routingSettings },
             ...(Object.keys(this.patientBehavior).length > 0 ? { patientBehavior: { ...this.patientBehavior } } : {}),
-            entities: { waitingPatients, staff, rooms },
+            entities: { waitingPatients, staff, rooms, objects },
             counters: {
                 totalAdmissions: this.totalAdmissions,
                 totalTreatments: this.totalTreatments,
@@ -1625,6 +1658,7 @@ export class DeterministicSimulation {
                 nextEntityId: this.nextEntityId,
                 nextStaffId: this.nextStaffId,
                 nextRoomId: this.nextRoomId,
+                nextObjectId: this.nextObjectId,
                 nextEventId: this.nextEventId,
                 ...(this.totalPatientWalkouts > 0 ? { totalPatientWalkouts: this.totalPatientWalkouts } : {}),
                 ...(this.totalPatientAbductions > 0 ? { totalPatientAbductions: this.totalPatientAbductions } : {}),
@@ -2139,6 +2173,52 @@ export class DeterministicSimulation {
             purchaseCost
         });
         this.nextRoomId += 1;
+    }
+    placeObject(objectIndex, position, options = {}) {
+        const placement = this.evaluateObjectPlacement(objectIndex, position, options);
+        if (!placement.valid || !placement.position) {
+            return false;
+        }
+        const cost = options.charge === true ? placement.cost : 0;
+        if (!this.canAffordPurchase(cost)) {
+            return false;
+        }
+        this.debitPurchase(cost);
+        this.objects.push({
+            id: this.nextObjectId,
+            objectIndex,
+            name: typeof options.name === "string" && options.name.length > 0 ? options.name : `object ${objectIndex}`,
+            cost,
+            position: { x: placement.position.x, y: placement.position.y }
+        });
+        this.nextObjectId += 1;
+        this.emitEvent("object-placed", `${objectIndex}|${placement.position.x},${placement.position.y}`);
+        return true;
+    }
+    evaluateObjectPlacement(objectIndex, position, options = {}) {
+        const requestedPosition = { x: position?.x, y: position?.y };
+        const hasIntegerPosition = Number.isInteger(requestedPosition.x) && Number.isInteger(requestedPosition.y);
+        const cost = options.charge === true && Number.isInteger(options.cost) && options.cost > 0 ? options.cost : 0;
+        const base = {
+            type: "object",
+            objectIndex,
+            valid: false,
+            reason: null,
+            cost,
+            position: hasIntegerPosition ? requestedPosition : null,
+            requestedPosition: hasIntegerPosition ? requestedPosition : null,
+            tiles: hasIntegerPosition ? [requestedPosition] : []
+        };
+        if (!hasIntegerPosition) {
+            return { ...base, reason: "missing-position" };
+        }
+        if (!isPositionInBounds(requestedPosition, this.bounds)) {
+            return { ...base, reason: "out-of-bounds" };
+        }
+        if (!this.canAffordPurchase(cost)) {
+            return { ...base, reason: "insufficient-cash" };
+        }
+        return { ...base, valid: true };
     }
     evaluateRoomPlacement(roomType, position, options = {}) {
         const footprint = cloneFootprint(ROOM_FOOTPRINTS[roomType]);

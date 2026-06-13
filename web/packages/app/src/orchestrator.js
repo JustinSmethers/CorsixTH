@@ -2130,6 +2130,22 @@ export class AppOrchestrator {
             const roomsAfter = this.simulation.getState().entities.rooms.length;
             return [roomsAfter > roomsBefore ? "room.built" : "room.build-blocked"];
         }
+        if (action.action === "place-object") {
+            const objectsBefore = this.simulation.getState().entities.objects?.length ?? 0;
+            const command = {
+                type: "place-object",
+                objectIndex: action.objectIndex,
+                ...(action.objectName ? { name: action.objectName } : {}),
+                ...(Number.isInteger(action.cost) ? { cost: action.cost } : {})
+            };
+            const position = this.resolveGridPosition(action.pointer);
+            if (position) {
+                command.position = position;
+            }
+            this.executeCommand(command);
+            const objectsAfter = this.simulation.getState().entities.objects?.length ?? 0;
+            return [objectsAfter > objectsBefore ? "object.placed" : "object.place-blocked"];
+        }
         if (action.action === "hire-staff") {
             if (!this.isStaffRoleAvailable(action.role)) {
                 return ["staff.hire-blocked"];
@@ -2709,6 +2725,15 @@ export class AppOrchestrator {
             return {
                 action: "build-room",
                 ...this.simulation.evaluateRoomPlacement(action.roomType, position, { charge: true })
+            };
+        }
+        if (action.action === "place-object") {
+            return {
+                action: "place-object",
+                ...this.simulation.evaluateObjectPlacement(action.objectIndex, position, {
+                    charge: true,
+                    cost: action.cost
+                })
             };
         }
         if (action.action === "hire-staff") {
@@ -3494,6 +3519,15 @@ function cloneGameCommand(command) {
         return {
             type: "open-room",
             roomType: command.roomType,
+            ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
+        };
+    }
+    if (command.type === "place-object") {
+        return {
+            type: "place-object",
+            objectIndex: command.objectIndex,
+            ...(command.name ? { name: command.name } : {}),
+            ...(Number.isInteger(command.cost) ? { cost: command.cost } : {}),
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
     }

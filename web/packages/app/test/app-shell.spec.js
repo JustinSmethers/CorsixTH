@@ -41,13 +41,14 @@ describe("app shell campaign objectives", () => {
             patientsWaiting: 3,
             entities: {
                 rooms: [{ id: 1 }, { id: 2 }],
-                staff: [{ id: 1 }]
+                staff: [{ id: 1 }],
+                objects: [{ id: 1 }]
             }
         }, {
             floorSpriteCount: 20,
             wallSpriteCount: 8,
             objectSpriteCount: 5
-        })).toBe("LEVELS/EXAMPLE.MAP viewport 4,5; zoom 100%; transparent walls yes; patients 3; rooms 2; staff 1; floor 20; walls 8; objects 5");
+        })).toBe("LEVELS/EXAMPLE.MAP viewport 4,5; zoom 100%; transparent walls yes; patients 3; rooms 2; staff 1; floor 20; walls 8; objects 5; placed objects 1");
         expect(formatOriginalUiStripSummary({
             originalUiSpriteSheetPath: "DATA/PANEL02V",
             originalUiSpriteSheet: { spriteCount: 11 }
