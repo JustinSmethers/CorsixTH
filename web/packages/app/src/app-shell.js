@@ -70,6 +70,7 @@ const ACTION_STATUS_LABELS = {
     "speed.changed": "Action: speed changed",
     "cancel-action-blocked": "Action: cancel blocked",
     "confirm-action-blocked": "Action: confirm blocked",
+    "zoom.unavailable": "Action: zoom unavailable",
     "admission-policy.changed": "Action: admission policy changed",
     "pricing-policy.changed": "Action: pricing policy changed",
     "pricing-policy.unchanged": "Action: pricing policy unchanged",
@@ -5557,6 +5558,8 @@ export function mountAppShell(options) {
     };
     const onZoomHospitalView = (delta) => {
         if (!hospitalView) {
+            actionStatus.textContent = formatActionStatus("zoom.unavailable");
+            renderRuntime();
             return;
         }
         const currentZoomIndex = hospitalView.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX;
@@ -5567,6 +5570,8 @@ export function mountAppShell(options) {
     };
     const onResetHospitalZoom = () => {
         if (!hospitalView) {
+            actionStatus.textContent = formatActionStatus("zoom.unavailable");
+            renderRuntime();
             return;
         }
         applyHospitalViewZoom(hospitalView, HOSPITAL_DEFAULT_ZOOM_INDEX);

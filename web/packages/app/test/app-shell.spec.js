@@ -770,6 +770,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus(["room.built"], null)).toBe("Action: room built");
         expect(formatActionStatus("cancel-action-blocked")).toBe("Action: cancel blocked");
         expect(formatActionStatus("confirm-action-blocked")).toBe("Action: confirm blocked");
+        expect(formatActionStatus("zoom.unavailable")).toBe("Action: zoom unavailable");
         expect(formatActionStatus("room.build-blocked")).toBe("Action: room blocked");
         expect(formatActionStatus(["room.build-blocked"], { reason: "occupied" })).toBe("Action: room blocked: occupied");
         expect(formatActionStatus("staff.hire-blocked", { reason: "staff-market-empty" })).toBe("Action: staff blocked: no scenario staff available");
