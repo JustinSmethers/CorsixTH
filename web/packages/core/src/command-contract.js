@@ -157,7 +157,7 @@ export function isGameCommand(value) {
             (value.cost === undefined || (Number.isInteger(value.cost) && value.cost >= 0)) &&
             (value.strength === undefined || (Number.isInteger(value.strength) && value.strength >= 0)) &&
             (value.orientation === undefined || isPlacementOrientation(value.orientation)) &&
-            (value.position === undefined || isGridPosition(value.position)));
+            isGridPosition(value.position));
     }
     if (value.type === "remove-object") {
         return typeof value.objectId === "number" && Number.isInteger(value.objectId) && value.objectId > 0;

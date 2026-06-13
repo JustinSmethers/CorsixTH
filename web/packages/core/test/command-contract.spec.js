@@ -76,6 +76,7 @@ describe("command contract", () => {
         expect(isGameCommand({ type: "rest-staff", staffId: 1, restType: "bench" })).toBe(false);
         expect(isGameCommand({ type: "open-room", roomType: "ward" })).toBe(false);
         expect(isGameCommand({ type: "open-room", roomType: "diagnosis", position: { x: -1, y: 0 } })).toBe(false);
+        expect(isGameCommand({ type: "place-object", objectIndex: 2 })).toBe(false);
         expect(isGameCommand({ type: "place-object", objectIndex: 2, orientation: "diagonal", position: { x: 7, y: 8 } })).toBe(false);
         expect(isGameCommand({ type: "place-object", objectIndex: 2, strength: -1, position: { x: 7, y: 8 } })).toBe(false);
         expect(isGameCommand({ type: "remove-object", objectId: 0 })).toBe(false);
