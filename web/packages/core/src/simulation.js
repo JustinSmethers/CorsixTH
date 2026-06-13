@@ -2286,7 +2286,7 @@ export class DeterministicSimulation {
         if (!hasIntegerPosition || !isPositionInBounds(requestedPosition, this.bounds)) {
             return clonePlacementEvaluation(base);
         }
-        const resolvedPosition = this.findNearestTraversablePosition(requestedPosition);
+        const resolvedPosition = this.findNearestStaffPosition(requestedPosition);
         if (!resolvedPosition) {
             return clonePlacementEvaluation({ ...base, reason: "no-traversable-position" });
         }
@@ -2327,7 +2327,7 @@ export class DeterministicSimulation {
         if (!hasIntegerPosition || !isPositionInBounds(requestedPosition, this.bounds)) {
             return clonePlacementEvaluation(base);
         }
-        const resolvedPosition = this.findNearestTraversablePosition(requestedPosition);
+        const resolvedPosition = this.findNearestStaffPosition(requestedPosition, { ignoreStaffId: staffId });
         if (!resolvedPosition) {
             return clonePlacementEvaluation({ ...base, reason: "no-traversable-position" });
         }
@@ -2812,6 +2812,14 @@ export class DeterministicSimulation {
     }
     findNearestTraversablePosition(preferred) {
         return this.findNearestPosition(preferred, (position) => this.isTraversablePosition(position));
+    }
+    findNearestStaffPosition(preferred, options = {}) {
+        return this.findNearestPosition(preferred, (position) => this.isTraversablePosition(position) && !this.isStaffPositionOccupied(position, options));
+    }
+    isStaffPositionOccupied(position, options = {}) {
+        return this.objects.some((object) => samePosition(object.position, position)) ||
+            this.staff.some((staff) => staff.id !== options.ignoreStaffId && samePosition(staff.position, position)) ||
+            this.waitingPatients.some((patient) => samePosition(patient.position, position));
     }
     findNearestPosition(preferred, predicate) {
         if (predicate(preferred)) {

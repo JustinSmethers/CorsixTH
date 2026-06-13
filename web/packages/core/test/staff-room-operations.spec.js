@@ -150,6 +150,64 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         simulation.execute({ type: "open-room", roomType: "diagnosis", position: { x: 5, y: 8 } });
         expect(simulation.getState().entities.rooms).toHaveLength(beforeRooms);
     });
+    it("snaps staff placement away from objects, staff, and patients", () => {
+        const simulation = new DeterministicSimulation(7210, { bounds: { width: 14, height: 14 } });
+        simulation.execute({ type: "place-object", objectIndex: 7, name: "Plant", position: { x: 6, y: 6 } });
+        simulation.execute({ type: "hire-staff", role: "handyman", position: { x: 7, y: 6 } });
+        simulation.execute({ type: "admit-patient", severity: 2, position: { x: 8, y: 6 } });
+        expect(simulation.evaluateStaffPlacement("nurse", { x: 6, y: 6 })).toMatchObject({
+            valid: true,
+            reason: null,
+            position: { x: 5, y: 5 }
+        });
+        expect(simulation.evaluateStaffPlacement("nurse", { x: 7, y: 6 })).toMatchObject({
+            valid: true,
+            reason: null,
+            position: { x: 6, y: 5 }
+        });
+        expect(simulation.evaluateStaffPlacement("nurse", { x: 8, y: 6 })).toMatchObject({
+            valid: true,
+            reason: null,
+            position: { x: 7, y: 5 }
+        });
+        const beforeStaff = simulation.getState().entities.staff.length;
+        simulation.execute({ type: "hire-staff", role: "nurse", position: { x: 6, y: 6 } });
+        const hiredNurse = simulation.getState().entities.staff[beforeStaff];
+        expect(hiredNurse).toMatchObject({ role: "nurse", position: { x: 5, y: 5 } });
+    });
+    it("snaps staff moves away from occupied target tiles", () => {
+        const simulation = new DeterministicSimulation(7211, { bounds: { width: 14, height: 14 } });
+        simulation.execute({ type: "place-object", objectIndex: 7, name: "Plant", position: { x: 6, y: 6 } });
+        simulation.execute({ type: "hire-staff", role: "handyman", position: { x: 7, y: 6 } });
+        simulation.execute({ type: "hire-staff", role: "nurse", position: { x: 10, y: 10 } });
+        simulation.execute({ type: "admit-patient", severity: 2, position: { x: 8, y: 6 } });
+        const nurse = simulation.getState().entities.staff.find((staff) => staff.role === "nurse");
+        expect(nurse).toBeTruthy();
+        expect(simulation.evaluateStaffMove(nurse.id, nurse.position)).toMatchObject({
+            valid: true,
+            reason: null,
+            position: nurse.position
+        });
+        expect(simulation.evaluateStaffMove(nurse.id, { x: 6, y: 6 })).toMatchObject({
+            valid: true,
+            reason: null,
+            position: { x: 5, y: 5 }
+        });
+        expect(simulation.evaluateStaffMove(nurse.id, { x: 7, y: 6 })).toMatchObject({
+            valid: true,
+            reason: null,
+            position: { x: 6, y: 5 }
+        });
+        expect(simulation.evaluateStaffMove(nurse.id, { x: 8, y: 6 })).toMatchObject({
+            valid: true,
+            reason: null,
+            position: { x: 7, y: 5 }
+        });
+        simulation.execute({ type: "move-staff", staffId: nurse.id, position: { x: 6, y: 6 } });
+        expect(simulation.getState().entities.staff.find((staff) => staff.id === nurse.id)).toMatchObject({
+            position: { x: 5, y: 5 }
+        });
+    });
     it("uses imported routing distance points when choosing between open diagnosis rooms", () => {
         const weighted = new DeterministicSimulation(7212, {
             bounds: { width: 12, height: 12 },
