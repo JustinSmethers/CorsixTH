@@ -5114,6 +5114,7 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             objectName: "Bench",
             cost: 125,
+            strength: 10,
             orientation: "east",
             source: "ui:furnish-corridor",
             pointer: { x: 32, y: 32 }
@@ -5131,6 +5132,7 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             objectName: "Bench",
             cost: 125,
+            strength: 10,
             orientation: "east",
             source: "ui:furnish-corridor",
             pointer: { x: 32, y: 32 }
@@ -5141,6 +5143,7 @@ describe("app orchestrator", () => {
                 objectIndex: 4,
                 name: "Bench",
                 cost: 125,
+                strength: 10,
                 orientation: "east",
                 position: { x: 4, y: 4 }
             })
@@ -5152,6 +5155,7 @@ describe("app orchestrator", () => {
             objectIndex: 4,
             name: "Bench",
             cost: 125,
+            strength: 10,
             orientation: "east",
             position: { x: 4, y: 4 }
         });

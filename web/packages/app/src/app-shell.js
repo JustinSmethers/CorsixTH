@@ -563,7 +563,8 @@ export function formatSelectionStatusWithLanguage(state, selectedEntity, languag
         return `Selection: ${roomTypeDisplayName(resolved.value.roomType, languageSummary)} room #${resolved.value.id} (${resolved.value.status}, wear ${resolved.value.wear}, maintenance ${resolved.value.maintenanceRemainingTicks}${patientDetail})`;
     }
     if (resolved.type === "object") {
-        return `Selection: ${resolved.value.name ?? `object ${resolved.value.objectIndex}`} #${resolved.value.id} (tile ${resolved.value.position.x},${resolved.value.position.y}, facing ${resolved.value.orientation ?? "north"}, value ${resolved.value.cost})`;
+        const strength = Number.isInteger(resolved.value.strength) ? `, strength ${resolved.value.strength}` : "";
+        return `Selection: ${resolved.value.name ?? `object ${resolved.value.objectIndex}`} #${resolved.value.id} (tile ${resolved.value.position.x},${resolved.value.position.y}, facing ${resolved.value.orientation ?? "north"}, value ${resolved.value.cost}${strength})`;
     }
     const disease = resolved.value.diagnosisKnown ? patientDiseaseDisplayName(resolved.value, languageSummary) : "unknown disease";
     const status = patientStatusDisplayName(resolved.value, languageSummary);
@@ -1956,7 +1957,8 @@ export function formatFurnishCorridorRowsHtml(scenario, telemetry = {}, language
         const name = scenarioObjectDisplayName(object, languageSummary);
         const bucket = scenarioObjectAvailabilityBucket(object, telemetry, scenario);
         const cost = Number.isFinite(object.startCost) ? ` - ${object.startCost}` : "";
-        return `<button type="button" data-testid="furnish-corridor-object" data-object-index="${escapeHtml(String(object.index ?? ""))}" data-object-name="${escapeHtml(name)}" data-object-cost="${escapeHtml(String(Number.isFinite(object.startCost) ? object.startCost : 0))}" data-object-status="${escapeHtml(bucket)}" ${bucket === "available" ? "" : "disabled"} style="display:block; width:100%; margin:0 0 6px; text-align:left;">${escapeHtml(name)}${escapeHtml(cost)} (${escapeHtml(bucket)})</button>`;
+        const strength = Number.isFinite(object.startStrength) ? object.startStrength : 0;
+        return `<button type="button" data-testid="furnish-corridor-object" data-object-index="${escapeHtml(String(object.index ?? ""))}" data-object-name="${escapeHtml(name)}" data-object-cost="${escapeHtml(String(Number.isFinite(object.startCost) ? object.startCost : 0))}" data-object-strength="${escapeHtml(String(strength))}" data-object-status="${escapeHtml(bucket)}" ${bucket === "available" ? "" : "disabled"} style="display:block; width:100%; margin:0 0 6px; text-align:left;">${escapeHtml(name)}${escapeHtml(cost)} (${escapeHtml(bucket)})</button>`;
     })
         .join("");
 }
@@ -4741,11 +4743,13 @@ export function mountAppShell(options) {
         }
         const objectName = button.getAttribute("data-object-name") || `object ${objectIndex}`;
         const cost = Number(button.getAttribute("data-object-cost") ?? "0");
+        const strength = Number(button.getAttribute("data-object-strength") ?? "0");
         placementAction = {
             action: "place-object",
             objectIndex,
             objectName,
             cost: Number.isInteger(cost) && cost > 0 ? cost : 0,
+            ...(Number.isInteger(strength) && strength > 0 ? { strength } : {}),
             source: "ui:furnish-corridor",
             label: `place ${objectName}`,
             orientation: "north"

@@ -859,6 +859,7 @@ export function hashSimulationState(state) {
         objectIndex: object.objectIndex,
         name: object.name,
         cost: object.cost,
+        ...(Number.isInteger(object.strength) ? { strength: object.strength } : {}),
         ...(object.orientation && object.orientation !== "north" ? { orientation: object.orientation } : {}),
         position: object.position
     }));
@@ -1204,6 +1205,7 @@ export class DeterministicSimulation {
                 charge: true,
                 cost: command.cost,
                 name: command.name,
+                strength: command.strength,
                 orientation: command.orientation
             });
             return this.getState();
@@ -1337,6 +1339,7 @@ export class DeterministicSimulation {
             objectIndex: object.objectIndex,
             name: object.name,
             cost: object.cost,
+            ...(Number.isInteger(object.strength) ? { strength: object.strength } : {}),
             orientation: object.orientation,
             position: { x: object.position.x, y: object.position.y }
         }));
@@ -2196,6 +2199,7 @@ export class DeterministicSimulation {
             objectIndex,
             name: typeof options.name === "string" && options.name.length > 0 ? options.name : `object ${objectIndex}`,
             cost,
+            ...(Number.isInteger(options.strength) && options.strength >= 0 ? { strength: options.strength } : {}),
             orientation: typeof options.orientation === "string" ? options.orientation : "north",
             position: { x: placement.position.x, y: placement.position.y }
         });

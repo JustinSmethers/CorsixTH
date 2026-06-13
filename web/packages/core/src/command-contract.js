@@ -155,6 +155,7 @@ export function isGameCommand(value) {
             value.objectIndex >= 0 &&
             (value.name === undefined || typeof value.name === "string") &&
             (value.cost === undefined || (Number.isInteger(value.cost) && value.cost >= 0)) &&
+            (value.strength === undefined || (Number.isInteger(value.strength) && value.strength >= 0)) &&
             (value.orientation === undefined || isPlacementOrientation(value.orientation)) &&
             (value.position === undefined || isGridPosition(value.position)));
     }

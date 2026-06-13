@@ -2144,6 +2144,7 @@ export class AppOrchestrator {
                 objectIndex: action.objectIndex,
                 ...(action.objectName ? { name: action.objectName } : {}),
                 ...(Number.isInteger(action.cost) ? { cost: action.cost } : {}),
+                ...(Number.isInteger(action.strength) ? { strength: action.strength } : {}),
                 ...(action.orientation ? { orientation: action.orientation } : {})
             };
             const position = this.resolveGridPosition(action.pointer);
@@ -3537,6 +3538,7 @@ function cloneGameCommand(command) {
             objectIndex: command.objectIndex,
             ...(command.name ? { name: command.name } : {}),
             ...(Number.isInteger(command.cost) ? { cost: command.cost } : {}),
+            ...(Number.isInteger(command.strength) ? { strength: command.strength } : {}),
             ...(command.orientation ? { orientation: command.orientation } : {}),
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
