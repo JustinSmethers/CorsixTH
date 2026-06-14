@@ -781,6 +781,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("finance.audit-blocked")).toBe("Action: finance audit blocked");
         expect(formatActionStatus("insurance.blocked")).toBe("Action: insurance contract blocked");
         expect(formatActionStatus("awards.blocked")).toBe("Action: awards blocked");
+        expect(formatActionStatus("awards.poor-blocked")).toBe("Action: awards poor criteria blocked");
         expect(formatActionStatus("research.blocked")).toBe("Action: research blocked");
         expect(formatActionStatus("emergency.blocked")).toBe("Action: emergency blocked");
         expect(formatActionStatus("epidemic.blocked")).toBe("Action: epidemic blocked");
