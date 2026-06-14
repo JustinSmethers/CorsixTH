@@ -494,6 +494,16 @@ export function formatGameplayActionButtonLabel(action) {
     };
     return labels[action] ?? "";
 }
+export function formatCameraDirectionButtonLabel(direction, includeSubject = false) {
+    const labels = {
+        west: "West",
+        east: "East",
+        north: "North",
+        south: "South"
+    };
+    const label = labels[direction] ?? "";
+    return includeSubject && label ? `Camera ${label}` : label;
+}
 export function formatMenuBarShownActionStatus() {
     return "Action: menu bar shown";
 }
@@ -1695,10 +1705,10 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "restart-level", label: formatGameplayActionButtonLabel("restart-level") },
     { id: "quit-level", label: "Quit Level" },
     { id: "next-level", label: formatGameplayActionButtonLabel("next-level") },
-    { id: "hospital-camera-west", label: "Camera West" },
-    { id: "hospital-camera-east", label: "Camera East" },
-    { id: "hospital-camera-north", label: "Camera North" },
-    { id: "hospital-camera-south", label: "Camera South" }
+    { id: "hospital-camera-west", label: formatCameraDirectionButtonLabel("west", true) },
+    { id: "hospital-camera-east", label: formatCameraDirectionButtonLabel("east", true) },
+    { id: "hospital-camera-north", label: formatCameraDirectionButtonLabel("north", true) },
+    { id: "hospital-camera-south", label: formatCameraDirectionButtonLabel("south", true) }
 ];
 export function selectOriginalUiSpriteSheetSummary(uiSpriteSheets, qDataSpriteSheets) {
     const visibleUiSheets = Array.isArray(uiSpriteSheets)
@@ -3236,10 +3246,10 @@ export function mountAppShell(options) {
               Map
               <select data-testid="hospital-map-select">${mapOptions}</select>
             </label>
-            <button type="button" data-testid="hospital-camera-west">West</button>
-            <button type="button" data-testid="hospital-camera-east">East</button>
-            <button type="button" data-testid="hospital-camera-north">North</button>
-            <button type="button" data-testid="hospital-camera-south">South</button>
+            <button type="button" data-testid="hospital-camera-west">${formatCameraDirectionButtonLabel("west")}</button>
+            <button type="button" data-testid="hospital-camera-east">${formatCameraDirectionButtonLabel("east")}</button>
+            <button type="button" data-testid="hospital-camera-north">${formatCameraDirectionButtonLabel("north")}</button>
+            <button type="button" data-testid="hospital-camera-south">${formatCameraDirectionButtonLabel("south")}</button>
           </div>
         </section>
         <section data-testid="telemetry" style="display:grid; grid-template-columns:1fr 1fr; gap:2px 10px; align-content:start; font-size:13px;">
