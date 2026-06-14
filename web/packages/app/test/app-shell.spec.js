@@ -768,6 +768,8 @@ describe("app shell campaign objectives", () => {
             reason: "object-unavailable"
         })).toBe("Placement: place Plant at 4,4 blocked: object unavailable in scenario");
         expect(formatActionStatus(["room.built"], null)).toBe("Action: room built");
+        expect(formatActionStatus("admissions.opened")).toBe("Action: admissions open");
+        expect(formatActionStatus("admissions.closed")).toBe("Action: admissions closed");
         expect(formatActionStatus("cancel-action-blocked")).toBe("Action: cancel blocked");
         expect(formatActionStatus("camera.unavailable")).toBe("Action: camera unavailable");
         expect(formatActionStatus("camera-position.unavailable")).toBe("Action: camera position unavailable");
