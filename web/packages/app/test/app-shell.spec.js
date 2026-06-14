@@ -792,6 +792,9 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("staff.hire-blocked", { reason: "staff-market-empty" })).toBe("Action: staff blocked: no scenario staff available");
         expect(formatActionStatus(["staff.move-blocked"], { reason: "invalid-terrain" })).toBe("Action: staff move blocked: invalid terrain");
         expect(formatActionStatus(["staff.move-blocked"], { reason: "missing-staff" })).toBe("Action: staff move blocked: staff unavailable");
+        expect(formatActionStatus("room.sell-blocked")).toBe("Action: room sale blocked");
+        expect(formatActionStatus("object.sell-blocked")).toBe("Action: object sale blocked");
+        expect(formatActionStatus("staff.fire-blocked")).toBe("Action: staff fire blocked");
         expect(formatActionStatus("room.repair-blocked")).toBe("Action: room repair blocked");
         expect(formatActionStatus("staff.break-blocked")).toBe("Action: staff break blocked");
         expect(formatActionStatus("treatment-room.toggle-blocked")).toBe("Action: treatment room toggle blocked");
