@@ -513,6 +513,20 @@ export function formatPolicyOptionLabel(policy) {
     };
     return labels[policy] ?? "";
 }
+export function formatFieldLabel(field) {
+    const labels = {
+        speed: "Speed",
+        policy: "Policy",
+        pricing: "Pricing",
+        severity: "Severity",
+        slot: "Slot",
+        volume: "Volume",
+        level: "Level",
+        admission: "Admission",
+        map: "Map"
+    };
+    return labels[field] ?? "";
+}
 export function formatGameplayActionButtonLabel(action) {
     const labels = {
         step: "Step",
@@ -2889,7 +2903,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="pause-toggle">${formatPauseToggleLabel({ paused: false })}</button>
           <button type="button" data-testid="step">${formatGameplayActionButtonLabel("step")}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-            Speed
+            ${formatFieldLabel("speed")}
             <select data-testid="speed-select" aria-label="Simulation speed">
               <option value="0.5">0.5x</option>
               <option value="1">1x</option>
@@ -2900,7 +2914,7 @@ export function mountAppShell(options) {
           </label>
           <button type="button" data-testid="admissions-toggle">${formatAdmissionsToggleLabel({ admissionsOpen: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-            Policy
+            ${formatFieldLabel("policy")}
             <select data-testid="admission-policy" aria-label="Automatic admission policy">
               <option value="conservative">${formatPolicyOptionLabel("conservative")}</option>
               <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
@@ -2908,7 +2922,7 @@ export function mountAppShell(options) {
             </select>
           </label>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-            Pricing
+            ${formatFieldLabel("pricing")}
             <select data-testid="pricing-policy" aria-label="Treatment pricing policy">
               <option value="discount">${formatPolicyOptionLabel("discount")}</option>
               <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
@@ -2916,7 +2930,7 @@ export function mountAppShell(options) {
             </select>
           </label>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-            Severity
+            ${formatFieldLabel("severity")}
             <select data-testid="admission-severity" aria-label="Manual admission severity">
               <option value="1">1</option>
               <option value="2" selected>2</option>
@@ -2959,7 +2973,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="hire-handyman">${formatHireStaffButtonLabel("handyman")}</button>
           <button type="button" data-testid="hire-receptionist">${formatHireStaffButtonLabel("receptionist")}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-            Slot
+            ${formatFieldLabel("slot")}
             <input
               type="text"
               value="${DEFAULT_SAVE_SLOT}"
@@ -2976,7 +2990,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="delete-save-slot">${formatSaveActionButtonLabel("delete-slot")}</button>
           <button type="button" data-testid="audio-mute-toggle">${formatMuteToggleLabel({ muted: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-            Volume
+            ${formatFieldLabel("volume")}
           <input type="range" min="0" max="100" step="1" value="100" data-testid="audio-volume" />
           </label>
           <span data-testid="save-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">${formatSaveLifecycleStatus("idle")}</span>
@@ -3123,7 +3137,7 @@ export function mountAppShell(options) {
         <p data-testid="town-map-panel-land" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="town-map-panel-details" style="margin:0 0 8px; font-size:13px;"></p>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
-          Level
+          ${formatFieldLabel("level")}
           <select data-testid="town-map-panel-select" aria-label="Town map panel level">${mapOptions}</select>
         </label>
         <button type="button" data-testid="town-map-panel-close">${formatPanelCloseButtonLabel()}</button>
@@ -3142,7 +3156,7 @@ export function mountAppShell(options) {
         <p data-testid="policy-panel-admission-rules" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="policy-panel-routing-rules" style="margin:0 0 8px; font-size:13px;"></p>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 6px; color:#c8d2d7; font-size:13px;">
-          Admission
+          ${formatFieldLabel("admission")}
           <select data-testid="policy-panel-admission-policy" aria-label="Policy panel admission policy">
             <option value="conservative">${formatPolicyOptionLabel("conservative")}</option>
             <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
@@ -3150,7 +3164,7 @@ export function mountAppShell(options) {
           </select>
         </label>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
-          Pricing
+          ${formatFieldLabel("pricing")}
           <select data-testid="policy-panel-pricing-policy" aria-label="Policy panel pricing policy">
             <option value="discount">${formatPolicyOptionLabel("discount")}</option>
             <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
@@ -3213,7 +3227,7 @@ export function mountAppShell(options) {
         <p data-testid="jukebox-panel-status" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="jukebox-panel-volume-status" style="margin:0 0 8px; font-size:13px;"></p>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
-          Volume
+          ${formatFieldLabel("volume")}
           <input type="range" min="0" max="100" step="1" value="100" data-testid="jukebox-panel-volume" />
         </label>
         <button type="button" data-testid="jukebox-panel-master-mute">${formatAudioMasterMuteLabel(false)}</button>
@@ -3272,7 +3286,7 @@ export function mountAppShell(options) {
           </div>
           <div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin-top:10px;">
             <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
-              Map
+              ${formatFieldLabel("map")}
               <select data-testid="hospital-map-select">${mapOptions}</select>
             </label>
             <button type="button" data-testid="hospital-camera-west">${formatCameraDirectionButtonLabel("west")}</button>
