@@ -796,6 +796,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("object.sell-blocked")).toBe("Action: object sale blocked");
         expect(formatActionStatus("staff.fire-blocked")).toBe("Action: staff fire blocked");
         expect(formatActionStatus("room.repair-blocked")).toBe("Action: room repair blocked");
+        expect(formatActionStatus("staff.rest-blocked")).toBe("Action: staff rest blocked");
         expect(formatActionStatus("staff.break-blocked")).toBe("Action: staff break blocked");
         expect(formatActionStatus("treatment-room.toggle-blocked")).toBe("Action: treatment room toggle blocked");
         expect(formatActionStatus("patient.prioritize-empty")).toBe("Action: patient cannot be prioritized");
