@@ -772,6 +772,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("camera.unavailable")).toBe("Action: camera unavailable");
         expect(formatActionStatus("camera-position.unavailable")).toBe("Action: camera position unavailable");
         expect(formatActionStatus("confirm-action-blocked")).toBe("Action: confirm blocked");
+        expect(formatActionStatus("placement.rotate-blocked")).toBe("Action: placement rotation blocked");
         expect(formatActionStatus("transparent-walls.unavailable")).toBe("Action: transparent walls unavailable");
         expect(formatActionStatus("zoom.unavailable")).toBe("Action: zoom unavailable");
         expect(formatActionStatus("room.build-blocked")).toBe("Action: room blocked");

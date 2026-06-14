@@ -72,6 +72,7 @@ const ACTION_STATUS_LABELS = {
     "confirm-action-blocked": "Action: confirm blocked",
     "camera.unavailable": "Action: camera unavailable",
     "camera-position.unavailable": "Action: camera position unavailable",
+    "placement.rotate-blocked": "Action: placement rotation blocked",
     "transparent-walls.unavailable": "Action: transparent walls unavailable",
     "zoom.unavailable": "Action: zoom unavailable",
     "admission-policy.changed": "Action: admission policy changed",
@@ -3818,7 +3819,9 @@ export function mountAppShell(options) {
     };
     const onRotatePlacement = () => {
         if (!placementAction || (placementAction.action !== "build-room" && placementAction.action !== "place-object")) {
-            return false;
+            actionStatus.textContent = formatActionStatus("placement.rotate-blocked");
+            renderRuntime();
+            return true;
         }
         placementAction = {
             ...placementAction,
