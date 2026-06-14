@@ -672,10 +672,22 @@ export function formatEditRoomPanelSummary(state, selectedEntity, languageSummar
 function formatCasebook(state) {
     return formatCasebookWithLanguage(state);
 }
+export function formatCasebookPanelEmptyStatus() {
+    return "Casebook: no active patients";
+}
+export function formatCasebookPanelActionLabel(action) {
+    if (action === "prioritize") {
+        return "Prioritize";
+    }
+    if (action === "send-home") {
+        return "Send Home";
+    }
+    return "Select";
+}
 export function formatCasebookWithLanguage(state, languageSummary = null) {
     const patients = state.entities.waitingPatients;
     if (patients.length === 0) {
-        return "Casebook: no active patients";
+        return formatCasebookPanelEmptyStatus();
     }
     return `Casebook: ${patients.slice(0, 4).map((patient) => {
         const disease = patient.diagnosisKnown ? patientDiseaseDisplayName(patient, languageSummary) : "unknown disease";
@@ -698,7 +710,7 @@ export function formatCasebookWithLanguage(state, languageSummary = null) {
 export function formatCasebookRowsHtml(state, languageSummary = null) {
     const patients = state.entities.waitingPatients;
     if (patients.length === 0) {
-        return `<p data-testid="casebook-panel-empty" style="margin:0 0 8px; font-size:13px;">Casebook: no active patients</p>`;
+        return `<p data-testid="casebook-panel-empty" style="margin:0 0 8px; font-size:13px;">${formatCasebookPanelEmptyStatus()}</p>`;
     }
     const rows = patients.map((patient) => {
         const disease = patient.diagnosisKnown ? patientDiseaseDisplayName(patient, languageSummary) : "unknown disease";
@@ -718,9 +730,9 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
             <td style="padding:2px 4px;">${escapeHtml(conditions)}</td>
             <td style="padding:2px 4px; text-align:right;">${patient.health}/${patient.maxHealth}</td>
             <td style="padding:2px 4px;">
-              <button type="button" data-testid="casebook-panel-select" data-casebook-action="select" data-patient-id="${patient.id}">Select</button>
-              <button type="button" data-testid="casebook-panel-prioritize" data-casebook-action="prioritize" data-patient-id="${patient.id}"${canPrioritizePatient(patient) ? "" : " disabled"}>Prioritize</button>
-              <button type="button" data-testid="casebook-panel-send-home" data-casebook-action="send-home" data-patient-id="${patient.id}">Send Home</button>
+              <button type="button" data-testid="casebook-panel-select" data-casebook-action="select" data-patient-id="${patient.id}">${formatCasebookPanelActionLabel("select")}</button>
+              <button type="button" data-testid="casebook-panel-prioritize" data-casebook-action="prioritize" data-patient-id="${patient.id}"${canPrioritizePatient(patient) ? "" : " disabled"}>${formatCasebookPanelActionLabel("prioritize")}</button>
+              <button type="button" data-testid="casebook-panel-send-home" data-casebook-action="send-home" data-patient-id="${patient.id}">${formatCasebookPanelActionLabel("send-home")}</button>
             </td>
           </tr>`;
     }).join("");
