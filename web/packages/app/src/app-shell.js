@@ -206,6 +206,9 @@ export function formatAudioVolumeStatus(audioStatus) {
     const music = audioStatus.musicMuted ? "music off" : "music on";
     return `Audio volume: ${Math.round(audioStatus.volume * 100)}% (${sound}, ${music})`;
 }
+export function formatAudioChannelMuteLabel(channel, muted) {
+    return `${channel} ${muted ? "On" : "Off"}`;
+}
 export function formatStateHashStatus(telemetry) {
     return `State hash: ${telemetry.stateHash}`;
 }
@@ -502,6 +505,17 @@ export function formatHospitalMapOptionsHtml(hospitalView) {
     return hospitalView.mapSummaries
         .map((summary) => `<option value="${escapeHtml(summary.path)}">${escapeHtml(summary.path)}</option>`)
         .join("");
+}
+export function formatMapPanelCurrentStatus(mapPath) {
+    return mapPath ? `Map: ${mapPath}` : "Map: unavailable";
+}
+export function formatMapPanelLandStatus(landCostPerTile) {
+    return landCostPerTile == null ? "Land: unavailable" : `Land: ${landCostPerTile}/tile`;
+}
+export function formatMapPanelDetailsStatus(mapSummary) {
+    return mapSummary
+        ? `Map details: ${mapSummary.width}x${mapSummary.height}, parcels ${mapSummary.parcelCount}, buildable ${mapSummary.buildableTileCount}, objects ${mapSummary.objectCount}`
+        : "Map details: unavailable";
 }
 export function formatSaveFailureStatus(action, message) {
     return `${action} failed: ${message}`;
@@ -3561,14 +3575,12 @@ export function mountAppShell(options) {
         const telemetry = orchestrator.telemetry();
         const currentMap = campaignMapSummaryAt(hospitalView, campaignLevelIndex(hospitalView));
         telemetryElements.campaignProgressMetric.textContent = formatCampaignProgress(hospitalView, telemetry);
-        mapPanelCurrentMetric.textContent = hospitalView?.mapPath ? `Map: ${hospitalView.mapPath}` : "Map: unavailable";
+        mapPanelCurrentMetric.textContent = formatMapPanelCurrentStatus(hospitalView?.mapPath ?? "");
         mapPanelCampaignMetric.textContent = telemetryElements.campaignProgressMetric.textContent;
         mapPanelObjectiveMetric.textContent = formatLevelObjectiveStatus(telemetry);
         mapPanelCashMetric.textContent = formatCashStatus(telemetry);
-        mapPanelLandMetric.textContent = telemetry.scenarioLandCostPerTile == null ? "Land: unavailable" : `Land: ${telemetry.scenarioLandCostPerTile}/tile`;
-        mapPanelDetailsMetric.textContent = currentMap
-            ? `Map details: ${currentMap.width}x${currentMap.height}, parcels ${currentMap.parcelCount}, buildable ${currentMap.buildableTileCount}, objects ${currentMap.objectCount}`
-            : "Map details: unavailable";
+        mapPanelLandMetric.textContent = formatMapPanelLandStatus(telemetry.scenarioLandCostPerTile);
+        mapPanelDetailsMetric.textContent = formatMapPanelDetailsStatus(currentMap);
         mapPanelSelect.value = hospitalView?.mapPath ?? "";
         restartLevelButton.disabled = !canRestartLevelFromHospitalView(hospitalView);
         nextLevelButton.disabled = !canAdvanceToNextLevelFromTelemetry(hospitalView, telemetry);
@@ -3621,8 +3633,8 @@ export function mountAppShell(options) {
         jukeboxPanelVolumeStatusMetric.textContent = formatAudioVolumeStatus(audioStatus);
         jukeboxPanelVolumeSlider.value = String(Math.round(audioStatus.volume * 100));
         jukeboxPanelMasterMuteButton.textContent = formatMuteToggleLabel(audioStatus);
-        jukeboxPanelSoundMuteButton.textContent = audioStatus.soundMuted ? "Sound On" : "Sound Off";
-        jukeboxPanelMusicMuteButton.textContent = audioStatus.musicMuted ? "Music On" : "Music Off";
+        jukeboxPanelSoundMuteButton.textContent = formatAudioChannelMuteLabel("Sound", audioStatus.soundMuted);
+        jukeboxPanelMusicMuteButton.textContent = formatAudioChannelMuteLabel("Music", audioStatus.musicMuted);
         furnishCorridorPanelSummary.textContent = formatFurnishCorridorSummary(currentMap?.scenario ?? null, telemetry);
         furnishCorridorPanelRows.innerHTML = formatFurnishCorridorRowsHtml(currentMap?.scenario ?? null, telemetry, hospitalView?.languageSummary ?? null);
         bankManagerLoanMetric.textContent = formatLoanStatus(telemetry);
