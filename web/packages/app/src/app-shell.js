@@ -463,6 +463,12 @@ export function formatVisibilityActionStatus(subject, visible) {
 export function formatTransparentWallsActionStatus(state) {
     return `Action: transparent walls ${state}`;
 }
+export function formatNoMessagesActionStatus() {
+    return "Action: no messages";
+}
+export function formatInformationStatus(visible) {
+    return `Info: ${visible ? "shown" : "hidden"}`;
+}
 export function formatPanelActionStatus(panel, action) {
     return `Action: ${panel} ${action}`;
 }
@@ -5069,7 +5075,7 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         messagePanel.hidden = false;
-        actionStatus.textContent = telemetry.lastEventType ? formatPanelActionStatus("message", "opened") : "Action: no messages";
+        actionStatus.textContent = telemetry.lastEventType ? formatPanelActionStatus("message", "opened") : formatNoMessagesActionStatus();
         renderRuntime();
         messagePanelCloseButton.focus();
         return true;
@@ -5096,7 +5102,7 @@ export function mountAppShell(options) {
     };
     const onToggleInformation = () => {
         informationVisible = !informationVisible;
-        informationStatus.textContent = informationVisible ? "Info: shown" : "Info: hidden";
+        informationStatus.textContent = formatInformationStatus(informationVisible);
         informationStatus.focus();
         actionStatus.textContent = formatVisibilityActionStatus("information", informationVisible);
         return true;
