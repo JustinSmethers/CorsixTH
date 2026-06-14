@@ -206,6 +206,9 @@ export function formatAudioVolumeStatus(audioStatus) {
     const music = audioStatus.musicMuted ? "music off" : "music on";
     return `Audio volume: ${Math.round(audioStatus.volume * 100)}% (${sound}, ${music})`;
 }
+export function formatAudioMasterMuteLabel(muted) {
+    return muted ? "Unmute" : "Mute";
+}
 export function formatAudioChannelMuteLabel(channel, muted) {
     return `${channel} ${muted ? "On" : "Off"}`;
 }
@@ -3174,9 +3177,9 @@ export function mountAppShell(options) {
           Volume
           <input type="range" min="0" max="100" step="1" value="100" data-testid="jukebox-panel-volume" />
         </label>
-        <button type="button" data-testid="jukebox-panel-master-mute">Mute</button>
-        <button type="button" data-testid="jukebox-panel-sound-mute">Sound</button>
-        <button type="button" data-testid="jukebox-panel-music-mute">Music</button>
+        <button type="button" data-testid="jukebox-panel-master-mute">${formatAudioMasterMuteLabel(false)}</button>
+        <button type="button" data-testid="jukebox-panel-sound-mute">${formatAudioChannelMuteLabel("Sound", true)}</button>
+        <button type="button" data-testid="jukebox-panel-music-mute">${formatAudioChannelMuteLabel("Music", true)}</button>
         <button type="button" data-testid="jukebox-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
