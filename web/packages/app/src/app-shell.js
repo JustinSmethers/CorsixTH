@@ -836,6 +836,12 @@ export function formatSelectedPatientActionButtonLabel(action) {
     }
     return "Prioritize";
 }
+export function formatCareActionButtonLabel(action) {
+    if (action === "water-plant") {
+        return "Water Plant";
+    }
+    return "Shoot Rat";
+}
 export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
@@ -2828,8 +2834,8 @@ export function mountAppShell(options) {
           <button type="button" data-testid="send-selected-patient-home">${formatSelectedPatientActionButtonLabel("send-home")}</button>
           <button type="button" data-testid="give-drink-selected-patient">${formatSelectedPatientActionButtonLabel("give-drink")}</button>
           <button type="button" data-testid="send-selected-patient-toilet">${formatSelectedPatientActionButtonLabel("send-toilet")}</button>
-          <button type="button" data-testid="shoot-rat">Shoot Rat</button>
-          <button type="button" data-testid="water-plant">Water Plant</button>
+          <button type="button" data-testid="shoot-rat">${formatCareActionButtonLabel("shoot-rat")}</button>
+          <button type="button" data-testid="water-plant">${formatCareActionButtonLabel("water-plant")}</button>
           <button type="button" data-testid="staff-break-toggle">${formatStaffBreakToggleLabel({ onBreakStaff: 0 })}</button>
           <button type="button" data-testid="treatment-room-toggle">${formatTreatmentRoomToggleLabel({ openTreatmentRooms: 1 })}</button>
           <button type="button" data-testid="move-selected-staff">Move Staff</button>
