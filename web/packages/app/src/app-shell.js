@@ -493,6 +493,18 @@ export function formatSaveSlotsStatus(slotCount) {
 export function formatSaveLifecycleStatus(status) {
     return `Save: ${status}`;
 }
+export function formatSaveActionButtonLabel(action) {
+    if (action === "load") {
+        return "Load";
+    }
+    if (action === "refresh-slots") {
+        return "Refresh Slots";
+    }
+    if (action === "delete-slot") {
+        return "Delete Slot";
+    }
+    return "Save";
+}
 export function formatSaveSlotOptionsHtml(slots, activeSlot) {
     const values = new Set(slots.map((slot) => slot.slot));
     values.add(activeSlot);
@@ -2877,10 +2889,10 @@ export function mountAppShell(options) {
           <select data-testid="save-slot-select" aria-label="Saved slots">
             <option value="${DEFAULT_SAVE_SLOT}">${DEFAULT_SAVE_SLOT}</option>
           </select>
-          <button type="button" data-testid="save-game">Save</button>
-          <button type="button" data-testid="load-game">Load</button>
-          <button type="button" data-testid="refresh-save-slots">Refresh Slots</button>
-          <button type="button" data-testid="delete-save-slot">Delete Slot</button>
+          <button type="button" data-testid="save-game">${formatSaveActionButtonLabel("save")}</button>
+          <button type="button" data-testid="load-game">${formatSaveActionButtonLabel("load")}</button>
+          <button type="button" data-testid="refresh-save-slots">${formatSaveActionButtonLabel("refresh-slots")}</button>
+          <button type="button" data-testid="delete-save-slot">${formatSaveActionButtonLabel("delete-slot")}</button>
           <button type="button" data-testid="audio-mute-toggle">${formatMuteToggleLabel({ muted: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Volume
