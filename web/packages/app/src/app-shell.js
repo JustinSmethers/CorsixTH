@@ -602,9 +602,12 @@ export function formatSaveSlotOptionsHtml(slots, activeSlot) {
         .map((slot) => `<option value="${escapeHtml(slot)}">${escapeHtml(slot)}</option>`)
         .join("");
 }
+export function formatNoImportedMapOptionLabel() {
+    return "No imported map";
+}
 export function formatHospitalMapOptionsHtml(hospitalView) {
     if (!hospitalView) {
-        return '<option value="">No imported map</option>';
+        return `<option value="">${formatNoImportedMapOptionLabel()}</option>`;
     }
     return hospitalView.mapSummaries
         .map((summary) => `<option value="${escapeHtml(summary.path)}">${escapeHtml(summary.path)}</option>`)
@@ -3268,7 +3271,7 @@ export function mountAppShell(options) {
         <button type="button" data-testid="edit-room-panel-sell">${formatSelectedStaffRoomActionButtonLabel("sell-room")}</button>
         <button type="button" data-testid="edit-room-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
-      <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
+      <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">${formatCasebookPanelEmptyStatus()}</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
         <section>
           <canvas
