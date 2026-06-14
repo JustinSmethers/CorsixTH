@@ -457,6 +457,9 @@ export function formatChoosePlacementActionStatus() {
 export function formatSelectedEntityActionStatus(entityType) {
     return `Action: selected ${entityType}`;
 }
+export function formatPanelActionStatus(panel, action) {
+    return `Action: ${panel} ${action}`;
+}
 export function formatSaveSlotsStatus(slotCount) {
     return slotCount > 0 ? `Save: ${slotCount} slot${slotCount === 1 ? "" : "s"}` : "Save: no slots";
 }
@@ -3736,85 +3739,85 @@ export function mountAppShell(options) {
         }
         if (!bankManagerPanel.hidden) {
             bankManagerPanel.hidden = true;
-            actionStatus.textContent = "Action: bank manager closed";
+            actionStatus.textContent = formatPanelActionStatus("bank manager", "closed");
             playfield.focus();
             return true;
         }
         if (!bankStatsPanel.hidden) {
             bankStatsPanel.hidden = true;
-            actionStatus.textContent = "Action: bank stats closed";
+            actionStatus.textContent = formatPanelActionStatus("bank stats", "closed");
             playfield.focus();
             return true;
         }
         if (!staffPanel.hidden) {
             staffPanel.hidden = true;
-            actionStatus.textContent = "Action: staff panel closed";
+            actionStatus.textContent = formatPanelActionStatus("staff panel", "closed");
             playfield.focus();
             return true;
         }
         if (!researchPanel.hidden) {
             researchPanel.hidden = true;
-            actionStatus.textContent = "Action: research panel closed";
+            actionStatus.textContent = formatPanelActionStatus("research panel", "closed");
             playfield.focus();
             return true;
         }
         if (!statusPanel.hidden) {
             statusPanel.hidden = true;
-            actionStatus.textContent = "Action: status panel closed";
+            actionStatus.textContent = formatPanelActionStatus("status panel", "closed");
             playfield.focus();
             return true;
         }
         if (!chartsPanel.hidden) {
             chartsPanel.hidden = true;
-            actionStatus.textContent = "Action: charts panel closed";
+            actionStatus.textContent = formatPanelActionStatus("charts panel", "closed");
             playfield.focus();
             return true;
         }
         if (!mapPanel.hidden) {
             mapPanel.hidden = true;
-            actionStatus.textContent = "Action: town map closed";
+            actionStatus.textContent = formatPanelActionStatus("town map", "closed");
             playfield.focus();
             return true;
         }
         if (!policyPanel.hidden) {
             policyPanel.hidden = true;
-            actionStatus.textContent = "Action: policy panel closed";
+            actionStatus.textContent = formatPanelActionStatus("policy panel", "closed");
             playfield.focus();
             return true;
         }
         if (!machineMenuPanel.hidden) {
             machineMenuPanel.hidden = true;
-            actionStatus.textContent = "Action: machine menu closed";
+            actionStatus.textContent = formatPanelActionStatus("machine menu", "closed");
             playfield.focus();
             return true;
         }
         if (!casebookPanel.hidden) {
             casebookPanel.hidden = true;
-            actionStatus.textContent = "Action: casebook closed";
+            actionStatus.textContent = formatPanelActionStatus("casebook", "closed");
             playfield.focus();
             return true;
         }
         if (!messagePanel.hidden) {
             messagePanel.hidden = true;
-            actionStatus.textContent = "Action: message closed";
+            actionStatus.textContent = formatPanelActionStatus("message", "closed");
             playfield.focus();
             return true;
         }
         if (!jukeboxPanel.hidden) {
             jukeboxPanel.hidden = true;
-            actionStatus.textContent = "Action: jukebox closed";
+            actionStatus.textContent = formatPanelActionStatus("jukebox", "closed");
             playfield.focus();
             return true;
         }
         if (!furnishCorridorPanel.hidden) {
             furnishCorridorPanel.hidden = true;
-            actionStatus.textContent = "Action: furnish corridor closed";
+            actionStatus.textContent = formatPanelActionStatus("furnish corridor", "closed");
             playfield.focus();
             return true;
         }
         if (!editRoomPanel.hidden) {
             editRoomPanel.hidden = true;
-            actionStatus.textContent = "Action: edit room closed";
+            actionStatus.textContent = formatPanelActionStatus("edit room", "closed");
             playfield.focus();
             return true;
         }
@@ -4675,14 +4678,14 @@ export function mountAppShell(options) {
         jukeboxPanel.hidden = false;
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
-        actionStatus.textContent = "Action: jukebox opened";
+        actionStatus.textContent = formatPanelActionStatus("jukebox", "opened");
         renderRuntime();
         jukeboxPanelVolumeSlider.focus();
         return true;
     };
     const onCloseJukeboxPanel = () => {
         jukeboxPanel.hidden = true;
-        actionStatus.textContent = "Action: jukebox closed";
+        actionStatus.textContent = formatPanelActionStatus("jukebox", "closed");
         playfield.focus();
     };
     const onOpenHireStaff = () => {
@@ -4710,7 +4713,7 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         casebookPanel.hidden = false;
-        actionStatus.textContent = "Action: casebook opened";
+        actionStatus.textContent = formatPanelActionStatus("casebook", "opened");
         renderRuntime();
         const firstCasebookButton = casebookPanelRows.querySelector("button");
         (firstCasebookButton ?? casebookPanelCloseButton).focus();
@@ -4718,7 +4721,7 @@ export function mountAppShell(options) {
     };
     const onCloseCasebookPanel = () => {
         casebookPanel.hidden = true;
-        actionStatus.textContent = "Action: casebook closed";
+        actionStatus.textContent = formatPanelActionStatus("casebook", "closed");
         playfield.focus();
     };
     const onOpenBankManager = () => {
@@ -4736,7 +4739,7 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         bankManagerPanel.hidden = false;
-        actionStatus.textContent = "Action: bank manager opened";
+        actionStatus.textContent = formatPanelActionStatus("bank manager", "opened");
         renderRuntime();
         const firstEnabledBankButton = [bankManagerTakeLoanButton, bankManagerRepayLoanButton].find((button) => !button.disabled);
         (firstEnabledBankButton ?? bankManagerCloseButton).focus();
@@ -4744,7 +4747,7 @@ export function mountAppShell(options) {
     };
     const onCloseBankManager = () => {
         bankManagerPanel.hidden = true;
-        actionStatus.textContent = "Action: bank manager closed";
+        actionStatus.textContent = formatPanelActionStatus("bank manager", "closed");
         playfield.focus();
     };
     const onOpenBankStats = () => {
@@ -4762,14 +4765,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         bankStatsPanel.hidden = false;
-        actionStatus.textContent = "Action: bank stats opened";
+        actionStatus.textContent = formatPanelActionStatus("bank stats", "opened");
         renderRuntime();
         (bankStatsRunAuditButton.disabled ? bankStatsCloseButton : bankStatsRunAuditButton).focus();
         return true;
     };
     const onCloseBankStats = () => {
         bankStatsPanel.hidden = true;
-        actionStatus.textContent = "Action: bank stats closed";
+        actionStatus.textContent = formatPanelActionStatus("bank stats", "closed");
         playfield.focus();
     };
     const onOpenStaff = () => {
@@ -4787,7 +4790,7 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         staffPanel.hidden = false;
-        actionStatus.textContent = "Action: staff panel opened";
+        actionStatus.textContent = formatPanelActionStatus("staff panel", "opened");
         renderRuntime();
         const firstEnabledStaffButton = staffPanelHireButtons.find((button) => !button.disabled);
         (firstEnabledStaffButton ?? staffPanelCloseButton).focus();
@@ -4795,7 +4798,7 @@ export function mountAppShell(options) {
     };
     const onCloseStaffPanel = () => {
         staffPanel.hidden = true;
-        actionStatus.textContent = "Action: staff panel closed";
+        actionStatus.textContent = formatPanelActionStatus("staff panel", "closed");
         playfield.focus();
     };
     const onOpenFurnishCorridor = () => {
@@ -4813,7 +4816,7 @@ export function mountAppShell(options) {
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = false;
         editRoomPanel.hidden = true;
-        actionStatus.textContent = "Action: furnish corridor opened";
+        actionStatus.textContent = formatPanelActionStatus("furnish corridor", "opened");
         renderRuntime();
         const firstFurnishButton = furnishCorridorPanelRows.querySelector("button:not(:disabled)");
         (firstFurnishButton ?? furnishCorridorPanelCloseButton).focus();
@@ -4821,7 +4824,7 @@ export function mountAppShell(options) {
     };
     const onCloseFurnishCorridorPanel = () => {
         furnishCorridorPanel.hidden = true;
-        actionStatus.textContent = "Action: furnish corridor closed";
+        actionStatus.textContent = formatPanelActionStatus("furnish corridor", "closed");
         playfield.focus();
     };
     const onFurnishCorridorPanelRowsClick = (event) => {
@@ -4873,7 +4876,7 @@ export function mountAppShell(options) {
         jukeboxPanel.hidden = true;
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = false;
-        actionStatus.textContent = "Action: edit room opened";
+        actionStatus.textContent = formatPanelActionStatus("edit room", "opened");
         renderRuntime();
         const firstEnabledEditButton = [editRoomPanelToggleButton, editRoomPanelRepairButton, editRoomPanelSellButton].find((button) => !button.disabled);
         (firstEnabledEditButton ?? editRoomPanelCloseButton).focus();
@@ -4881,7 +4884,7 @@ export function mountAppShell(options) {
     };
     const onCloseEditRoomPanel = () => {
         editRoomPanel.hidden = true;
-        actionStatus.textContent = "Action: edit room closed";
+        actionStatus.textContent = formatPanelActionStatus("edit room", "closed");
         playfield.focus();
     };
     const onOpenResearch = () => {
@@ -4899,14 +4902,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         researchPanel.hidden = false;
-        actionStatus.textContent = "Action: research panel opened";
+        actionStatus.textContent = formatPanelActionStatus("research panel", "opened");
         renderRuntime();
         (researchPanelStartButton.disabled ? researchPanelCloseButton : researchPanelStartButton).focus();
         return true;
     };
     const onCloseResearchPanel = () => {
         researchPanel.hidden = true;
-        actionStatus.textContent = "Action: research panel closed";
+        actionStatus.textContent = formatPanelActionStatus("research panel", "closed");
         playfield.focus();
     };
     const onOpenStatus = () => {
@@ -4924,14 +4927,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         statusPanel.hidden = false;
-        actionStatus.textContent = "Action: status panel opened";
+        actionStatus.textContent = formatPanelActionStatus("status panel", "opened");
         renderRuntime();
         statusPanelCloseButton.focus();
         return true;
     };
     const onCloseStatusPanel = () => {
         statusPanel.hidden = true;
-        actionStatus.textContent = "Action: status panel closed";
+        actionStatus.textContent = formatPanelActionStatus("status panel", "closed");
         playfield.focus();
     };
     const onOpenCharts = () => {
@@ -4949,14 +4952,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         chartsPanel.hidden = false;
-        actionStatus.textContent = "Action: charts panel opened";
+        actionStatus.textContent = formatPanelActionStatus("charts panel", "opened");
         renderRuntime();
         chartsPanelCloseButton.focus();
         return true;
     };
     const onCloseChartsPanel = () => {
         chartsPanel.hidden = true;
-        actionStatus.textContent = "Action: charts panel closed";
+        actionStatus.textContent = formatPanelActionStatus("charts panel", "closed");
         playfield.focus();
     };
     const onOpenMap = () => {
@@ -4975,14 +4978,14 @@ export function mountAppShell(options) {
         editRoomPanel.hidden = true;
         mapPanel.hidden = false;
         mapPanelSelect.value = hospitalView?.mapPath ?? "";
-        actionStatus.textContent = "Action: town map opened";
+        actionStatus.textContent = formatPanelActionStatus("town map", "opened");
         renderRuntime();
         mapPanelSelect.focus();
         return true;
     };
     const onCloseMapPanel = () => {
         mapPanel.hidden = true;
-        actionStatus.textContent = "Action: town map closed";
+        actionStatus.textContent = formatPanelActionStatus("town map", "closed");
         playfield.focus();
     };
     const onOpenPolicy = () => {
@@ -5000,14 +5003,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         policyPanel.hidden = false;
-        actionStatus.textContent = "Action: policy panel opened";
+        actionStatus.textContent = formatPanelActionStatus("policy panel", "opened");
         renderRuntime();
         policyPanelAdmissionPolicySelect.focus();
         return true;
     };
     const onClosePolicyPanel = () => {
         policyPanel.hidden = true;
-        actionStatus.textContent = "Action: policy panel closed";
+        actionStatus.textContent = formatPanelActionStatus("policy panel", "closed");
         playfield.focus();
     };
     const onOpenMachineMenu = () => {
@@ -5025,14 +5028,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         machineMenuPanel.hidden = false;
-        actionStatus.textContent = "Action: machine menu opened";
+        actionStatus.textContent = formatPanelActionStatus("machine menu", "opened");
         renderRuntime();
         (machineMenuRepairSelectedRoomButton.disabled ? machineMenuCloseButton : machineMenuRepairSelectedRoomButton).focus();
         return true;
     };
     const onCloseMachineMenu = () => {
         machineMenuPanel.hidden = true;
-        actionStatus.textContent = "Action: machine menu closed";
+        actionStatus.textContent = formatPanelActionStatus("machine menu", "closed");
         playfield.focus();
     };
     const onOpenFirstMessage = () => {
@@ -5051,14 +5054,14 @@ export function mountAppShell(options) {
         furnishCorridorPanel.hidden = true;
         editRoomPanel.hidden = true;
         messagePanel.hidden = false;
-        actionStatus.textContent = telemetry.lastEventType ? "Action: message opened" : "Action: no messages";
+        actionStatus.textContent = telemetry.lastEventType ? formatPanelActionStatus("message", "opened") : "Action: no messages";
         renderRuntime();
         messagePanelCloseButton.focus();
         return true;
     };
     const onCloseMessagePanel = () => {
         messagePanel.hidden = true;
-        actionStatus.textContent = "Action: message closed";
+        actionStatus.textContent = formatPanelActionStatus("message", "closed");
         playfield.focus();
     };
     let advisorVisible = true;
