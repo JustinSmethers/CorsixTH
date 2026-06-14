@@ -684,6 +684,19 @@ export function formatCasebookPanelActionLabel(action) {
     }
     return "Select";
 }
+export function formatCasebookPanelHeaderLabel(column) {
+    const labels = {
+        patient: "Patient",
+        status: "Status",
+        disease: "Disease",
+        need: "Need",
+        room: "Room",
+        flags: "Flags",
+        health: "Health",
+        action: "Action"
+    };
+    return labels[column] ?? "";
+}
 export function formatCasebookWithLanguage(state, languageSummary = null) {
     const patients = state.entities.waitingPatients;
     if (patients.length === 0) {
@@ -740,14 +753,14 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
         <table data-testid="casebook-panel-table" style="width:100%; border-collapse:collapse; margin:0 0 8px; font-size:13px;">
           <thead>
             <tr>
-              <th style="padding:2px 4px; text-align:left;">Patient</th>
-              <th style="padding:2px 4px; text-align:left;">Status</th>
-              <th style="padding:2px 4px; text-align:left;">Disease</th>
-              <th style="padding:2px 4px; text-align:left;">Need</th>
-              <th style="padding:2px 4px; text-align:left;">Room</th>
-              <th style="padding:2px 4px; text-align:left;">Flags</th>
-              <th style="padding:2px 4px; text-align:right;">Health</th>
-              <th style="padding:2px 4px; text-align:left;">Action</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("patient")}</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("status")}</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("disease")}</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("need")}</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("room")}</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("flags")}</th>
+              <th style="padding:2px 4px; text-align:right;">${formatCasebookPanelHeaderLabel("health")}</th>
+              <th style="padding:2px 4px; text-align:left;">${formatCasebookPanelHeaderLabel("action")}</th>
             </tr>
           </thead>
           <tbody>${rows}
