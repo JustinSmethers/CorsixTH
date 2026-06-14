@@ -457,6 +457,12 @@ export function formatChoosePlacementActionStatus() {
 export function formatSelectedEntityActionStatus(entityType) {
     return `Action: selected ${entityType}`;
 }
+export function formatVisibilityActionStatus(subject, visible) {
+    return `Action: ${subject} ${visible ? "shown" : "hidden"}`;
+}
+export function formatTransparentWallsActionStatus(state) {
+    return `Action: transparent walls ${state}`;
+}
 export function formatPanelActionStatus(panel, action) {
     return `Action: ${panel} ${action}`;
 }
@@ -4229,7 +4235,7 @@ export function mountAppShell(options) {
         selectedEntity = { type: "patient", id: patientId };
         selectedTile = patientPosition(patient);
         placementPreview = null;
-        actionStatus.textContent = "Action: selected patient";
+        actionStatus.textContent = formatSelectedEntityActionStatus("patient");
         renderRuntime();
         return true;
     };
@@ -5092,7 +5098,7 @@ export function mountAppShell(options) {
         informationVisible = !informationVisible;
         informationStatus.textContent = informationVisible ? "Info: shown" : "Info: hidden";
         informationStatus.focus();
-        actionStatus.textContent = informationVisible ? "Action: information shown" : "Action: information hidden";
+        actionStatus.textContent = formatVisibilityActionStatus("information", informationVisible);
         return true;
     };
     const setTransparentWallsVisible = (visible) => {
@@ -5112,12 +5118,12 @@ export function mountAppShell(options) {
     };
     const onToggleAdvisor = () => {
         setAdvisorVisible(!advisorVisible);
-        actionStatus.textContent = advisorVisible ? "Action: advisor shown" : "Action: advisor hidden";
+        actionStatus.textContent = formatVisibilityActionStatus("advisor", advisorVisible);
         return true;
     };
     const onToggleAnnouncements = () => {
         setAnnouncementsVisible(!announcementsVisible);
-        actionStatus.textContent = announcementsVisible ? "Action: announcements shown" : "Action: announcements hidden";
+        actionStatus.textContent = formatVisibilityActionStatus("announcements", announcementsVisible);
         return true;
     };
     const onHoldTransparentWalls = () => {
@@ -5126,7 +5132,7 @@ export function mountAppShell(options) {
         }
         transparentWallsHeld = true;
         updateTransparentWalls();
-        actionStatus.textContent = "Action: transparent walls held";
+        actionStatus.textContent = formatTransparentWallsActionStatus("held");
         return true;
     };
     const onReleaseTransparentWalls = () => {
@@ -5135,7 +5141,7 @@ export function mountAppShell(options) {
         }
         transparentWallsHeld = false;
         updateTransparentWalls();
-        actionStatus.textContent = hospitalView?.transparentWalls ? "Action: transparent walls shown" : "Action: transparent walls released";
+        actionStatus.textContent = formatTransparentWallsActionStatus(hospitalView?.transparentWalls ? "shown" : "released");
         return true;
     };
     const onToggleTransparentWalls = () => {
@@ -5144,7 +5150,7 @@ export function mountAppShell(options) {
         }
         transparentWallsToggled = !transparentWallsToggled;
         updateTransparentWalls();
-        actionStatus.textContent = hospitalView?.transparentWalls ? "Action: transparent walls shown" : "Action: transparent walls hidden";
+        actionStatus.textContent = formatTransparentWallsActionStatus(hospitalView?.transparentWalls ? "shown" : "hidden");
         return true;
     };
     const actionForHospitalPointer = (action, point) => {
