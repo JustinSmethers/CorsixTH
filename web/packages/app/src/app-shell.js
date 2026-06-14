@@ -481,11 +481,25 @@ export function formatPanelActionStatus(panel, action) {
 export function formatMenuBarShownActionStatus() {
     return "Action: menu bar shown";
 }
+export function formatMenuButtonLabel(menu) {
+    const labels = {
+        file: "File",
+        options: "Options",
+        help: "Help"
+    };
+    return labels[menu] ?? "";
+}
 export function formatPlacementRotatedActionStatus(orientation) {
     return `Action: placement rotated ${orientation}`;
 }
 export function formatQuitLevelActionStatus(action) {
     return `Action: quit level ${action}`;
+}
+export function formatQuitLevelButtonLabel(action) {
+    if (action === "confirm") {
+        return "Quit Level";
+    }
+    return "Stay";
 }
 export function formatSaveSlotsStatus(slotCount) {
     return slotCount > 0 ? `Save: ${slotCount} slot${slotCount === 1 ? "" : "s"}` : "Save: no slots";
@@ -2921,9 +2935,9 @@ export function mountAppShell(options) {
         hidden
         style="margin:0 0 10px; padding:8px; border:1px solid #40545b; background:#182326;"
       >
-        <button type="button" data-testid="game-menu-file">File</button>
-        <button type="button" data-testid="game-menu-options">Options</button>
-        <button type="button" data-testid="game-menu-help">Help</button>
+        <button type="button" data-testid="game-menu-file">${formatMenuButtonLabel("file")}</button>
+        <button type="button" data-testid="game-menu-options">${formatMenuButtonLabel("options")}</button>
+        <button type="button" data-testid="game-menu-help">${formatMenuButtonLabel("help")}</button>
       </nav>
       <section
         data-testid="quit-level-confirmation"
@@ -2931,8 +2945,8 @@ export function mountAppShell(options) {
         style="margin:0 0 10px; padding:10px; border:1px solid #6f5d2d; background:#211d13; color:#f1e6c0;"
       >
         <p style="margin:0 0 8px; font-size:13px;">Quit level and return to the browser main menu?</p>
-        <button type="button" data-testid="quit-level-confirm">Quit Level</button>
-        <button type="button" data-testid="quit-level-cancel">Stay</button>
+        <button type="button" data-testid="quit-level-confirm">${formatQuitLevelButtonLabel("confirm")}</button>
+        <button type="button" data-testid="quit-level-cancel">${formatQuitLevelButtonLabel("cancel")}</button>
       </section>
       <section
         data-testid="bank-manager-panel"
