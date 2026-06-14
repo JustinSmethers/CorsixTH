@@ -530,6 +530,19 @@ export function formatFieldLabel(field) {
     };
     return labels[field] ?? "";
 }
+export function formatSelectAriaLabel(select) {
+    const labels = {
+        speed: "Simulation speed",
+        "admission-policy": "Automatic admission policy",
+        "pricing-policy": "Treatment pricing policy",
+        "admission-severity": "Manual admission severity",
+        "save-slots": "Saved slots",
+        "town-map-level": "Town map panel level",
+        "policy-panel-admission": "Policy panel admission policy",
+        "policy-panel-pricing": "Policy panel pricing policy"
+    };
+    return labels[select] ?? "";
+}
 export function formatGameplayActionButtonLabel(action) {
     const labels = {
         step: "Step",
@@ -2913,7 +2926,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="step">${formatGameplayActionButtonLabel("step")}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             ${formatFieldLabel("speed")}
-            <select data-testid="speed-select" aria-label="Simulation speed">
+            <select data-testid="speed-select" aria-label="${formatSelectAriaLabel("speed")}">
               <option value="0.5">0.5x</option>
               <option value="1">1x</option>
               <option value="2">2x</option>
@@ -2924,7 +2937,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="admissions-toggle">${formatAdmissionsToggleLabel({ admissionsOpen: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             ${formatFieldLabel("policy")}
-            <select data-testid="admission-policy" aria-label="Automatic admission policy">
+            <select data-testid="admission-policy" aria-label="${formatSelectAriaLabel("admission-policy")}">
               <option value="conservative">${formatPolicyOptionLabel("conservative")}</option>
               <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
               <option value="aggressive">${formatPolicyOptionLabel("aggressive")}</option>
@@ -2932,7 +2945,7 @@ export function mountAppShell(options) {
           </label>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             ${formatFieldLabel("pricing")}
-            <select data-testid="pricing-policy" aria-label="Treatment pricing policy">
+            <select data-testid="pricing-policy" aria-label="${formatSelectAriaLabel("pricing-policy")}">
               <option value="discount">${formatPolicyOptionLabel("discount")}</option>
               <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
               <option value="premium">${formatPolicyOptionLabel("premium")}</option>
@@ -2940,7 +2953,7 @@ export function mountAppShell(options) {
           </label>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             ${formatFieldLabel("severity")}
-            <select data-testid="admission-severity" aria-label="Manual admission severity">
+            <select data-testid="admission-severity" aria-label="${formatSelectAriaLabel("admission-severity")}">
               <option value="1">1</option>
               <option value="2" selected>2</option>
               <option value="3">3</option>
@@ -2990,7 +3003,7 @@ export function mountAppShell(options) {
               style="width:150px;"
             />
           </label>
-          <select data-testid="save-slot-select" aria-label="Saved slots">
+          <select data-testid="save-slot-select" aria-label="${formatSelectAriaLabel("save-slots")}">
             <option value="${DEFAULT_SAVE_SLOT}">${DEFAULT_SAVE_SLOT}</option>
           </select>
           <button type="button" data-testid="save-game">${formatSaveActionButtonLabel("save")}</button>
@@ -3147,7 +3160,7 @@ export function mountAppShell(options) {
         <p data-testid="town-map-panel-details" style="margin:0 0 8px; font-size:13px;"></p>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
           ${formatFieldLabel("level")}
-          <select data-testid="town-map-panel-select" aria-label="Town map panel level">${mapOptions}</select>
+          <select data-testid="town-map-panel-select" aria-label="${formatSelectAriaLabel("town-map-level")}">${mapOptions}</select>
         </label>
         <button type="button" data-testid="town-map-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
@@ -3166,7 +3179,7 @@ export function mountAppShell(options) {
         <p data-testid="policy-panel-routing-rules" style="margin:0 0 8px; font-size:13px;"></p>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 6px; color:#c8d2d7; font-size:13px;">
           ${formatFieldLabel("admission")}
-          <select data-testid="policy-panel-admission-policy" aria-label="Policy panel admission policy">
+          <select data-testid="policy-panel-admission-policy" aria-label="${formatSelectAriaLabel("policy-panel-admission")}">
             <option value="conservative">${formatPolicyOptionLabel("conservative")}</option>
             <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
             <option value="aggressive">${formatPolicyOptionLabel("aggressive")}</option>
@@ -3174,7 +3187,7 @@ export function mountAppShell(options) {
         </label>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
           ${formatFieldLabel("pricing")}
-          <select data-testid="policy-panel-pricing-policy" aria-label="Policy panel pricing policy">
+          <select data-testid="policy-panel-pricing-policy" aria-label="${formatSelectAriaLabel("policy-panel-pricing")}">
             <option value="discount">${formatPolicyOptionLabel("discount")}</option>
             <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
             <option value="premium">${formatPolicyOptionLabel("premium")}</option>
