@@ -768,6 +768,9 @@ describe("app shell campaign objectives", () => {
             reason: "object-unavailable"
         })).toBe("Placement: place Plant at 4,4 blocked: object unavailable in scenario");
         expect(formatActionStatus(["room.built"], null)).toBe("Action: room built");
+        expect(formatActionStatus("app.paused")).toBe("Action: paused");
+        expect(formatActionStatus("app.resumed")).toBe("Action: resumed");
+        expect(formatActionStatus("app.step")).toBe("Action: step");
         expect(formatActionStatus("admissions.opened")).toBe("Action: admissions open");
         expect(formatActionStatus("admissions.closed")).toBe("Action: admissions closed");
         expect(formatActionStatus("speed.changed")).toBe("Action: speed changed");

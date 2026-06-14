@@ -65,6 +65,9 @@ const PLACEMENT_REASON_LABELS = {
     "object-unavailable": "object unavailable in scenario"
 };
 const ACTION_STATUS_LABELS = {
+    "app.paused": "Action: paused",
+    "app.resumed": "Action: resumed",
+    "app.step": "Action: step",
     "admissions.opened": "Action: admissions open",
     "admissions.closed": "Action: admissions closed",
     "speed.changed": "Action: speed changed",
