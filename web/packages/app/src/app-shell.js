@@ -2065,10 +2065,13 @@ function scenarioCorridorObjects(scenario) {
     }
     return objectAvailability.filter((object) => typeof object.roomType !== "string" || object.roomType.length === 0);
 }
+export function formatFurnishCorridorPanelEmptyStatus() {
+    return "No corridor objects imported for this level.";
+}
 export function formatFurnishCorridorRowsHtml(scenario, telemetry = {}, languageSummary = null) {
     const corridorObjects = scenarioCorridorObjects(scenario);
     if (corridorObjects.length === 0) {
-        return `<p data-testid="furnish-corridor-panel-empty" style="margin:0 0 8px; font-size:13px;">No corridor objects imported for this level.</p>`;
+        return `<p data-testid="furnish-corridor-panel-empty" style="margin:0 0 8px; font-size:13px;">${formatFurnishCorridorPanelEmptyStatus()}</p>`;
     }
     return corridorObjects
         .map((object) => {
