@@ -460,6 +460,15 @@ export function formatSelectedEntityActionStatus(entityType) {
 export function formatPanelActionStatus(panel, action) {
     return `Action: ${panel} ${action}`;
 }
+export function formatMenuBarShownActionStatus() {
+    return "Action: menu bar shown";
+}
+export function formatPlacementRotatedActionStatus(orientation) {
+    return `Action: placement rotated ${orientation}`;
+}
+export function formatQuitLevelActionStatus(action) {
+    return `Action: quit level ${action}`;
+}
 export function formatSaveSlotsStatus(slotCount) {
     return slotCount > 0 ? `Save: ${slotCount} slot${slotCount === 1 ? "" : "s"}` : "Save: no slots";
 }
@@ -3733,7 +3742,7 @@ export function mountAppShell(options) {
     const onCancelAction = (source = "") => {
         if (!quitLevelConfirmation.hidden) {
             quitLevelConfirmation.hidden = true;
-            actionStatus.textContent = "Action: quit level cancelled";
+            actionStatus.textContent = formatQuitLevelActionStatus("cancelled");
             playfield.focus();
             return true;
         }
@@ -3829,7 +3838,7 @@ export function mountAppShell(options) {
             }
             gameMenuBar.hidden = false;
             gameMenuFileButton.focus();
-            actionStatus.textContent = "Action: menu bar shown";
+            actionStatus.textContent = formatMenuBarShownActionStatus();
             return true;
         }
         placementAction = null;
@@ -3851,7 +3860,7 @@ export function mountAppShell(options) {
         if (selectedTile) {
             placementPreview = orchestrator.evaluatePlacement(createPlacementDispatchAction(placementAction, selectedTile));
         }
-        actionStatus.textContent = `Action: placement rotated ${placementAction.orientation}`;
+        actionStatus.textContent = formatPlacementRotatedActionStatus(placementAction.orientation);
         renderRuntime();
         return true;
     };
@@ -3861,13 +3870,13 @@ export function mountAppShell(options) {
         selectedTile = null;
         quitLevelConfirmation.hidden = false;
         quitLevelCancelButton.focus();
-        actionStatus.textContent = "Action: quit level confirmation";
+        actionStatus.textContent = formatQuitLevelActionStatus("confirmation");
         renderRuntime();
         return true;
     };
     const onCancelQuitLevel = () => {
         quitLevelConfirmation.hidden = true;
-        actionStatus.textContent = "Action: quit level cancelled";
+        actionStatus.textContent = formatQuitLevelActionStatus("cancelled");
         playfield.focus();
     };
     const onConfirmQuitLevel = () => {
@@ -3878,7 +3887,7 @@ export function mountAppShell(options) {
         }
         resetOrchestratorForActiveMap();
         saveStatus.textContent = formatRestartedLevelStatus(hospitalView?.mapPath ?? "");
-        actionStatus.textContent = "Action: quit level confirmed";
+        actionStatus.textContent = formatQuitLevelActionStatus("confirmed");
         renderRuntime();
         playfield.focus();
     };
