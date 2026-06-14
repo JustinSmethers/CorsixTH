@@ -478,6 +478,9 @@ export function formatInformationStatus(visible) {
 export function formatPanelActionStatus(panel, action) {
     return `Action: ${panel} ${action}`;
 }
+export function formatPanelCloseButtonLabel() {
+    return "Close";
+}
 export function formatMenuBarShownActionStatus() {
     return "Action: menu bar shown";
 }
@@ -2962,7 +2965,7 @@ export function mountAppShell(options) {
         <p data-testid="bank-manager-cumulative" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="bank-manager-take-loan">${formatFinanceActionButtonLabel("take-loan")}</button>
         <button type="button" data-testid="bank-manager-repay-loan">${formatFinanceActionButtonLabel("repay-loan")}</button>
-        <button type="button" data-testid="bank-manager-close">Close</button>
+        <button type="button" data-testid="bank-manager-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="bank-stats-panel"
@@ -2977,7 +2980,7 @@ export function mountAppShell(options) {
         <p data-testid="bank-stats-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-stats-cumulative" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="bank-stats-run-audit">${formatFinanceActionButtonLabel("run-audit")}</button>
-        <button type="button" data-testid="bank-stats-close">Close</button>
+        <button type="button" data-testid="bank-stats-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="staff-panel"
@@ -2996,7 +2999,7 @@ export function mountAppShell(options) {
         <button type="button" data-testid="staff-panel-hire-nurse">Hire Nurse</button>
         <button type="button" data-testid="staff-panel-hire-handyman">Hire Handyman</button>
         <button type="button" data-testid="staff-panel-hire-receptionist">Hire Receptionist</button>
-        <button type="button" data-testid="staff-panel-close">Close</button>
+        <button type="button" data-testid="staff-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="research-panel"
@@ -3011,7 +3014,7 @@ export function mountAppShell(options) {
         <p data-testid="research-panel-expertise" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="research-panel-objects" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="research-panel-start">${formatCampaignActionButtonLabel("research")}</button>
-        <button type="button" data-testid="research-panel-close">Close</button>
+        <button type="button" data-testid="research-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="status-panel"
@@ -3031,7 +3034,7 @@ export function mountAppShell(options) {
         <p data-testid="status-panel-cash" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="status-panel-milestone" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="status-panel-unlocks" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="status-panel-close">Close</button>
+        <button type="button" data-testid="status-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="charts-panel"
@@ -3051,7 +3054,7 @@ export function mountAppShell(options) {
         <p data-testid="charts-panel-audit" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="charts-panel-marketing" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="charts-panel-insurance" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="charts-panel-close">Close</button>
+        <button type="button" data-testid="charts-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="town-map-panel"
@@ -3071,7 +3074,7 @@ export function mountAppShell(options) {
           Level
           <select data-testid="town-map-panel-select" aria-label="Town map panel level">${mapOptions}</select>
         </label>
-        <button type="button" data-testid="town-map-panel-close">Close</button>
+        <button type="button" data-testid="town-map-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="policy-panel"
@@ -3102,7 +3105,7 @@ export function mountAppShell(options) {
             <option value="premium">Premium</option>
           </select>
         </label>
-        <button type="button" data-testid="policy-panel-close">Close</button>
+        <button type="button" data-testid="policy-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="machine-menu-panel"
@@ -3119,7 +3122,7 @@ export function mountAppShell(options) {
         <p data-testid="machine-menu-rooms" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="machine-menu-objects" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="machine-menu-repair-selected-room">Repair Selected Room</button>
-        <button type="button" data-testid="machine-menu-close">Close</button>
+        <button type="button" data-testid="machine-menu-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="casebook-panel"
@@ -3131,7 +3134,7 @@ export function mountAppShell(options) {
         <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Casebook</h2>
         <p data-testid="casebook-panel-summary" style="margin:0 0 8px; font-size:13px;"></p>
         <div data-testid="casebook-panel-rows"></div>
-        <button type="button" data-testid="casebook-panel-close">Close</button>
+        <button type="button" data-testid="casebook-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="message-panel"
@@ -3145,7 +3148,7 @@ export function mountAppShell(options) {
         <p data-testid="message-panel-count" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="message-panel-last" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="message-panel-recent" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="message-panel-close">Close</button>
+        <button type="button" data-testid="message-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="jukebox-panel"
@@ -3164,7 +3167,7 @@ export function mountAppShell(options) {
         <button type="button" data-testid="jukebox-panel-master-mute">Mute</button>
         <button type="button" data-testid="jukebox-panel-sound-mute">Sound</button>
         <button type="button" data-testid="jukebox-panel-music-mute">Music</button>
-        <button type="button" data-testid="jukebox-panel-close">Close</button>
+        <button type="button" data-testid="jukebox-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="furnish-corridor-panel"
@@ -3176,7 +3179,7 @@ export function mountAppShell(options) {
         <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Furnish Corridor</h2>
         <p data-testid="furnish-corridor-panel-summary" style="margin:0 0 8px; font-size:13px;"></p>
         <div data-testid="furnish-corridor-panel-rows"></div>
-        <button type="button" data-testid="furnish-corridor-panel-close">Close</button>
+        <button type="button" data-testid="furnish-corridor-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
         data-testid="edit-room-panel"
@@ -3191,7 +3194,7 @@ export function mountAppShell(options) {
         <button type="button" data-testid="edit-room-panel-toggle">Open Selected Room</button>
         <button type="button" data-testid="edit-room-panel-repair">Repair Selected Room</button>
         <button type="button" data-testid="edit-room-panel-sell">Sell Selected Room</button>
-        <button type="button" data-testid="edit-room-panel-close">Close</button>
+        <button type="button" data-testid="edit-room-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
       <div style="display:grid; grid-template-columns:minmax(0, 1fr) 320px; gap:14px; align-items:start;">
