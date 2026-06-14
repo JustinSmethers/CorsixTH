@@ -478,6 +478,9 @@ export function formatNoMessagesActionStatus() {
 export function formatInformationStatus(visible) {
     return `Info: ${visible ? "shown" : "hidden"}`;
 }
+export function formatAppTitleLabel() {
+    return "CorsixTH Browser Hospital";
+}
 export function formatPanelActionStatus(panel, action) {
     return `Action: ${panel} ${action}`;
 }
@@ -563,6 +566,9 @@ export function formatPlacementRotatedActionStatus(orientation) {
 }
 export function formatQuitLevelActionStatus(action) {
     return `Action: quit level ${action}`;
+}
+export function formatQuitLevelPromptLabel() {
+    return "Quit level and return to the browser main menu?";
 }
 export function formatQuitLevelButtonLabel(action) {
     if (action === "confirm") {
@@ -2895,7 +2901,7 @@ export function mountAppShell(options) {
     >
       <header style="display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:12px;">
         <div>
-          <h1 style="font-size:24px; line-height:1.2; margin:0 0 4px;">CorsixTH Browser Hospital</h1>
+          <h1 style="font-size:24px; line-height:1.2; margin:0 0 4px;">${formatAppTitleLabel()}</h1>
           <p data-testid="hospital-canvas-summary" style="margin:0; color:#a9b7bd; font-size:13px;"></p>
           <p data-testid="hospital-placement-mode" style="margin:2px 0 0; color:#d3c16a; font-size:13px;">${formatPlacementMode(null, null)}</p>
         </div>
@@ -3013,7 +3019,7 @@ export function mountAppShell(options) {
         hidden
         style="margin:0 0 10px; padding:10px; border:1px solid #6f5d2d; background:#211d13; color:#f1e6c0;"
       >
-        <p style="margin:0 0 8px; font-size:13px;">Quit level and return to the browser main menu?</p>
+        <p style="margin:0 0 8px; font-size:13px;">${formatQuitLevelPromptLabel()}</p>
         <button type="button" data-testid="quit-level-confirm">${formatQuitLevelButtonLabel("confirm")}</button>
         <button type="button" data-testid="quit-level-cancel">${formatQuitLevelButtonLabel("cancel")}</button>
       </section>
