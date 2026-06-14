@@ -457,6 +457,9 @@ export function formatActionStatus(events, placementEvaluation) {
 export function formatChoosePlacementActionStatus() {
     return "Action: choose placement";
 }
+export function formatIdleActionStatus() {
+    return "Action: idle";
+}
 export function formatSelectedEntityActionStatus(entityType) {
     return `Action: selected ${entityType}`;
 }
@@ -2720,10 +2723,10 @@ export function mountAppShell(options) {
         <div>
           <h1 style="font-size:24px; line-height:1.2; margin:0 0 4px;">CorsixTH Browser Hospital</h1>
           <p data-testid="hospital-canvas-summary" style="margin:0; color:#a9b7bd; font-size:13px;"></p>
-          <p data-testid="hospital-placement-mode" style="margin:2px 0 0; color:#d3c16a; font-size:13px;">Placement: none</p>
+          <p data-testid="hospital-placement-mode" style="margin:2px 0 0; color:#d3c16a; font-size:13px;">${formatPlacementMode(null, null)}</p>
         </div>
         <div data-testid="controls" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end;">
-          <button type="button" data-testid="pause-toggle">Pause</button>
+          <button type="button" data-testid="pause-toggle">${formatPauseToggleLabel({ paused: false })}</button>
           <button type="button" data-testid="step">Step</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Speed
@@ -2735,7 +2738,7 @@ export function mountAppShell(options) {
               <option value="8">8x</option>
             </select>
           </label>
-          <button type="button" data-testid="admissions-toggle">Open Admissions</button>
+          <button type="button" data-testid="admissions-toggle">${formatAdmissionsToggleLabel({ admissionsOpen: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Policy
             <select data-testid="admission-policy" aria-label="Automatic admission policy">
@@ -2778,8 +2781,8 @@ export function mountAppShell(options) {
           <button type="button" data-testid="send-selected-patient-toilet">Toilet</button>
           <button type="button" data-testid="shoot-rat">Shoot Rat</button>
           <button type="button" data-testid="water-plant">Water Plant</button>
-          <button type="button" data-testid="staff-break-toggle">Set Diagnostician On Break</button>
-          <button type="button" data-testid="treatment-room-toggle">Close Treatment Room</button>
+          <button type="button" data-testid="staff-break-toggle">${formatStaffBreakToggleLabel({ onBreakStaff: 0 })}</button>
+          <button type="button" data-testid="treatment-room-toggle">${formatTreatmentRoomToggleLabel({ openTreatmentRooms: 1 })}</button>
           <button type="button" data-testid="move-selected-staff">Move Staff</button>
           <button type="button" data-testid="rest-selected-staff">Rest Staff</button>
           <button type="button" data-testid="train-selected-staff">Train Staff</button>
@@ -2811,15 +2814,15 @@ export function mountAppShell(options) {
           <button type="button" data-testid="load-game">Load</button>
           <button type="button" data-testid="refresh-save-slots">Refresh Slots</button>
           <button type="button" data-testid="delete-save-slot">Delete Slot</button>
-          <button type="button" data-testid="audio-mute-toggle">Mute</button>
+          <button type="button" data-testid="audio-mute-toggle">${formatMuteToggleLabel({ muted: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Volume
           <input type="range" min="0" max="100" step="1" value="100" data-testid="audio-volume" />
           </label>
-          <span data-testid="save-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">Save: idle</span>
-          <span data-testid="action-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">Action: idle</span>
-          <span data-testid="information-status" tabindex="-1" style="min-width:110px; color:#d7cfa6; font-size:13px;">Info: hidden</span>
-          <span data-testid="selection-status" style="min-width:160px; color:#d8dca5; font-size:13px;">Selection: none</span>
+          <span data-testid="save-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">${formatSaveLifecycleStatus("idle")}</span>
+          <span data-testid="action-status" style="min-width:120px; color:#a9b7bd; font-size:13px;">${formatIdleActionStatus()}</span>
+          <span data-testid="information-status" tabindex="-1" style="min-width:110px; color:#d7cfa6; font-size:13px;">${formatInformationStatus(false)}</span>
+          <span data-testid="selection-status" style="min-width:160px; color:#d8dca5; font-size:13px;">${formatNoSelectionStatus()}</span>
         </div>
       </header>
       <nav
