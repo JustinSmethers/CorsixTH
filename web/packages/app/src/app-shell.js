@@ -866,6 +866,18 @@ export function formatSelectedStaffRoomActionButtonLabel(action) {
     };
     return labels[action] ?? "";
 }
+export function formatCampaignActionButtonLabel(action) {
+    const labels = {
+        research: "Fund Research",
+        emergency: "Emergency",
+        epidemic: "Epidemic",
+        vip: "VIP Visit",
+        marketing: "Run Marketing",
+        insurance: "Insurance",
+        awards: "Awards"
+    };
+    return labels[action] ?? "";
+}
 export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
@@ -2844,13 +2856,13 @@ export function mountAppShell(options) {
           </label>
           <button type="button" data-testid="admit">Admit</button>
           <button type="button" data-testid="treat">Treat</button>
-          <button type="button" data-testid="start-research">Fund Research</button>
-          <button type="button" data-testid="start-emergency-wave">Emergency</button>
-          <button type="button" data-testid="start-epidemic-outbreak">Epidemic</button>
-          <button type="button" data-testid="start-vip-inspection">VIP Visit</button>
-          <button type="button" data-testid="run-marketing-campaign">Run Marketing</button>
-          <button type="button" data-testid="start-insurance-contract">Insurance</button>
-          <button type="button" data-testid="run-awards-ceremony">Awards</button>
+          <button type="button" data-testid="start-research">${formatCampaignActionButtonLabel("research")}</button>
+          <button type="button" data-testid="start-emergency-wave">${formatCampaignActionButtonLabel("emergency")}</button>
+          <button type="button" data-testid="start-epidemic-outbreak">${formatCampaignActionButtonLabel("epidemic")}</button>
+          <button type="button" data-testid="start-vip-inspection">${formatCampaignActionButtonLabel("vip")}</button>
+          <button type="button" data-testid="run-marketing-campaign">${formatCampaignActionButtonLabel("marketing")}</button>
+          <button type="button" data-testid="start-insurance-contract">${formatCampaignActionButtonLabel("insurance")}</button>
+          <button type="button" data-testid="run-awards-ceremony">${formatCampaignActionButtonLabel("awards")}</button>
           <button type="button" data-testid="run-finance-audit">${formatFinanceActionButtonLabel("run-audit")}</button>
           <button type="button" data-testid="take-loan">${formatFinanceActionButtonLabel("take-loan")}</button>
           <button type="button" data-testid="repay-loan">${formatFinanceActionButtonLabel("repay-loan")}</button>
@@ -2984,7 +2996,7 @@ export function mountAppShell(options) {
         <p data-testid="research-panel-effect" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="research-panel-expertise" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="research-panel-objects" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="research-panel-start">Fund Research</button>
+        <button type="button" data-testid="research-panel-start">${formatCampaignActionButtonLabel("research")}</button>
         <button type="button" data-testid="research-panel-close">Close</button>
       </section>
       <section
