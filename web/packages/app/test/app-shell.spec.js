@@ -770,6 +770,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus(["room.built"], null)).toBe("Action: room built");
         expect(formatActionStatus("admissions.opened")).toBe("Action: admissions open");
         expect(formatActionStatus("admissions.closed")).toBe("Action: admissions closed");
+        expect(formatActionStatus("speed.changed")).toBe("Action: speed changed");
         expect(formatActionStatus("cancel-action-blocked")).toBe("Action: cancel blocked");
         expect(formatActionStatus("camera.unavailable")).toBe("Action: camera unavailable");
         expect(formatActionStatus("camera-position.unavailable")).toBe("Action: camera position unavailable");
@@ -777,6 +778,9 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("placement.rotate-blocked")).toBe("Action: placement rotation blocked");
         expect(formatActionStatus("transparent-walls.unavailable")).toBe("Action: transparent walls unavailable");
         expect(formatActionStatus("zoom.unavailable")).toBe("Action: zoom unavailable");
+        expect(formatActionStatus("admission-policy.changed")).toBe("Action: admission policy changed");
+        expect(formatActionStatus("pricing-policy.changed")).toBe("Action: pricing policy changed");
+        expect(formatActionStatus("pricing-policy.unchanged")).toBe("Action: pricing policy unchanged");
         expect(formatActionStatus("loan.take-blocked")).toBe("Action: loan blocked");
         expect(formatActionStatus("loan.repay-blocked")).toBe("Action: loan repayment blocked");
         expect(formatActionStatus("marketing.blocked")).toBe("Action: marketing campaign blocked");
