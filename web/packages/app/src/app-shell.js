@@ -484,6 +484,25 @@ export function formatPanelActionStatus(panel, action) {
 export function formatPanelCloseButtonLabel() {
     return "Close";
 }
+export function formatPanelTitleLabel(panel) {
+    const labels = {
+        "bank-manager": "Bank Manager",
+        "bank-stats": "Bank Stats",
+        staff: "Staff",
+        research: "Research",
+        status: "Status",
+        charts: "Charts",
+        map: "Map",
+        policy: "Policy",
+        "machine-menu": "Machine Menu",
+        casebook: "Casebook",
+        messages: "Messages",
+        jukebox: "Jukebox",
+        "furnish-corridor": "Furnish Corridor",
+        "edit-room": "Edit Room"
+    };
+    return labels[panel] ?? "";
+}
 export function formatGameplayActionButtonLabel(action) {
     const labels = {
         step: "Step",
@@ -2978,10 +2997,10 @@ export function mountAppShell(options) {
         data-testid="bank-manager-panel"
         hidden
         role="dialog"
-        aria-label="Bank Manager"
+        aria-label="${formatPanelTitleLabel("bank-manager")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Bank Manager</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("bank-manager")}</h2>
         <p data-testid="bank-manager-loan" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-manager-interest" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-manager-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
@@ -2994,10 +3013,10 @@ export function mountAppShell(options) {
         data-testid="bank-stats-panel"
         hidden
         role="dialog"
-        aria-label="Bank Stats"
+        aria-label="${formatPanelTitleLabel("bank-stats")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Bank Stats</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("bank-stats")}</h2>
         <p data-testid="bank-stats-ledger" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-stats-audit" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-stats-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3009,10 +3028,10 @@ export function mountAppShell(options) {
         data-testid="staff-panel"
         hidden
         role="dialog"
-        aria-label="Staff"
+        aria-label="${formatPanelTitleLabel("staff")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Staff</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("staff")}</h2>
         <p data-testid="staff-panel-active" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="staff-panel-break" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="staff-panel-training" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3028,10 +3047,10 @@ export function mountAppShell(options) {
         data-testid="research-panel"
         hidden
         role="dialog"
-        aria-label="Research"
+        aria-label="${formatPanelTitleLabel("research")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Research</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("research")}</h2>
         <p data-testid="research-panel-status" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="research-panel-effect" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="research-panel-expertise" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3043,10 +3062,10 @@ export function mountAppShell(options) {
         data-testid="status-panel"
         hidden
         role="dialog"
-        aria-label="Status"
+        aria-label="${formatPanelTitleLabel("status")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Status</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("status")}</h2>
         <p data-testid="status-panel-campaign" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="status-panel-objective-status" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="status-panel-objective-progress" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3063,10 +3082,10 @@ export function mountAppShell(options) {
         data-testid="charts-panel"
         hidden
         role="dialog"
-        aria-label="Charts"
+        aria-label="${formatPanelTitleLabel("charts")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Charts</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("charts")}</h2>
         <p data-testid="charts-panel-cash" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="charts-panel-reputation" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="charts-panel-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3083,10 +3102,10 @@ export function mountAppShell(options) {
         data-testid="town-map-panel"
         hidden
         role="dialog"
-        aria-label="Map"
+        aria-label="${formatPanelTitleLabel("map")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Map</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("map")}</h2>
         <p data-testid="town-map-panel-current" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="town-map-panel-campaign" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="town-map-panel-objective" style="margin:0 0 8px; font-size:13px;"></p>
@@ -3103,10 +3122,10 @@ export function mountAppShell(options) {
         data-testid="policy-panel"
         hidden
         role="dialog"
-        aria-label="Policy"
+        aria-label="${formatPanelTitleLabel("policy")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Policy</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("policy")}</h2>
         <p data-testid="policy-panel-admissions" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="policy-panel-admission-status" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="policy-panel-pricing-status" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3134,10 +3153,10 @@ export function mountAppShell(options) {
         data-testid="machine-menu-panel"
         hidden
         role="dialog"
-        aria-label="Machine Menu"
+        aria-label="${formatPanelTitleLabel("machine-menu")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Machine Menu</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("machine-menu")}</h2>
         <p data-testid="machine-menu-maintenance" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="machine-menu-staff" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="machine-menu-starts" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3151,10 +3170,10 @@ export function mountAppShell(options) {
         data-testid="casebook-panel"
         hidden
         role="dialog"
-        aria-label="Casebook"
+        aria-label="${formatPanelTitleLabel("casebook")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Casebook</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("casebook")}</h2>
         <p data-testid="casebook-panel-summary" style="margin:0 0 8px; font-size:13px;"></p>
         <div data-testid="casebook-panel-rows"></div>
         <button type="button" data-testid="casebook-panel-close">${formatPanelCloseButtonLabel()}</button>
@@ -3163,10 +3182,10 @@ export function mountAppShell(options) {
         data-testid="message-panel"
         hidden
         role="dialog"
-        aria-label="Messages"
+        aria-label="${formatPanelTitleLabel("messages")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Messages</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("messages")}</h2>
         <p data-testid="message-panel-advisor" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="message-panel-count" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="message-panel-last" style="margin:0 0 4px; font-size:13px;"></p>
@@ -3177,10 +3196,10 @@ export function mountAppShell(options) {
         data-testid="jukebox-panel"
         hidden
         role="dialog"
-        aria-label="Jukebox"
+        aria-label="${formatPanelTitleLabel("jukebox")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Jukebox</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("jukebox")}</h2>
         <p data-testid="jukebox-panel-status" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="jukebox-panel-volume-status" style="margin:0 0 8px; font-size:13px;"></p>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
@@ -3196,10 +3215,10 @@ export function mountAppShell(options) {
         data-testid="furnish-corridor-panel"
         hidden
         role="dialog"
-        aria-label="Furnish Corridor"
+        aria-label="${formatPanelTitleLabel("furnish-corridor")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Furnish Corridor</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("furnish-corridor")}</h2>
         <p data-testid="furnish-corridor-panel-summary" style="margin:0 0 8px; font-size:13px;"></p>
         <div data-testid="furnish-corridor-panel-rows"></div>
         <button type="button" data-testid="furnish-corridor-panel-close">${formatPanelCloseButtonLabel()}</button>
@@ -3208,10 +3227,10 @@ export function mountAppShell(options) {
         data-testid="edit-room-panel"
         hidden
         role="dialog"
-        aria-label="Edit Room"
+        aria-label="${formatPanelTitleLabel("edit-room")}"
         style="margin:0 0 10px; padding:10px; border:1px solid #40545b; background:#172126; color:#e7edf0;"
       >
-        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Edit Room</h2>
+        <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">${formatPanelTitleLabel("edit-room")}</h2>
         <p data-testid="edit-room-panel-summary" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="edit-room-panel-availability" style="margin:0 0 8px; font-size:13px;"></p>
         <button type="button" data-testid="edit-room-panel-toggle">${formatSelectedRoomToggleLabel({ status: "closed" })}</button>
