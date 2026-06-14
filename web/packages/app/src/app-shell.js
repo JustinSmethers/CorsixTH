@@ -2857,14 +2857,14 @@ export function mountAppShell(options) {
           <button type="button" data-testid="sell-selected-room">${formatSelectedStaffRoomActionButtonLabel("sell-room")}</button>
           <button type="button" data-testid="sell-selected-object">${formatSelectedStaffRoomActionButtonLabel("sell-object")}</button>
           <button type="button" data-testid="repair-selected-room">${formatSelectedStaffRoomActionButtonLabel("repair-room")}</button>
-          <button type="button" data-testid="build-diagnosis-room">Build Diagnosis</button>
-          <button type="button" data-testid="build-treatment-room">Build Treatment</button>
-          <button type="button" data-testid="build-pharmacy-room">Build Pharmacy</button>
-          <button type="button" data-testid="build-specialist-room">Build Specialist</button>
-          <button type="button" data-testid="hire-diagnostician">Hire Diagnostician</button>
-          <button type="button" data-testid="hire-nurse">Hire Nurse</button>
-          <button type="button" data-testid="hire-handyman">Hire Handyman</button>
-          <button type="button" data-testid="hire-receptionist">Hire Receptionist</button>
+          <button type="button" data-testid="build-diagnosis-room">${formatBuildRoomButtonLabel("diagnosis")}</button>
+          <button type="button" data-testid="build-treatment-room">${formatBuildRoomButtonLabel("treatment")}</button>
+          <button type="button" data-testid="build-pharmacy-room">${formatBuildRoomButtonLabel("pharmacy")}</button>
+          <button type="button" data-testid="build-specialist-room">${formatBuildRoomButtonLabel("specialist")}</button>
+          <button type="button" data-testid="hire-diagnostician">${formatHireStaffButtonLabel("diagnostician")}</button>
+          <button type="button" data-testid="hire-nurse">${formatHireStaffButtonLabel("nurse")}</button>
+          <button type="button" data-testid="hire-handyman">${formatHireStaffButtonLabel("handyman")}</button>
+          <button type="button" data-testid="hire-receptionist">${formatHireStaffButtonLabel("receptionist")}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Slot
             <input

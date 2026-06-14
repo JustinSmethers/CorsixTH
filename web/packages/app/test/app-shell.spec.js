@@ -442,6 +442,12 @@ describe("app shell campaign objectives", () => {
         })).toBe("Room availability: unrestricted");
     });
     it("uses imported room names and scenario costs in build labels", () => {
+        expect(["diagnosis", "treatment", "pharmacy", "specialist"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
+            "Build Diagnosis",
+            "Build Treatment",
+            "Build Pharmacy",
+            "Build Specialist"
+        ]);
         expect(formatBuildRoomButtonLabel("diagnosis", {
             scenarioRoomCostOverrides: { diagnosis: 2280 }
         }, {
@@ -466,6 +472,12 @@ describe("app shell campaign objectives", () => {
         })).toBe(false);
     });
     it("uses imported staff role names and scenario wages in hire labels", () => {
+        expect(["diagnostician", "nurse", "handyman", "receptionist"].map((role) => formatHireStaffButtonLabel(role).replace(/\s+\(\d+, wage \d+\)$/, ""))).toEqual([
+            "Hire Diagnostician",
+            "Hire Nurse",
+            "Hire Handyman",
+            "Hire Receptionist"
+        ]);
         expect(formatHireStaffButtonLabel("diagnostician", {
             scenarioStaffWageOverrides: { diagnostician: 6 }
         }, {
