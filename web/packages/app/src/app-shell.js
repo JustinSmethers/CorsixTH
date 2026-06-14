@@ -3121,7 +3121,7 @@ export function mountAppShell(options) {
         <p data-testid="machine-menu-completes" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="machine-menu-rooms" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="machine-menu-objects" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="machine-menu-repair-selected-room">Repair Selected Room</button>
+        <button type="button" data-testid="machine-menu-repair-selected-room">${formatSelectedStaffRoomActionButtonLabel("repair-room")}</button>
         <button type="button" data-testid="machine-menu-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
@@ -3191,9 +3191,9 @@ export function mountAppShell(options) {
         <h2 style="margin:0 0 8px; font-size:16px; line-height:1.2;">Edit Room</h2>
         <p data-testid="edit-room-panel-summary" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="edit-room-panel-availability" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="edit-room-panel-toggle">Open Selected Room</button>
-        <button type="button" data-testid="edit-room-panel-repair">Repair Selected Room</button>
-        <button type="button" data-testid="edit-room-panel-sell">Sell Selected Room</button>
+        <button type="button" data-testid="edit-room-panel-toggle">${formatSelectedRoomToggleLabel({ status: "closed" })}</button>
+        <button type="button" data-testid="edit-room-panel-repair">${formatSelectedStaffRoomActionButtonLabel("repair-room")}</button>
+        <button type="button" data-testid="edit-room-panel-sell">${formatSelectedStaffRoomActionButtonLabel("sell-room")}</button>
         <button type="button" data-testid="edit-room-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <p data-testid="casebook-summary" tabindex="-1" style="margin:0 0 10px; color:#d8dca5; font-size:13px; line-height:1.35;">Casebook: no active patients</p>
