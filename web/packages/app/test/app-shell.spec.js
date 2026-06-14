@@ -785,6 +785,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("treatment-room.toggle-blocked")).toBe("Action: treatment room toggle blocked");
         expect(formatActionStatus("patient.prioritize-empty")).toBe("Action: patient cannot be prioritized");
         expect(formatActionStatus("patient.send-home-empty")).toBe("Action: no patient selected");
+        expect(formatActionStatus("patient.treated.empty")).toBe("Action: no patient selected");
         expect(formatActionStatus(["object.place-blocked"], { reason: "object-unavailable" })).toBe("Action: object placement blocked: object unavailable in scenario");
         expect(formatActionStatus("patient.drink-blocked")).toBe("Action: drink blocked");
         expect(formatActionStatus("patient.toilet-blocked")).toBe("Action: toilet blocked");
