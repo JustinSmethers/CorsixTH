@@ -1600,6 +1600,21 @@ function formatHospitalZoomLevel(view) {
     const zoom = HOSPITAL_ZOOM_LEVELS[view?.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX] ?? HOSPITAL_ZOOM_LEVELS[HOSPITAL_DEFAULT_ZOOM_INDEX];
     return zoom.label;
 }
+export function formatCameraPositionStoredStatus(slot) {
+    return `Action: camera position ${slot} stored`;
+}
+export function formatCameraPositionEmptyStatus(slot) {
+    return `Action: camera position ${slot} empty`;
+}
+export function formatCameraPositionUnavailableStatus(slot) {
+    return `Action: camera position ${slot} unavailable`;
+}
+export function formatCameraPositionRecalledStatus(slot) {
+    return `Action: camera position ${slot} recalled`;
+}
+export function formatZoomActionStatus(view) {
+    return `Action: zoom ${formatHospitalZoomLevel(view)}`;
+}
 function setHospitalViewMap(view, mapPath) {
     const decodedMap = safeDecode(() => decodeThemeHospitalMapFromBundle(view.assetBundle, mapPath));
     if (!decodedMap || !Array.isArray(decodedMap.tiles)) {
@@ -5557,7 +5572,7 @@ export function mountAppShell(options) {
             return true;
         }
         cameraMemorySlots.set(slot, snapshot);
-        actionStatus.textContent = `Action: camera position ${slot} stored`;
+        actionStatus.textContent = formatCameraPositionStoredStatus(slot);
         return true;
     };
     const onRecallCameraPosition = (slot) => {
@@ -5566,15 +5581,15 @@ export function mountAppShell(options) {
         }
         const snapshot = cameraMemorySlots.get(slot);
         if (!snapshot) {
-            actionStatus.textContent = `Action: camera position ${slot} empty`;
+            actionStatus.textContent = formatCameraPositionEmptyStatus(slot);
             return true;
         }
         if (!restoreHospitalCameraSnapshot(hospitalView, snapshot)) {
-            actionStatus.textContent = `Action: camera position ${slot} unavailable`;
+            actionStatus.textContent = formatCameraPositionUnavailableStatus(slot);
             return true;
         }
         placementPreview = null;
-        actionStatus.textContent = `Action: camera position ${slot} recalled`;
+        actionStatus.textContent = formatCameraPositionRecalledStatus(slot);
         renderHospital();
         return true;
     };
@@ -5587,7 +5602,7 @@ export function mountAppShell(options) {
         const currentZoomIndex = hospitalView.zoomIndex ?? HOSPITAL_DEFAULT_ZOOM_INDEX;
         applyHospitalViewZoom(hospitalView, currentZoomIndex + delta);
         placementPreview = null;
-        actionStatus.textContent = `Action: zoom ${formatHospitalZoomLevel(hospitalView)}`;
+        actionStatus.textContent = formatZoomActionStatus(hospitalView);
         renderHospital();
     };
     const onResetHospitalZoom = () => {
@@ -5598,7 +5613,7 @@ export function mountAppShell(options) {
         }
         applyHospitalViewZoom(hospitalView, HOSPITAL_DEFAULT_ZOOM_INDEX);
         placementPreview = null;
-        actionStatus.textContent = `Action: zoom ${formatHospitalZoomLevel(hospitalView)}`;
+        actionStatus.textContent = formatZoomActionStatus(hospitalView);
         renderHospital();
     };
     const onCameraWest = () => {
