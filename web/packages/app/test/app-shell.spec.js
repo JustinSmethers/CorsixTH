@@ -775,6 +775,8 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("placement.rotate-blocked")).toBe("Action: placement rotation blocked");
         expect(formatActionStatus("transparent-walls.unavailable")).toBe("Action: transparent walls unavailable");
         expect(formatActionStatus("zoom.unavailable")).toBe("Action: zoom unavailable");
+        expect(formatActionStatus("loan.take-blocked")).toBe("Action: loan blocked");
+        expect(formatActionStatus("loan.repay-blocked")).toBe("Action: loan repayment blocked");
         expect(formatActionStatus("room.build-blocked")).toBe("Action: room blocked");
         expect(formatActionStatus(["room.build-blocked"], { reason: "occupied" })).toBe("Action: room blocked: occupied");
         expect(formatActionStatus("staff.hire-blocked", { reason: "staff-market-empty" })).toBe("Action: staff blocked: no scenario staff available");
