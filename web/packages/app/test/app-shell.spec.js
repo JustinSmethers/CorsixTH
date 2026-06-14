@@ -785,6 +785,8 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("emergency.blocked")).toBe("Action: emergency blocked");
         expect(formatActionStatus("epidemic.blocked")).toBe("Action: epidemic blocked");
         expect(formatActionStatus("vip.blocked")).toBe("Action: VIP inspection blocked");
+        expect(formatActionStatus("rat.blocked")).toBe("Action: rat blocked");
+        expect(formatActionStatus("plant.blocked")).toBe("Action: plant blocked");
         expect(formatActionStatus("room.build-blocked")).toBe("Action: room blocked");
         expect(formatActionStatus(["room.build-blocked"], { reason: "occupied" })).toBe("Action: room blocked: occupied");
         expect(formatActionStatus("staff.hire-blocked", { reason: "staff-market-empty" })).toBe("Action: staff blocked: no scenario staff available");
