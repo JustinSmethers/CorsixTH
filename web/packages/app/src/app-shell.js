@@ -503,6 +503,16 @@ export function formatPanelTitleLabel(panel) {
     };
     return labels[panel] ?? "";
 }
+export function formatPolicyOptionLabel(policy) {
+    const labels = {
+        conservative: "Conservative",
+        standard: "Standard",
+        aggressive: "Aggressive",
+        discount: "Discount",
+        premium: "Premium"
+    };
+    return labels[policy] ?? "";
+}
 export function formatGameplayActionButtonLabel(action) {
     const labels = {
         step: "Step",
@@ -2892,17 +2902,17 @@ export function mountAppShell(options) {
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Policy
             <select data-testid="admission-policy" aria-label="Automatic admission policy">
-              <option value="conservative">Conservative</option>
-              <option value="standard" selected>Standard</option>
-              <option value="aggressive">Aggressive</option>
+              <option value="conservative">${formatPolicyOptionLabel("conservative")}</option>
+              <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
+              <option value="aggressive">${formatPolicyOptionLabel("aggressive")}</option>
             </select>
           </label>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Pricing
             <select data-testid="pricing-policy" aria-label="Treatment pricing policy">
-              <option value="discount">Discount</option>
-              <option value="standard" selected>Standard</option>
-              <option value="premium">Premium</option>
+              <option value="discount">${formatPolicyOptionLabel("discount")}</option>
+              <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
+              <option value="premium">${formatPolicyOptionLabel("premium")}</option>
             </select>
           </label>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
@@ -3134,17 +3144,17 @@ export function mountAppShell(options) {
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 6px; color:#c8d2d7; font-size:13px;">
           Admission
           <select data-testid="policy-panel-admission-policy" aria-label="Policy panel admission policy">
-            <option value="conservative">Conservative</option>
-            <option value="standard" selected>Standard</option>
-            <option value="aggressive">Aggressive</option>
+            <option value="conservative">${formatPolicyOptionLabel("conservative")}</option>
+            <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
+            <option value="aggressive">${formatPolicyOptionLabel("aggressive")}</option>
           </select>
         </label>
         <label style="display:flex; align-items:center; gap:6px; margin:0 0 8px; color:#c8d2d7; font-size:13px;">
           Pricing
           <select data-testid="policy-panel-pricing-policy" aria-label="Policy panel pricing policy">
-            <option value="discount">Discount</option>
-            <option value="standard" selected>Standard</option>
-            <option value="premium">Premium</option>
+            <option value="discount">${formatPolicyOptionLabel("discount")}</option>
+            <option value="standard" selected>${formatPolicyOptionLabel("standard")}</option>
+            <option value="premium">${formatPolicyOptionLabel("premium")}</option>
           </select>
         </label>
         <button type="button" data-testid="policy-panel-close">${formatPanelCloseButtonLabel()}</button>
