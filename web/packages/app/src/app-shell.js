@@ -815,6 +815,15 @@ export function formatHireStaffButtonLabel(role, telemetry = null, languageSumma
     const wage = telemetry?.scenarioStaffWageOverrides?.[role] ?? staffWageCostPerTick(role);
     return `Hire ${name} (${hireCost}, wage ${wage})`;
 }
+export function formatFinanceActionButtonLabel(action) {
+    if (action === "repay-loan") {
+        return "Repay Loan";
+    }
+    if (action === "run-audit") {
+        return "Run Audit";
+    }
+    return "Take Loan";
+}
 export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
@@ -2800,9 +2809,9 @@ export function mountAppShell(options) {
           <button type="button" data-testid="run-marketing-campaign">Run Marketing</button>
           <button type="button" data-testid="start-insurance-contract">Insurance</button>
           <button type="button" data-testid="run-awards-ceremony">Awards</button>
-          <button type="button" data-testid="run-finance-audit">Run Audit</button>
-          <button type="button" data-testid="take-loan">Take Loan</button>
-          <button type="button" data-testid="repay-loan">Repay Loan</button>
+          <button type="button" data-testid="run-finance-audit">${formatFinanceActionButtonLabel("run-audit")}</button>
+          <button type="button" data-testid="take-loan">${formatFinanceActionButtonLabel("take-loan")}</button>
+          <button type="button" data-testid="repay-loan">${formatFinanceActionButtonLabel("repay-loan")}</button>
           <button type="button" data-testid="prioritize-selected-patient">Prioritize</button>
           <button type="button" data-testid="send-selected-patient-home">Send Home</button>
           <button type="button" data-testid="give-drink-selected-patient">Give Drink</button>
@@ -2883,8 +2892,8 @@ export function mountAppShell(options) {
         <p data-testid="bank-manager-interest" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-manager-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-manager-cumulative" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="bank-manager-take-loan">Take Loan</button>
-        <button type="button" data-testid="bank-manager-repay-loan">Repay Loan</button>
+        <button type="button" data-testid="bank-manager-take-loan">${formatFinanceActionButtonLabel("take-loan")}</button>
+        <button type="button" data-testid="bank-manager-repay-loan">${formatFinanceActionButtonLabel("repay-loan")}</button>
         <button type="button" data-testid="bank-manager-close">Close</button>
       </section>
       <section
@@ -2899,7 +2908,7 @@ export function mountAppShell(options) {
         <p data-testid="bank-stats-audit" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-stats-cashflow" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="bank-stats-cumulative" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="bank-stats-run-audit">Run Audit</button>
+        <button type="button" data-testid="bank-stats-run-audit">${formatFinanceActionButtonLabel("run-audit")}</button>
         <button type="button" data-testid="bank-stats-close">Close</button>
       </section>
       <section
