@@ -481,6 +481,16 @@ export function formatPanelActionStatus(panel, action) {
 export function formatPanelCloseButtonLabel() {
     return "Close";
 }
+export function formatGameplayActionButtonLabel(action) {
+    const labels = {
+        step: "Step",
+        admit: "Admit",
+        treat: "Treat",
+        "restart-level": "Restart Level",
+        "next-level": "Next Level"
+    };
+    return labels[action] ?? "";
+}
 export function formatMenuBarShownActionStatus() {
     return "Action: menu bar shown";
 }
@@ -1642,7 +1652,7 @@ const ORIGINAL_UI_SPRITE_SHEET_PREFERENCE = [
 ];
 const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "pause-toggle", label: "Pause" },
-    { id: "step", label: "Step" },
+    { id: "step", label: formatGameplayActionButtonLabel("step") },
     { id: "build-diagnosis-room", label: "Build GP" },
     { id: "build-treatment-room", label: "Build Ward" },
     { id: "build-pharmacy-room", label: "Build Pharmacy" },
@@ -1651,8 +1661,8 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "hire-nurse", label: "Hire Nurse" },
     { id: "hire-handyman", label: "Hire Handyman" },
     { id: "hire-receptionist", label: "Hire Receptionist" },
-    { id: "admit", label: "Admit" },
-    { id: "treat", label: "Treat" },
+    { id: "admit", label: formatGameplayActionButtonLabel("admit") },
+    { id: "treat", label: formatGameplayActionButtonLabel("treat") },
     { id: "staff-break-toggle", label: "Staff Break" },
     { id: "treatment-room-toggle", label: "Treatment Room" },
     { id: "open-jukebox", label: "Jukebox" },
@@ -1679,9 +1689,9 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "load-game", label: "Load" },
     { id: "refresh-save-slots", label: "Refresh Saves" },
     { id: "delete-save-slot", label: "Delete Save" },
-    { id: "restart-level", label: "Restart Level" },
+    { id: "restart-level", label: formatGameplayActionButtonLabel("restart-level") },
     { id: "quit-level", label: "Quit Level" },
-    { id: "next-level", label: "Next Level" },
+    { id: "next-level", label: formatGameplayActionButtonLabel("next-level") },
     { id: "hospital-camera-west", label: "Camera West" },
     { id: "hospital-camera-east", label: "Camera East" },
     { id: "hospital-camera-north", label: "Camera North" },
@@ -2835,7 +2845,7 @@ export function mountAppShell(options) {
         </div>
         <div data-testid="controls" style="display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end;">
           <button type="button" data-testid="pause-toggle">${formatPauseToggleLabel({ paused: false })}</button>
-          <button type="button" data-testid="step">Step</button>
+          <button type="button" data-testid="step">${formatGameplayActionButtonLabel("step")}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             Speed
             <select data-testid="speed-select" aria-label="Simulation speed">
@@ -2871,8 +2881,8 @@ export function mountAppShell(options) {
               <option value="3">3</option>
             </select>
           </label>
-          <button type="button" data-testid="admit">Admit</button>
-          <button type="button" data-testid="treat">Treat</button>
+          <button type="button" data-testid="admit">${formatGameplayActionButtonLabel("admit")}</button>
+          <button type="button" data-testid="treat">${formatGameplayActionButtonLabel("treat")}</button>
           <button type="button" data-testid="start-research">${formatCampaignActionButtonLabel("research")}</button>
           <button type="button" data-testid="start-emergency-wave">${formatCampaignActionButtonLabel("emergency")}</button>
           <button type="button" data-testid="start-epidemic-outbreak">${formatCampaignActionButtonLabel("epidemic")}</button>
@@ -3306,8 +3316,8 @@ export function mountAppShell(options) {
           <p data-testid="level-objective-progress" style="margin:0;"></p>
           <p data-testid="level-objective-safety" style="margin:0; grid-column:1 / -1;"></p>
           <div style="grid-column:1 / -1; display:flex; gap:8px; flex-wrap:wrap; margin:2px 0;">
-            <button type="button" data-testid="restart-level">Restart Level</button>
-            <button type="button" data-testid="next-level">Next Level</button>
+            <button type="button" data-testid="restart-level">${formatGameplayActionButtonLabel("restart-level")}</button>
+            <button type="button" data-testid="next-level">${formatGameplayActionButtonLabel("next-level")}</button>
           </div>
           <p data-testid="event-count" style="margin:0;"></p>
           <p data-testid="last-event" tabindex="-1" style="margin:0;"></p>
