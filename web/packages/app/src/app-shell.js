@@ -824,6 +824,18 @@ export function formatFinanceActionButtonLabel(action) {
     }
     return "Take Loan";
 }
+export function formatSelectedPatientActionButtonLabel(action) {
+    if (action === "send-home") {
+        return "Send Home";
+    }
+    if (action === "give-drink") {
+        return "Give Drink";
+    }
+    if (action === "send-toilet") {
+        return "Toilet";
+    }
+    return "Prioritize";
+}
 export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
@@ -2812,10 +2824,10 @@ export function mountAppShell(options) {
           <button type="button" data-testid="run-finance-audit">${formatFinanceActionButtonLabel("run-audit")}</button>
           <button type="button" data-testid="take-loan">${formatFinanceActionButtonLabel("take-loan")}</button>
           <button type="button" data-testid="repay-loan">${formatFinanceActionButtonLabel("repay-loan")}</button>
-          <button type="button" data-testid="prioritize-selected-patient">Prioritize</button>
-          <button type="button" data-testid="send-selected-patient-home">Send Home</button>
-          <button type="button" data-testid="give-drink-selected-patient">Give Drink</button>
-          <button type="button" data-testid="send-selected-patient-toilet">Toilet</button>
+          <button type="button" data-testid="prioritize-selected-patient">${formatSelectedPatientActionButtonLabel("prioritize")}</button>
+          <button type="button" data-testid="send-selected-patient-home">${formatSelectedPatientActionButtonLabel("send-home")}</button>
+          <button type="button" data-testid="give-drink-selected-patient">${formatSelectedPatientActionButtonLabel("give-drink")}</button>
+          <button type="button" data-testid="send-selected-patient-toilet">${formatSelectedPatientActionButtonLabel("send-toilet")}</button>
           <button type="button" data-testid="shoot-rat">Shoot Rat</button>
           <button type="button" data-testid="water-plant">Water Plant</button>
           <button type="button" data-testid="staff-break-toggle">${formatStaffBreakToggleLabel({ onBreakStaff: 0 })}</button>
