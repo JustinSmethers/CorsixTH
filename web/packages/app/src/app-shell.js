@@ -842,6 +842,18 @@ export function formatCareActionButtonLabel(action) {
     }
     return "Shoot Rat";
 }
+export function formatSelectedStaffRoomActionButtonLabel(action) {
+    const labels = {
+        "move-staff": "Move Staff",
+        "rest-staff": "Rest Staff",
+        "train-staff": "Train Staff",
+        "fire-staff": "Fire Staff",
+        "sell-room": "Sell Room",
+        "sell-object": "Sell Object",
+        "repair-room": "Repair Room"
+    };
+    return labels[action] ?? "";
+}
 export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
@@ -2838,13 +2850,13 @@ export function mountAppShell(options) {
           <button type="button" data-testid="water-plant">${formatCareActionButtonLabel("water-plant")}</button>
           <button type="button" data-testid="staff-break-toggle">${formatStaffBreakToggleLabel({ onBreakStaff: 0 })}</button>
           <button type="button" data-testid="treatment-room-toggle">${formatTreatmentRoomToggleLabel({ openTreatmentRooms: 1 })}</button>
-          <button type="button" data-testid="move-selected-staff">Move Staff</button>
-          <button type="button" data-testid="rest-selected-staff">Rest Staff</button>
-          <button type="button" data-testid="train-selected-staff">Train Staff</button>
-          <button type="button" data-testid="fire-selected-staff">Fire Staff</button>
-          <button type="button" data-testid="sell-selected-room">Sell Room</button>
-          <button type="button" data-testid="sell-selected-object">Sell Object</button>
-          <button type="button" data-testid="repair-selected-room">Repair Room</button>
+          <button type="button" data-testid="move-selected-staff">${formatSelectedStaffRoomActionButtonLabel("move-staff")}</button>
+          <button type="button" data-testid="rest-selected-staff">${formatSelectedStaffRoomActionButtonLabel("rest-staff")}</button>
+          <button type="button" data-testid="train-selected-staff">${formatSelectedStaffRoomActionButtonLabel("train-staff")}</button>
+          <button type="button" data-testid="fire-selected-staff">${formatSelectedStaffRoomActionButtonLabel("fire-staff")}</button>
+          <button type="button" data-testid="sell-selected-room">${formatSelectedStaffRoomActionButtonLabel("sell-room")}</button>
+          <button type="button" data-testid="sell-selected-object">${formatSelectedStaffRoomActionButtonLabel("sell-object")}</button>
+          <button type="button" data-testid="repair-selected-room">${formatSelectedStaffRoomActionButtonLabel("repair-room")}</button>
           <button type="button" data-testid="build-diagnosis-room">Build Diagnosis</button>
           <button type="button" data-testid="build-treatment-room">Build Treatment</button>
           <button type="button" data-testid="build-pharmacy-room">Build Pharmacy</button>
