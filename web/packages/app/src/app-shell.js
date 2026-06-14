@@ -71,6 +71,7 @@ const ACTION_STATUS_LABELS = {
     "cancel-action-blocked": "Action: cancel blocked",
     "confirm-action-blocked": "Action: confirm blocked",
     "camera.unavailable": "Action: camera unavailable",
+    "camera-position.unavailable": "Action: camera position unavailable",
     "transparent-walls.unavailable": "Action: transparent walls unavailable",
     "zoom.unavailable": "Action: zoom unavailable",
     "admission-policy.changed": "Action: admission policy changed",
@@ -5545,7 +5546,9 @@ export function mountAppShell(options) {
     const onStoreCameraPosition = (slot) => {
         const snapshot = createHospitalMapViewSnapshot(hospitalView);
         if (!snapshot || !Number.isInteger(slot)) {
-            return false;
+            actionStatus.textContent = formatActionStatus("camera-position.unavailable");
+            renderRuntime();
+            return true;
         }
         cameraMemorySlots.set(slot, snapshot);
         actionStatus.textContent = `Action: camera position ${slot} stored`;
