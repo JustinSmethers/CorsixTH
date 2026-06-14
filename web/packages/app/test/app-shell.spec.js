@@ -771,6 +771,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("cancel-action-blocked")).toBe("Action: cancel blocked");
         expect(formatActionStatus("camera.unavailable")).toBe("Action: camera unavailable");
         expect(formatActionStatus("confirm-action-blocked")).toBe("Action: confirm blocked");
+        expect(formatActionStatus("transparent-walls.unavailable")).toBe("Action: transparent walls unavailable");
         expect(formatActionStatus("zoom.unavailable")).toBe("Action: zoom unavailable");
         expect(formatActionStatus("room.build-blocked")).toBe("Action: room blocked");
         expect(formatActionStatus(["room.build-blocked"], { reason: "occupied" })).toBe("Action: room blocked: occupied");

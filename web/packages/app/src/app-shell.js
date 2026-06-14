@@ -71,6 +71,7 @@ const ACTION_STATUS_LABELS = {
     "cancel-action-blocked": "Action: cancel blocked",
     "confirm-action-blocked": "Action: confirm blocked",
     "camera.unavailable": "Action: camera unavailable",
+    "transparent-walls.unavailable": "Action: transparent walls unavailable",
     "zoom.unavailable": "Action: zoom unavailable",
     "admission-policy.changed": "Action: admission policy changed",
     "pricing-policy.changed": "Action: pricing policy changed",
@@ -5066,6 +5067,11 @@ export function mountAppShell(options) {
         }
         hospitalView.transparentWalls = visible;
     };
+    const reportTransparentWallsUnavailable = () => {
+        actionStatus.textContent = formatActionStatus("transparent-walls.unavailable");
+        renderRuntime();
+        return true;
+    };
     const updateTransparentWalls = () => {
         setTransparentWallsVisible(transparentWallsHeld || transparentWallsToggled);
         renderHospital();
@@ -5081,6 +5087,9 @@ export function mountAppShell(options) {
         return true;
     };
     const onHoldTransparentWalls = () => {
+        if (!hospitalView?.map) {
+            return reportTransparentWallsUnavailable();
+        }
         transparentWallsHeld = true;
         updateTransparentWalls();
         actionStatus.textContent = "Action: transparent walls held";
@@ -5096,6 +5105,9 @@ export function mountAppShell(options) {
         return true;
     };
     const onToggleTransparentWalls = () => {
+        if (!hospitalView?.map) {
+            return reportTransparentWallsUnavailable();
+        }
         transparentWallsToggled = !transparentWallsToggled;
         updateTransparentWalls();
         actionStatus.textContent = hospitalView?.transparentWalls ? "Action: transparent walls shown" : "Action: transparent walls hidden";
