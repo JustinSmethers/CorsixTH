@@ -3005,10 +3005,10 @@ export function mountAppShell(options) {
         <p data-testid="staff-panel-training" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="staff-panel-skill" style="margin:0 0 4px; font-size:13px;"></p>
         <p data-testid="staff-panel-market" style="margin:0 0 8px; font-size:13px;"></p>
-        <button type="button" data-testid="staff-panel-hire-diagnostician">Hire Doctor</button>
-        <button type="button" data-testid="staff-panel-hire-nurse">Hire Nurse</button>
-        <button type="button" data-testid="staff-panel-hire-handyman">Hire Handyman</button>
-        <button type="button" data-testid="staff-panel-hire-receptionist">Hire Receptionist</button>
+        <button type="button" data-testid="staff-panel-hire-diagnostician">${formatHireStaffButtonLabel("diagnostician")}</button>
+        <button type="button" data-testid="staff-panel-hire-nurse">${formatHireStaffButtonLabel("nurse")}</button>
+        <button type="button" data-testid="staff-panel-hire-handyman">${formatHireStaffButtonLabel("handyman")}</button>
+        <button type="button" data-testid="staff-panel-hire-receptionist">${formatHireStaffButtonLabel("receptionist")}</button>
         <button type="button" data-testid="staff-panel-close">${formatPanelCloseButtonLabel()}</button>
       </section>
       <section
