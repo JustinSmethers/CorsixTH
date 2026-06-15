@@ -3312,6 +3312,48 @@ describe("app orchestrator", () => {
             autoAdmissionWaitingCap: 0
         });
     });
+    it("caps manual admissions once active reception capacity is full", () => {
+        const orchestrator = new AppOrchestrator({
+            seed: 90342,
+            tickRateHz: 4,
+            pointerTileSize: 8,
+            bounds: { width: 12, height: 12 },
+            staffMarketSchedule: [
+                { index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 1 }
+            ]
+        });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "hire-staff",
+            role: "receptionist",
+            source: "ui:hire-receptionist",
+            pointer: { x: 16, y: 32 }
+        })).toEqual(["staff.hired"]);
+        expect(orchestrator.telemetry()).toMatchObject({
+            activeReceptionists: 1,
+            frontDeskCapacity: 4,
+            autoAdmissionWaitingCap: 4
+        });
+        for (let index = 0; index < 4; index += 1) {
+            expect(orchestrator.dispatch({
+                device: "ui",
+                action: "admit-patient",
+                severity: 1,
+                source: "ui:admit"
+            })).toEqual(["patient.admitted"]);
+        }
+        expect(orchestrator.telemetry()).toMatchObject({
+            patientsWaiting: 4,
+            awaitingReceptionPatients: 4
+        });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "admit-patient",
+            severity: 1,
+            source: "ui:admit"
+        })).toEqual(["patient.admit-blocked"]);
+        expect(orchestrator.telemetry().patientsWaiting).toBe(4);
+    });
     it("routes selected staff relocation through deterministic commands and restore", () => {
         const orchestrator = new AppOrchestrator({ seed: 9024, tickRateHz: 4, pointerTileSize: 8 });
         const nurse = orchestrator.getState().entities.staff.find((staff) => staff.role === "nurse");

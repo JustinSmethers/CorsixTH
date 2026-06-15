@@ -132,6 +132,7 @@ const ACTION_STATUS_LABELS = {
     "staff.break-blocked": "Action: staff break blocked",
     "treatment-room.toggle-blocked": "Action: treatment room toggle blocked",
     "patient.admitted": "Action: patient admitted",
+    "patient.admit-blocked": "Action: admission blocked",
     "patient.prioritized": "Action: patient prioritized",
     "patient.prioritize-empty": "Action: patient cannot be prioritized",
     "patient.sent-home": "Action: patient sent home",

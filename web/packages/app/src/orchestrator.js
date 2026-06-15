@@ -2252,6 +2252,9 @@ export class AppOrchestrator {
             const staffAfter = this.simulation.getState().entities.staff.length;
             return [staffAfter > staffBefore ? "staff.hired" : "staff.hire-blocked"];
         }
+        if (this.manualAdmissionCapacityReached()) {
+            return ["patient.admit-blocked"];
+        }
         const admissionProfile = this.manualAdmissionProfile(action.severity ?? 2);
         const command = {
             type: "admit-patient",
@@ -3188,6 +3191,12 @@ export class AppOrchestrator {
     }
     frontDeskCapacity(state = this.simulation.getState()) {
         return this.activeReceptionistCount(state) * 4;
+    }
+    manualAdmissionCapacityReached(state = this.simulation.getState()) {
+        if (this.frontDeskCapacity(state) <= 0) {
+            return false;
+        }
+        return state.patientsWaiting >= this.autoAdmissionWaitingCap(state.tick);
     }
     scenarioDiagnosisCapability(state = this.simulation.getState()) {
         const bestDoctorSkill = state.entities.staff
