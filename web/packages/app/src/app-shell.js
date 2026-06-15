@@ -4413,12 +4413,15 @@ export function mountAppShell(options) {
         action: "step-tick",
         source: "ui:step"
     }, renderRuntime);
-    const onAdmit = () => dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
-        device: "ui",
-        action: "admit-patient",
-        severity: Number(admissionSeveritySelect.value),
-        source: "ui:admit"
-    }, renderRuntime);
+    const onAdmit = () => {
+        const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
+            device: "ui",
+            action: "admit-patient",
+            severity: Number(admissionSeveritySelect.value),
+            source: "ui:admit"
+        }, renderRuntime);
+        updateActionStatus(events);
+    };
     const onTreat = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {

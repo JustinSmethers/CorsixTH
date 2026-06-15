@@ -94,7 +94,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Action: staff hired",
   );
   await expect(page.getByTestId("front-desk-status")).toHaveText(
-    "Front desk: 1 active receptionists, capacity 4, intake cap 8",
+    "Front desk: 1 active receptionists, capacity 4, intake cap 4",
   );
   await expect(page.getByTestId("reception-size")).toHaveText(
     "Reception: 0 waiting, 0 walking, 0 at desk",
@@ -185,4 +185,29 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Level status: won",
   );
   await expect(page.getByTestId("next-level")).toBeEnabled();
+});
+
+test("playable loop: front desk capacity blocks manual over-admission", async ({
+  page,
+}) => {
+  await importAssetsAndEnterPlayableShell(page);
+  await page.getByTestId("pause-toggle").click();
+  await placeOnFirstValidTile(page, "hire-receptionist");
+  await expect(page.getByTestId("front-desk-status")).toHaveText(
+    "Front desk: 1 active receptionists, capacity 4, intake cap 4",
+  );
+
+  for (let index = 0; index < 4; index += 1) {
+    await page.getByTestId("admit").click();
+  }
+  await expect(page.getByTestId("waiting")).toHaveText("Waiting: 4");
+  await expect(page.getByTestId("reception-size")).toHaveText(
+    "Reception: 4 waiting, 0 walking, 0 at desk",
+  );
+
+  await page.getByTestId("admit").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: admission blocked",
+  );
+  await expect(page.getByTestId("waiting")).toHaveText("Waiting: 4");
 });

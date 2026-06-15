@@ -3181,10 +3181,14 @@ export class AppOrchestrator {
         const illnessAdjustment = (this.scenarioIllnessRate ?? 2) - 2;
         const baseCap = clamp(AUTO_ADMISSION_WAITING_CAP + populationAdjustment + illnessAdjustment, 2, 16);
         const receptionists = this.currentStaffMarket(tick)?.receptionists;
+        const frontDeskCapacity = this.frontDeskCapacity();
+        if (frontDeskCapacity > 0) {
+            return Math.min(baseCap, frontDeskCapacity);
+        }
         if (receptionists === undefined) {
             return baseCap;
         }
-        return Math.max(0, Math.min(baseCap, this.frontDeskCapacity()));
+        return 0;
     }
     activeReceptionistCount(state = this.simulation.getState()) {
         return state.entities.staff.filter((staff) => staff.role === "receptionist" && staff.status === "active").length;
