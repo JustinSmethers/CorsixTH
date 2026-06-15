@@ -18,6 +18,10 @@ test("phase 7 integrated player journey: slices 1-4 flow without critical regres
     await expect
         .poll(async () => parseMetric(await page.getByTestId("discharged").textContent().then((text) => text ?? ""), "Discharged"))
         .toBeGreaterThan(0);
+    for (let i = 0; i < 2; i += 1) {
+        await page.getByTestId("admit").click();
+        await page.getByTestId("treat").click();
+    }
     await page.getByTestId("staff-break-toggle").click();
     await expect(page.getByTestId("on-break-staff")).toHaveText("On-break staff: 1");
     await page.getByTestId("treatment-room-toggle").click();
