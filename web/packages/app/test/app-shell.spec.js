@@ -530,6 +530,12 @@ describe("app shell campaign objectives", () => {
             roomAvailabilityStatus: "unrestricted",
             scenarioRoomCostOverrides: { diagnosis: 2_280 }
         })).toBe(false);
+        expect(canBuildRoomFromTelemetry("diagnosis", {
+            cash: 2_500,
+            levelObjectiveStatus: "lost",
+            roomAvailabilityStatus: "unrestricted",
+            scenarioRoomCostOverrides: { diagnosis: 2_280 }
+        })).toBe(false);
     });
     it("uses imported staff role names and scenario wages in hire labels", () => {
         expect(["diagnostician", "nurse", "handyman", "receptionist"].map((role) => formatHireStaffButtonLabel(role).replace(/\s+\(\d+, wage \d+\)$/, ""))).toEqual([
@@ -556,6 +562,11 @@ describe("app shell campaign objectives", () => {
         expect(canHireStaffFromTelemetry("nurse", {
             cash: 100,
             staffMarketNursesAvailable: Number.POSITIVE_INFINITY
+        })).toBe(false);
+        expect(canHireStaffFromTelemetry("receptionist", {
+            cash: 500,
+            levelObjectiveStatus: "lost",
+            staffMarketReceptionistsAvailable: 1
         })).toBe(false);
     });
     it("blocks unavailable finance and campaign controls before dispatch", () => {

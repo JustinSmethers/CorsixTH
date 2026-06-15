@@ -989,6 +989,11 @@ test("phase 8 scenario import: custom objective criteria change browser win and 
     await expect(page.getByTestId("patient-deaths")).toContainText("Deaths: 1");
     await expect(page.getByTestId("level-objective-status")).toHaveText("Level status: lost (deaths)");
     await expect(page.getByTestId("last-event")).toHaveText("Last event: patient-died");
+    await expect(page.getByTestId("admit")).toBeDisabled();
+    await expect(page.getByTestId("treat")).toBeDisabled();
+    await expect(page.getByTestId("build-diagnosis-room")).toBeDisabled();
+    await expect(page.getByTestId("hire-receptionist")).toBeDisabled();
+    await expect(page.getByTestId("restart-level")).toBeEnabled();
 });
 
 test("phase 8 scenario import: objectives without cures do not invent browser discharges", async ({ page }) => {

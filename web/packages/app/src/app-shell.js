@@ -1039,6 +1039,9 @@ export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
     }
+    if (telemetry.levelObjectiveStatus === "lost") {
+        return false;
+    }
     const cost = telemetry.scenarioRoomCostOverrides?.[roomType] ?? roomBuildCost(roomType);
     return telemetry.cash >= cost;
 }
@@ -1063,6 +1066,9 @@ function staffMarketRemainingForTelemetryRole(role, telemetry) {
 export function canHireStaffFromTelemetry(role, telemetry = null) {
     if (!telemetry) {
         return true;
+    }
+    if (telemetry.levelObjectiveStatus === "lost") {
+        return false;
     }
     return telemetry.cash >= staffHireCost(role) && staffMarketRemainingForTelemetryRole(role, telemetry) > 0;
 }
@@ -3958,6 +3964,8 @@ export function mountAppShell(options) {
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
         hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
         hireReceptionistButton.textContent = formatHireStaffButtonLabel("receptionist", telemetry, hospitalView?.languageSummary ?? null);
+        admitButton.disabled = telemetry.levelObjectiveStatus === "lost";
+        treatButton.disabled = telemetry.levelObjectiveStatus === "lost";
         buildDiagnosisRoomButton.disabled = !canBuildRoomFromTelemetry("diagnosis", telemetry);
         buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
         buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
