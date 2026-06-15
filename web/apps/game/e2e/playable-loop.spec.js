@@ -119,6 +119,13 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("pricing-policy-status")).toHaveText(
     "Pricing: premium, cash 135%, reputation -3/cure",
   );
+  await page.getByTestId("admissions-toggle").click();
+  await expect(page.getByTestId("admissions-status")).toHaveText(
+    "Admissions: open",
+  );
+  await expect(page.getByTestId("admissions-toggle")).toHaveText(
+    "Close Admissions",
+  );
 
   const restoredSummary =
     (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
@@ -140,6 +147,10 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     await page.getByTestId("pricing-policy").inputValue();
   const restoredPricingPolicyStatus =
     (await page.getByTestId("pricing-policy-status").textContent()) ?? "";
+  const restoredAdmissionsStatus =
+    (await page.getByTestId("admissions-status").textContent()) ?? "";
+  const restoredAdmissionsToggle =
+    (await page.getByTestId("admissions-toggle").textContent()) ?? "";
   const restoredStateHash =
     (await page.getByTestId("hash").textContent()) ?? "";
   const saveSlot = `playable-loop-${Date.now()}`;
@@ -150,6 +161,10 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await page.getByTestId("speed-select").selectOption("1");
   await page.getByTestId("admission-policy").selectOption("conservative");
   await page.getByTestId("pricing-policy").selectOption("discount");
+  await page.getByTestId("admissions-toggle").click();
+  await expect(page.getByTestId("admissions-status")).toHaveText(
+    "Admissions: closed",
+  );
   const extraNursePosition = await placeOnFirstValidTile(page, "hire-nurse");
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "staff 5",
@@ -220,7 +235,17 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("pricing-policy-status")).toHaveText(
     restoredPricingPolicyStatus,
   );
+  await expect(page.getByTestId("admissions-status")).toHaveText(
+    restoredAdmissionsStatus,
+  );
+  await expect(page.getByTestId("admissions-toggle")).toHaveText(
+    restoredAdmissionsToggle,
+  );
   await expect(page.getByTestId("hash")).toHaveText(restoredStateHash);
+  await page.getByTestId("admissions-toggle").click();
+  await expect(page.getByTestId("admissions-status")).toHaveText(
+    "Admissions: closed",
+  );
 
   await admitDiagnoseAndTreatOne(page, 3);
   await expect(page.getByTestId("level-objective-status")).toHaveText(
