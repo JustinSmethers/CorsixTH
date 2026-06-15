@@ -185,6 +185,27 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Level status: won",
   );
   await expect(page.getByTestId("next-level")).toBeEnabled();
+  await page.getByTestId("next-level").click();
+  await expect(page.getByTestId("save-status")).toHaveText(
+    "Save: next level LEVELS/SECOND.MAP",
+  );
+  await expect(page.getByTestId("hospital-map-select")).toHaveValue(
+    "LEVELS/SECOND.MAP",
+  );
+  await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
+    "LEVELS/SECOND.MAP",
+  );
+  await expect(page.getByTestId("campaign-progress")).toHaveText(
+    "Campaign: level 2/2",
+  );
+  await expect(page.getByTestId("level-objective-status")).toHaveText(
+    "Level status: running",
+  );
+  await expect(page.getByTestId("level-objective-progress")).toHaveText(
+    /^Objective: discharge 0\/4, cash \d+\/250, reputation \d+\/6$/u,
+  );
+  await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
+  await expect(page.getByTestId("next-level")).toBeDisabled();
 });
 
 test("playable loop: front desk capacity blocks manual over-admission", async ({
