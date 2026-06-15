@@ -3001,10 +3001,10 @@ describe("app orchestrator", () => {
         expect(orchestrator.telemetry()).toMatchObject({
             scenarioObjectAvailabilityCount: 1,
             scenarioObjectAvailableCount: 0,
-            scenarioObjectLockedCount: 1,
+            scenarioObjectLockedCount: 0,
             scenarioObjectResearchLockedCount: 1,
             scenarioObjectAvailableIndices: [],
-            scenarioObjectLockedIndices: [24],
+            scenarioObjectLockedIndices: [],
             scenarioObjectDisabledIndices: [],
             scenarioObjectResearchLockedIndices: [24]
         });

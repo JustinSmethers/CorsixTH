@@ -3310,7 +3310,7 @@ export class AppOrchestrator {
             return this.objectAvailability.length === 0;
         }
         const entry = this.objectAvailability.find((candidate) => candidate.index === objectIndex);
-        return entry ? this.isRoomAvailabilityEntryUnlockedForTick(entry, tick) : false;
+        return entry ? this.isRoomAvailabilityEntryUnlockedForTick(this.availabilityEntryForObject(entry), tick) : false;
     }
     scenarioObjectAvailabilityForTick(tick) {
         const entries = this.objectAvailability.length > 0 ? this.objectAvailability : this.roomAvailabilitySchedule;
@@ -3331,19 +3331,31 @@ export class AppOrchestrator {
                 summary.disabledIndices.push(entry.index);
                 continue;
             }
-            if (this.isRoomAvailabilityEntryUnlockedForTick(entry, tick)) {
+            const availabilityEntry = this.availabilityEntryForObject(entry);
+            if (this.isRoomAvailabilityEntryUnlockedForTick(availabilityEntry, tick)) {
                 summary.available += 1;
                 summary.availableIndices.push(entry.index);
                 continue;
             }
-            summary.locked += 1;
-            summary.lockedIndices.push(entry.index);
-            if (entry.expertiseCategory && Number.isInteger(entry.researchRequired) && entry.researchRequired > 0) {
+            if (this.isRoomAvailabilityEntryResearchLocked(availabilityEntry)) {
                 summary.researchLocked += 1;
                 summary.researchLockedIndices.push(entry.index);
+                continue;
             }
+            summary.locked += 1;
+            summary.lockedIndices.push(entry.index);
         }
         return summary;
+    }
+    availabilityEntryForObject(entry) {
+        if (!entry || typeof entry.roomType !== "string") {
+            return entry;
+        }
+        return this.roomAvailabilitySchedule.find((candidate) => candidate.index === entry.index &&
+            candidate.roomType === entry.roomType) ?? entry;
+    }
+    isRoomAvailabilityEntryResearchLocked(entry) {
+        return Boolean(entry?.expertiseCategory && Number.isInteger(entry.researchRequired) && entry.researchRequired > 0);
     }
     availableRoomTypesForTick(tick) {
         if (this.roomAvailability === null && this.roomAvailabilitySchedule.length === 0) {

@@ -514,7 +514,7 @@ describe("app shell campaign objectives", () => {
             roomNames: { diagnosis: "GP's Office" }
         })).toBe("Build GP's Office (2280)");
     });
-    it("blocks unavailable or unaffordable room build controls before placement", () => {
+    it("keeps room build controls available for placement feedback unless unaffordable", () => {
         expect(canBuildRoomFromTelemetry("diagnosis", {
             cash: 2_500,
             roomAvailabilityStatus: "diagnosis,treatment",
@@ -524,7 +524,7 @@ describe("app shell campaign objectives", () => {
             cash: 2_500,
             roomAvailabilityStatus: "diagnosis,treatment",
             scenarioRoomCostOverrides: { specialist: 1_500 }
-        })).toBe(false);
+        })).toBe(true);
         expect(canBuildRoomFromTelemetry("diagnosis", {
             cash: 500,
             roomAvailabilityStatus: "unrestricted",
@@ -1852,11 +1852,11 @@ describe("app shell campaign objectives", () => {
         expect(formatObjectAvailabilityStatus({
             scenarioObjectAvailableCount: 1,
             scenarioObjectAvailabilityCount: 3,
-            scenarioObjectLockedCount: 2,
+            scenarioObjectLockedCount: 1,
             scenarioObjectDisabledCount: 0,
             scenarioObjectResearchLockedCount: 1,
             scenarioObjectAvailableIndices: [9],
-            scenarioObjectLockedIndices: [13, 24],
+            scenarioObjectLockedIndices: [24],
             scenarioObjectDisabledIndices: [],
             scenarioObjectResearchLockedIndices: [13]
         }, {
@@ -1866,7 +1866,7 @@ describe("app shell campaign objectives", () => {
                 { index: 24, name: "Cast Remover", roomType: "specialist", startAvailable: false, availableForLevel: true }
             ],
             expertise: [{ category: "DIAGNOSIS", known: false, researchRequired: 10000 }]
-        })).toBe("Object availability: 1/3 available, locked 2, disabled 0, research 1; available: Inflator Machine; locked: Cast Remover; research: Cardiogram");
+        })).toBe("Object availability: 1/3 available, locked 1, disabled 0, research 1; available: Inflator Machine; locked: Cast Remover; research: Cardiogram");
     });
     it("uses scenario-backed original campaign maps before standalone imported maps", () => {
         const mapSummaries = [

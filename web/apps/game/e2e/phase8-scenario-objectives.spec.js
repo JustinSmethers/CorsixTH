@@ -223,7 +223,7 @@ test("phase 8 scenario import: original SAM criteria drive browser level objecti
     await expect(page.getByTestId("hire-handyman")).toHaveText("Hire Handyman (200, wage 2)");
     await expect(page.getByTestId("hire-receptionist")).toHaveText("Hire Receptionist (150, wage 2)");
     await expect(page.getByTestId("cash")).toHaveText(/^Cash: \d+; scenario start 40000, land 25\/tile$/u);
-    await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 1, disabled 0, research 1; available: Inflator Machine; research: Cardiogram");
+    await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 0, disabled 0, research 1; available: Inflator Machine; research: Cardiogram");
     await expect(page.getByTestId("admission-rules")).toHaveText("Scenario holds: visual 0 months/2 patients");
     await expect(page.getByTestId("routing-rules")).toHaveText("Scenario routing: queue 15, distance 1, no-staff 20 (+0 ticks)");
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
@@ -1573,7 +1573,7 @@ test("phase 8 scenario import: mayor awards use imported SAM values", async ({ p
 test("phase 8 scenario import: browser research unlocks scenario expertise", async ({ page }) => {
     await importScenarioFixture(page);
     await page.getByTestId("pause-toggle").click();
-    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 1, disabled 0, research 1");
+    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 0, disabled 0, research 1");
     await expect(page.getByTestId("scenario-expertise")).toHaveText("Scenario expertise: 1/3 known, 2 research-required, diagnosable 3, capability 100, next research 10000 Uncommon Cold");
     const cashBefore = Number(((await page.getByTestId("cash").textContent()) ?? "").match(/^Cash: (\d+)/u)?.[1] ?? "0");
     await page.getByTestId("start-research").click();
@@ -1585,7 +1585,7 @@ test("phase 8 scenario import: browser research unlocks scenario expertise", asy
     }
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 1/3, invested 1500");
     await expect(page.getByTestId("scenario-expertise")).toHaveText("Scenario expertise: 2/3 known, 1 research-required, diagnosable 3, capability 100, next research 40000 D CARDIO");
-    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 1, disabled 0, research 1");
+    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 0, disabled 0, research 1");
     await expect(page.getByTestId("last-event")).toHaveText("Last event: research-completed");
 });
 
@@ -1593,7 +1593,7 @@ test("phase 8 scenario import: object availability unlocks room builds by scenar
     await importScenarioFixture(page, roomUnlockFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward");
-    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 0/2 available, locked 2, disabled 0, research 1");
+    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 0/2 available, locked 1, disabled 0, research 1");
     await page.getByTestId("build-specialist-room").click();
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.hover({ position: { x: 416, y: 176 } });
@@ -1603,7 +1603,7 @@ test("phase 8 scenario import: object availability unlocks room builds by scenar
     }
     await expect(page.getByTestId("tick")).toHaveText("Tick: 65");
     await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Inflation Room");
-    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 1, disabled 0, research 1");
+    await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 0, disabled 0, research 1");
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 416, y: 176 } });

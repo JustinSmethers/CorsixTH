@@ -1037,12 +1037,8 @@ export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
     }
-    const availability = telemetry.roomAvailabilityStatus;
-    const roomAvailable = !availability ||
-        availability === "unrestricted" ||
-        availability.split(",").map((entry) => entry.trim()).includes(roomType);
     const cost = telemetry.scenarioRoomCostOverrides?.[roomType] ?? roomBuildCost(roomType);
-    return roomAvailable && telemetry.cash >= cost;
+    return telemetry.cash >= cost;
 }
 function staffMarketRemainingForTelemetryRole(role, telemetry) {
     if (!telemetry) {
