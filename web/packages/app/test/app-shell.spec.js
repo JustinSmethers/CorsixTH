@@ -4,6 +4,7 @@ import { staffRoleMarkerColor } from "../src/app-shell";
 import { patientConditionLabels } from "../src/app-shell";
 import { formatNextLevelUnavailableStatus, formatRestartLevelUnavailableStatus } from "../src/app-shell";
 import { canSendPatientHome } from "../src/app-shell";
+import { canSellObject } from "../src/app-shell";
 
 describe("app shell campaign objectives", () => {
     it("selects the first visible original QDATA sheet for the playable UI strip", () => {
@@ -920,6 +921,14 @@ describe("app shell campaign objectives", () => {
             levelObjectiveStatus: "lost"
         })).toBe(false);
         expect(canSellRoom({ id: 4 }, {
+            levelObjectiveStatus: "won"
+        })).toBe(false);
+        expect(canSellObject({ id: 5 })).toBe(true);
+        expect(canSellObject(null)).toBe(false);
+        expect(canSellObject({ id: 5 }, {
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canSellObject({ id: 5 }, {
             levelObjectiveStatus: "won"
         })).toBe(false);
     });

@@ -1143,6 +1143,9 @@ export function canFireStaff(staff = null, telemetry = null) {
 export function canSellRoom(room = null, telemetry = null) {
     return Boolean(room && !isTerminalLevelTelemetry(telemetry));
 }
+export function canSellObject(object = null, telemetry = null) {
+    return Boolean(object && !isTerminalLevelTelemetry(telemetry));
+}
 function defaultStaffBreakTargetFromState(state = null) {
     if (!Array.isArray(state?.entities?.staff)) {
         return null;
@@ -3905,7 +3908,7 @@ export function mountAppShell(options) {
         trainSelectedStaffButton.disabled = !(resolved?.type === "staff" && canTrainStaffFromTelemetry(resolved.value, telemetry));
         fireSelectedStaffButton.disabled = !(resolved?.type === "staff" && canFireStaff(resolved.value, telemetry));
         sellSelectedRoomButton.disabled = !(resolved?.type === "room" && canSellRoom(resolved.value, telemetry));
-        sellSelectedObjectButton.disabled = resolved?.type !== "object";
+        sellSelectedObjectButton.disabled = !(resolved?.type === "object" && canSellObject(resolved.value, telemetry));
         repairSelectedRoomButton.disabled = !(resolved?.type === "room" && canRepairRoomFromTelemetry(resolved.value, telemetry));
         machineMenuRepairSelectedRoomButton.disabled = repairSelectedRoomButton.disabled;
         editRoomPanelSummary.textContent = formatEditRoomPanelSummary(state, selectedEntity, hospitalView?.languageSummary ?? null);
@@ -4691,8 +4694,9 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onSellSelectedObject = () => {
+        const telemetry = orchestrator.telemetry();
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "object") {
+        if (resolved?.type !== "object" || !canSellObject(resolved.value, telemetry)) {
             actionStatus.textContent = formatActionStatus("object.sell-blocked");
             renderRuntime();
             return;
