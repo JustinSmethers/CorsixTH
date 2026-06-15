@@ -24,6 +24,40 @@ const DEFAULT_RESEARCH_PROJECT_TICKS = 6;
 const BASE_AVAILABLE_ROOM_TYPES = ["diagnosis", "treatment"];
 const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman", "receptionist"];
+const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
+    ["pricing-policy-set", ["pricing-policy.unchanged"]],
+    ["take-loan", ["loan.take-blocked"]],
+    ["repay-loan", ["loan.repay-blocked"]],
+    ["run-finance-audit", ["finance.audit-blocked"]],
+    ["run-marketing-campaign", ["marketing.blocked"]],
+    ["start-insurance-contract", ["insurance.blocked"]],
+    ["run-awards-ceremony", ["awards.blocked"]],
+    ["start-research", ["research.blocked"]],
+    ["start-emergency-wave", ["emergency.blocked"]],
+    ["start-epidemic-outbreak", ["epidemic.blocked"]],
+    ["train-staff", ["training.blocked"]],
+    ["start-vip-inspection", ["vip.blocked"]],
+    ["shoot-rat", ["rat.blocked"]],
+    ["water-plant", ["plant.blocked"]],
+    ["step-tick", []],
+    ["treat-patient", ["patient.treated.empty"]],
+    ["send-patient-home", ["patient.send-home-empty"]],
+    ["prioritize-patient", ["patient.prioritize-empty"]],
+    ["give-patient-drink", ["patient.drink-blocked"]],
+    ["send-patient-toilet", ["patient.toilet-blocked"]],
+    ["staff-break-toggle", ["staff.break-blocked"]],
+    ["treatment-room-toggle", ["treatment-room.toggle-blocked"]],
+    ["fire-staff", ["staff.fire-blocked"]],
+    ["sell-room", ["room.sell-blocked"]],
+    ["sell-object", ["object.sell-blocked"]],
+    ["repair-room", ["room.repair-blocked"]],
+    ["move-staff", ["staff.move-blocked"]],
+    ["rest-staff", ["staff.rest-blocked"]],
+    ["build-room", ["room.build-blocked"]],
+    ["place-object", ["object.place-blocked"]],
+    ["hire-staff", ["staff.hire-blocked"]],
+    ["admit-patient", ["patient.admit-blocked"]]
+]);
 const SCENARIO_DISEASE_REQUIRED_OBJECTS = new Map([
     ["cranial-pressure", [9]],
     ["alien-dna", [23]],
@@ -1990,6 +2024,10 @@ export class AppOrchestrator {
             this.admissionPolicy = normalizeAdmissionPolicy(action.admissionPolicy);
             return ["admission-policy.changed"];
         }
+        if (this.isLostLevel()) {
+            const blockedEvents = LOST_LEVEL_DISPATCH_BLOCK_EVENTS.get(action.action);
+            return blockedEvents ? [...blockedEvents] : ["patient.admit-blocked"];
+        }
         if (action.action === "pricing-policy-set") {
             const pricingPolicyBefore = this.simulation.getState().economy.treatmentPricingPolicy;
             this.executeCommand({ type: "set-pricing-policy", policy: action.pricingPolicy });
@@ -2703,6 +2741,9 @@ export class AppOrchestrator {
             levelObjectiveMaximumDeaths: levelObjective.maximumDeaths,
             levelObjectiveRemainingDeaths: levelObjective.remainingDeaths
         };
+    }
+    isLostLevel() {
+        return this.evaluateLevelObjective(this.simulation.getState()).status === "lost";
     }
     evaluateLevelObjective(state) {
         const remainingDischarges = Math.max(0, this.levelObjective.requiredDischarges - state.hospitalLoop.dischargedPatients);

@@ -3625,6 +3625,39 @@ describe("app orchestrator", () => {
             levelObjectiveReason: "bankruptcy"
         });
     });
+    it("blocks gameplay dispatch mutations after a level is lost", () => {
+        const lost = new AppOrchestrator({
+            seed: 90203,
+            tickRateHz: 4,
+            pointerTileSize: 8,
+            bounds: { width: 12, height: 12 },
+            initialCash: 0
+        });
+        expect(lost.telemetry()).toMatchObject({
+            cash: 0,
+            levelObjectiveStatus: "lost",
+            levelObjectiveReason: "bankruptcy"
+        });
+        const before = lost.getState();
+        expect(lost.dispatch({ device: "ui", action: "take-loan", source: "ui:take-loan" })).toEqual(["loan.take-blocked"]);
+        expect(lost.dispatch({ device: "ui", action: "build-room", roomType: "diagnosis", pointer: { x: 8, y: 56 }, source: "ui:build-diagnosis-room" })).toEqual(["room.build-blocked"]);
+        expect(lost.dispatch({ device: "ui", action: "hire-staff", role: "nurse", pointer: { x: 48, y: 64 }, source: "ui:hire-nurse" })).toEqual(["staff.hire-blocked"]);
+        expect(lost.dispatch({ device: "ui", action: "admit-patient", severity: 1, source: "ui:admit" })).toEqual(["patient.admit-blocked"]);
+        expect(lost.dispatch({ device: "ui", action: "treat-patient", source: "ui:treat" })).toEqual(["patient.treated.empty"]);
+        expect(lost.dispatch({ device: "ui", action: "pause-toggle", source: "ui:pause-toggle" })).toEqual(["app.paused"]);
+        expect(lost.dispatch({ device: "ui", action: "step-tick", source: "ui:step" })).toEqual([]);
+        const after = lost.getState();
+        expect(after.cash).toBe(before.cash);
+        expect(after.tick).toBe(before.tick);
+        expect(after.entities.rooms).toHaveLength(before.entities.rooms.length);
+        expect(after.entities.staff).toHaveLength(before.entities.staff.length);
+        expect(after.patientsWaiting).toBe(before.patientsWaiting);
+        expect(lost.telemetry()).toMatchObject({
+            paused: true,
+            levelObjectiveStatus: "lost",
+            levelObjectiveReason: "bankruptcy"
+        });
+    });
     it("requires original scenario cash, treatment percentage, and hospital value targets before winning", () => {
         const orchestrator = new AppOrchestrator({
             seed: 9021,
