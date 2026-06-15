@@ -3,6 +3,7 @@ import { canAdvanceToNextLevelFromTelemetry, canBuildRoomFromTelemetry, canFireS
 import { staffRoleMarkerColor } from "../src/app-shell";
 import { patientConditionLabels } from "../src/app-shell";
 import { formatNextLevelUnavailableStatus, formatRestartLevelUnavailableStatus } from "../src/app-shell";
+import { canSendPatientHome } from "../src/app-shell";
 
 describe("app shell campaign objectives", () => {
     it("selects the first visible original QDATA sheet for the playable UI strip", () => {
@@ -372,6 +373,21 @@ describe("app shell campaign objectives", () => {
         expect(html).toContain("vomited, litter");
         expect(html).toContain("35/40");
         expect(html).toContain("data-casebook-action=\"send-home\"");
+        const terminalHtml = formatCasebookRowsHtml({
+            entities: {
+                waitingPatients: [
+                    {
+                        id: 2,
+                        status: "queued",
+                        diagnosisKnown: false,
+                        health: 35,
+                        maxHealth: 40
+                    }
+                ]
+            }
+        }, null, { levelObjectiveStatus: "won" });
+        expect(terminalHtml).toContain("data-casebook-action=\"prioritize\" data-patient-id=\"2\" disabled");
+        expect(terminalHtml).toContain("data-casebook-action=\"send-home\" data-patient-id=\"2\" disabled");
         expect(formatCasebookPanelEmptyStatus()).toBe("Casebook: no active patients");
         expect(formatCasebookPanelActionLabel("select")).toBe("Select");
         expect(formatCasebookPanelActionLabel("prioritize")).toBe("Prioritize");
@@ -859,12 +875,26 @@ describe("app shell campaign objectives", () => {
             status: "awaiting-treatment"
         })).toBe(true);
         expect(canPrioritizePatient({
+            status: "queued"
+        }, {
+            levelObjectiveStatus: "won"
+        })).toBe(false);
+        expect(canSendPatientHome({
+            status: "queued"
+        })).toBe(true);
+        expect(canSendPatientHome({
+            status: "queued"
+        }, {
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canPrioritizePatient({
             status: "walking-to-diagnosis"
         })).toBe(false);
         expect(canPrioritizePatient({
             status: "diagnosing"
         })).toBe(false);
         expect(canPrioritizePatient(null)).toBe(false);
+        expect(canSendPatientHome(null)).toBe(false);
     });
     it("blocks stale selected staff and room destructive controls before dispatch", () => {
         expect(["move-staff", "rest-staff", "train-staff", "fire-staff", "sell-room", "sell-object", "repair-room"].map(formatSelectedStaffRoomActionButtonLabel)).toEqual([
@@ -986,6 +1016,11 @@ describe("app shell campaign objectives", () => {
             health: 8,
             maxHealth: 10,
             drank: false
+        }, { scenarioPatientDrinkHappy: 3, levelObjectiveStatus: "won" })).toBe(false);
+        expect(canGiveDrinkToPatient({
+            health: 8,
+            maxHealth: 10,
+            drank: false
         }, { scenarioPatientDrinkHappy: null })).toBe(false);
         expect(canSendPatientToilet({
             health: 8,
@@ -1001,6 +1036,11 @@ describe("app shell campaign objectives", () => {
             health: 8,
             usedToilet: true
         }, { scenarioPatientToiletHappy: 4 })).toBe(false);
+        expect(canSendPatientToilet({
+            health: 8,
+            usedToilet: false,
+            needsToilet: false
+        }, { scenarioPatientToiletHappy: 4, levelObjectiveStatus: "lost" })).toBe(false);
         expect(canSendPatientToilet({
             health: 0,
             usedToilet: false

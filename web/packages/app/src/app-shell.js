@@ -894,7 +894,7 @@ export function formatCasebookWithLanguage(state, languageSummary = null) {
         return `${prefix}${patient.id} ${status} ${disease}${treatmentNeed}${conditionDetail} H${patient.health}/${patient.maxHealth}`;
     }).join("; ")}`;
 }
-export function formatCasebookRowsHtml(state, languageSummary = null) {
+export function formatCasebookRowsHtml(state, languageSummary = null, telemetry = null) {
     const patients = state.entities.waitingPatients;
     if (patients.length === 0) {
         return `<p data-testid="casebook-panel-empty" style="margin:0 0 8px; font-size:13px;">${formatCasebookPanelEmptyStatus()}</p>`;
@@ -907,6 +907,8 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
             : "";
         const assignment = patient.assignedRoomId !== null && patient.assignedRoomId !== undefined ? `#${patient.assignedRoomId}` : "";
         const conditions = patientConditionLabels(patient).join(", ");
+        const prioritizeDisabled = canPrioritizePatient(patient, telemetry) ? "" : " disabled";
+        const sendHomeDisabled = canSendPatientHome(patient, telemetry) ? "" : " disabled";
         return `
           <tr data-testid="casebook-panel-row" data-patient-id="${patient.id}">
             <td style="padding:2px 4px;">#${patient.id}</td>
@@ -918,8 +920,8 @@ export function formatCasebookRowsHtml(state, languageSummary = null) {
             <td style="padding:2px 4px; text-align:right;">${patient.health}/${patient.maxHealth}</td>
             <td style="padding:2px 4px;">
               <button type="button" data-testid="casebook-panel-select" data-casebook-action="select" data-patient-id="${patient.id}">${formatCasebookPanelActionLabel("select")}</button>
-              <button type="button" data-testid="casebook-panel-prioritize" data-casebook-action="prioritize" data-patient-id="${patient.id}"${canPrioritizePatient(patient) ? "" : " disabled"}>${formatCasebookPanelActionLabel("prioritize")}</button>
-              <button type="button" data-testid="casebook-panel-send-home" data-casebook-action="send-home" data-patient-id="${patient.id}">${formatCasebookPanelActionLabel("send-home")}</button>
+              <button type="button" data-testid="casebook-panel-prioritize" data-casebook-action="prioritize" data-patient-id="${patient.id}"${prioritizeDisabled}>${formatCasebookPanelActionLabel("prioritize")}</button>
+              <button type="button" data-testid="casebook-panel-send-home" data-casebook-action="send-home" data-patient-id="${patient.id}"${sendHomeDisabled}>${formatCasebookPanelActionLabel("send-home")}</button>
             </td>
           </tr>`;
     }).join("");
@@ -1169,8 +1171,13 @@ export function canToggleTreatmentRoomFromState(state = null, selectedRoom = nul
     }
     return Boolean(selectedRoom ?? defaultTreatmentRoomToggleTargetFromState(state));
 }
-export function canPrioritizePatient(patient = null) {
-    return Boolean(patient && (patient.status === "queued" || patient.status === "awaiting-treatment"));
+export function canPrioritizePatient(patient = null, telemetry = null) {
+    return Boolean(patient &&
+        !isTerminalLevelTelemetry(telemetry) &&
+        (patient.status === "queued" || patient.status === "awaiting-treatment"));
+}
+export function canSendPatientHome(patient = null, telemetry = null) {
+    return Boolean(patient && !isTerminalLevelTelemetry(telemetry));
 }
 export function canStartEmergencyFromTelemetry(telemetry = null) {
     if (!telemetry || isTerminalLevelTelemetry(telemetry) || telemetry.emergencyActive) {
@@ -1191,6 +1198,9 @@ export function canStartVipInspectionFromTelemetry(telemetry = null) {
     return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && !telemetry.vipInspectionActive);
 }
 export function canGiveDrinkToPatient(patient = null, telemetry = null) {
+    if (isTerminalLevelTelemetry(telemetry)) {
+        return false;
+    }
     const drinkHappy = telemetry?.scenarioPatientDrinkHappy;
     return Boolean(patient &&
         patient.drank !== true &&
@@ -1202,6 +1212,9 @@ export function canGiveDrinkToPatient(patient = null, telemetry = null) {
         patient.health < patient.maxHealth);
 }
 export function canSendPatientToilet(patient = null, telemetry = null) {
+    if (isTerminalLevelTelemetry(telemetry)) {
+        return false;
+    }
     const toiletHappy = telemetry?.scenarioPatientToiletHappy;
     return Boolean(patient &&
         patient.usedToilet !== true &&
@@ -3857,7 +3870,7 @@ export function mountAppShell(options) {
     const renderCasebook = () => {
         casebookSummary.textContent = formatCasebookWithLanguage(orchestrator.getState(), hospitalView?.languageSummary ?? null);
         casebookPanelSummary.textContent = casebookSummary.textContent;
-        casebookPanelRows.innerHTML = formatCasebookRowsHtml(orchestrator.getState(), hospitalView?.languageSummary ?? null);
+        casebookPanelRows.innerHTML = formatCasebookRowsHtml(orchestrator.getState(), hospitalView?.languageSummary ?? null, orchestrator.telemetry());
     };
     const renderLevelControls = () => {
         const telemetry = orchestrator.telemetry();
@@ -3881,9 +3894,9 @@ export function mountAppShell(options) {
             selectedEntity = null;
             selectionStatus.textContent = formatNoSelectionStatus();
         }
-        prioritizeSelectedPatientButton.disabled = !(resolved?.type === "patient" && canPrioritizePatient(resolved.value));
-        sendSelectedPatientHomeButton.disabled = resolved?.type !== "patient";
         const telemetry = orchestrator.telemetry();
+        prioritizeSelectedPatientButton.disabled = !(resolved?.type === "patient" && canPrioritizePatient(resolved.value, telemetry));
+        sendSelectedPatientHomeButton.disabled = !(resolved?.type === "patient" && canSendPatientHome(resolved.value, telemetry));
         giveDrinkSelectedPatientButton.disabled = !(resolved?.type === "patient" && canGiveDrinkToPatient(resolved.value, telemetry));
         sendSelectedPatientToiletButton.disabled = !(resolved?.type === "patient" && canSendPatientToilet(resolved.value, telemetry));
         const terminalLevel = isTerminalLevelTelemetry(telemetry);
@@ -4479,7 +4492,7 @@ export function mountAppShell(options) {
     };
     const onSendSelectedPatientHome = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "patient") {
+        if (resolved?.type !== "patient" || !canSendPatientHome(resolved.value, orchestrator.telemetry())) {
             actionStatus.textContent = formatActionStatus("patient.send-home-empty");
             renderRuntime();
             return;
@@ -4496,7 +4509,7 @@ export function mountAppShell(options) {
     };
     const onPrioritizeSelectedPatient = () => {
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "patient" || !canPrioritizePatient(resolved.value)) {
+        if (resolved?.type !== "patient" || !canPrioritizePatient(resolved.value, orchestrator.telemetry())) {
             actionStatus.textContent = formatActionStatus("patient.prioritize-empty");
             renderRuntime();
             return;
