@@ -13,7 +13,7 @@ async function placeOnFirstValidTile(page, buttonTestId) {
         continue;
       }
       await canvas.click({ position: { x, y } });
-      return;
+      return { x, y };
     }
   }
   throw new Error(`No valid placement found for ${buttonTestId}`);
@@ -87,6 +87,13 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "staff 3",
   );
+  await placeOnFirstValidTile(page, "hire-receptionist");
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: staff hired",
+  );
+  await expect(page.getByTestId("front-desk-status")).toHaveText(
+    "Front desk: 1 active receptionists, capacity 4, intake cap 8",
+  );
 
   await page.getByTestId("admission-severity").selectOption("1");
   await admitDiagnoseAndTreatOne(page, 1);
@@ -111,9 +118,40 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await page.getByTestId("save-game").click();
   await expect(page.getByTestId("save-status")).toContainText(`(${saveSlot})`);
 
-  await placeOnFirstValidTile(page, "hire-nurse");
+  const extraNursePosition = await placeOnFirstValidTile(page, "hire-nurse");
+  await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
+    "staff 5",
+  );
+  await page
+    .getByTestId("hospital-map-canvas")
+    .click({ position: extraNursePosition });
+  await expect(page.getByTestId("selection-status")).toContainText(
+    "Selection:",
+  );
+  await page.getByTestId("fire-selected-staff").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: staff fired",
+  );
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "staff 4",
+  );
+  const extraRoomPosition = await placeOnFirstValidTile(
+    page,
+    "build-treatment-room",
+  );
+  await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
+    "rooms 4",
+  );
+  await page
+    .getByTestId("hospital-map-canvas")
+    .click({ position: extraRoomPosition });
+  await expect(page.getByTestId("selection-status")).toContainText("room #");
+  await page.getByTestId("sell-selected-room").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: room sold",
+  );
+  await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
+    "rooms 3",
   );
   await page.getByTestId("admit").click();
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");

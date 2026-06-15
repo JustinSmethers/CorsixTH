@@ -9,6 +9,8 @@ function parseMetric(raw, label) {
 }
 test("phase 7 app shell smoke flow: load, interact, pause, step, resume", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("patients 0");
     await page.keyboard.press("KeyQ");
     await expect(page.getByTestId("hospital-placement-mode")).toHaveText("Placement: none");
