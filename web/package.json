@@ -11,7 +11,7 @@
     "test": "vitest run --config vitest.config.js",
     "test:unit": "vitest run --config vitest.config.js",
     "test:e2e": "node scripts/run-playwright-e2e.js",
-    "test:e2e:preview": "node scripts/run-playwright-e2e.js --server=preview apps/game/e2e/phase9-browser-compatibility.spec.js",
+    "test:e2e:preview": "node scripts/run-playwright-e2e.js --server=preview apps/game/e2e/phase8-first-time-import.spec.js apps/game/e2e/phase9-browser-compatibility.spec.js",
     "test:e2e:compat": "node scripts/run-playwright-e2e.js apps/game/e2e/phase9-browser-compatibility.spec.js",
     "test:e2e:phase10": "node scripts/run-playwright-e2e.js apps/game/e2e/phase10-release-safeguards.spec.js",
     "inspect:game-data": "node scripts/inspect-game-data.js",
