@@ -1021,6 +1021,8 @@ test("phase 8 scenario import: custom objective criteria change browser win and 
     await expect(page.getByTestId("run-marketing-campaign")).toBeDisabled();
     await expect(page.getByTestId("start-insurance-contract")).toBeDisabled();
     await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
+    await expect(page.getByTestId("shoot-rat")).toBeDisabled();
+    await expect(page.getByTestId("water-plant")).toBeDisabled();
     await expect(page.getByTestId("restart-level")).toBeEnabled();
     await selectVisibleRoom(page, "Selection: GP's Office room");
     await expect(page.getByTestId("sell-selected-room")).toBeDisabled();

@@ -1146,6 +1146,12 @@ export function canSellRoom(room = null, telemetry = null) {
 export function canSellObject(object = null, telemetry = null) {
     return Boolean(object && !isTerminalLevelTelemetry(telemetry));
 }
+export function canShootRatFromTelemetry(telemetry = null) {
+    return !isTerminalLevelTelemetry(telemetry);
+}
+export function canWaterPlantFromTelemetry(telemetry = null) {
+    return !isTerminalLevelTelemetry(telemetry);
+}
 function defaultStaffBreakTargetFromState(state = null) {
     if (!Array.isArray(state?.entities?.staff)) {
         return null;
@@ -4020,6 +4026,8 @@ export function mountAppShell(options) {
         hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
         hireHandymanButton.disabled = !canHireStaffFromTelemetry("handyman", telemetry);
         hireReceptionistButton.disabled = !canHireStaffFromTelemetry("receptionist", telemetry);
+        shootRatButton.disabled = !canShootRatFromTelemetry(telemetry);
+        waterPlantButton.disabled = !canWaterPlantFromTelemetry(telemetry);
         staffPanelHireDiagnosticianButton.textContent = hireDiagnosticianButton.textContent;
         staffPanelHireNurseButton.textContent = hireNurseButton.textContent;
         staffPanelHireHandymanButton.textContent = hireHandymanButton.textContent;
@@ -4586,6 +4594,11 @@ export function mountAppShell(options) {
         }
     };
     const onShootRat = () => {
+        if (!canShootRatFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("rat.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "shoot-rat",
@@ -4595,6 +4608,11 @@ export function mountAppShell(options) {
         renderRuntime();
     };
     const onWaterPlant = () => {
+        if (!canWaterPlantFromTelemetry(orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("plant.blocked");
+            renderRuntime();
+            return;
+        }
         const events = dispatchAndRender(orchestrator, telemetryElements, audioMixer, {
             device: "ui",
             action: "water-plant",

@@ -5,6 +5,7 @@ import { patientConditionLabels } from "../src/app-shell";
 import { formatNextLevelUnavailableStatus, formatRestartLevelUnavailableStatus } from "../src/app-shell";
 import { canSendPatientHome } from "../src/app-shell";
 import { canSellObject } from "../src/app-shell";
+import { canShootRatFromTelemetry, canWaterPlantFromTelemetry } from "../src/app-shell";
 
 describe("app shell campaign objectives", () => {
     it("selects the first visible original QDATA sheet for the playable UI strip", () => {
@@ -1654,6 +1655,12 @@ describe("app shell campaign objectives", () => {
         })).toBe("Treatment failures: 2; penalties s1 80/-4, s2 130/-8, s3 200/-14");
         expect(formatCareActionButtonLabel("shoot-rat")).toBe("Shoot Rat");
         expect(formatCareActionButtonLabel("water-plant")).toBe("Water Plant");
+        expect(canShootRatFromTelemetry({ levelObjectiveStatus: "running" })).toBe(true);
+        expect(canShootRatFromTelemetry({ levelObjectiveStatus: "lost" })).toBe(false);
+        expect(canShootRatFromTelemetry({ levelObjectiveStatus: "won" })).toBe(false);
+        expect(canWaterPlantFromTelemetry({ levelObjectiveStatus: "running" })).toBe(true);
+        expect(canWaterPlantFromTelemetry({ levelObjectiveStatus: "lost" })).toBe(false);
+        expect(canWaterPlantFromTelemetry({ levelObjectiveStatus: "won" })).toBe(false);
         expect(formatRatControlStatus({
             ratKills: 3,
             ratSightings: 4,
