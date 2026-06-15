@@ -590,6 +590,11 @@ describe("app shell campaign objectives", () => {
             outstandingLoan: 6_000,
             loanMaxOutstanding: 6_000
         })).toBe(false);
+        expect(canTakeLoanFromTelemetry({
+            outstandingLoan: 0,
+            loanMaxOutstanding: 6_000,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
         expect(canRepayLoanFromTelemetry({
             outstandingLoan: 1_000,
             loanChunkAmount: 500,
@@ -600,6 +605,12 @@ describe("app shell campaign objectives", () => {
             loanChunkAmount: 500,
             cash: 499
         })).toBe(false);
+        expect(canRepayLoanFromTelemetry({
+            outstandingLoan: 1_000,
+            loanChunkAmount: 500,
+            cash: 500,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
         expect(canRunFinanceAuditFromTelemetry({
             financeLedgerUnlocked: true,
             financeAuditReady: true
@@ -607,6 +618,11 @@ describe("app shell campaign objectives", () => {
         expect(canRunFinanceAuditFromTelemetry({
             financeLedgerUnlocked: true,
             financeAuditReady: false
+        })).toBe(false);
+        expect(canRunFinanceAuditFromTelemetry({
+            financeLedgerUnlocked: true,
+            financeAuditReady: true,
+            levelObjectiveStatus: "lost"
         })).toBe(false);
         expect(canRunMarketingCampaignFromTelemetry({
             cash: 600,
@@ -623,6 +639,12 @@ describe("app shell campaign objectives", () => {
             marketingCampaignCost: 600,
             reputation: 1000
         })).toBe(false);
+        expect(canRunMarketingCampaignFromTelemetry({
+            cash: 600,
+            marketingCampaignCost: 600,
+            reputation: 999,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
         expect(canStartInsuranceContractFromTelemetry({
             insuranceContractUnlocked: true,
             insuranceContractActive: false
@@ -630,6 +652,11 @@ describe("app shell campaign objectives", () => {
         expect(canStartInsuranceContractFromTelemetry({
             insuranceContractUnlocked: true,
             insuranceContractActive: true
+        })).toBe(false);
+        expect(canStartInsuranceContractFromTelemetry({
+            insuranceContractUnlocked: true,
+            insuranceContractActive: false,
+            levelObjectiveStatus: "lost"
         })).toBe(false);
         expect(canStartResearchFromTelemetry({
             treatmentResearchActive: false,
@@ -644,6 +671,14 @@ describe("app shell campaign objectives", () => {
             treatmentResearchMaxLevel: 3,
             treatmentResearchProjectCost: 1_000,
             cash: 1_000
+        })).toBe(false);
+        expect(canStartResearchFromTelemetry({
+            treatmentResearchActive: false,
+            treatmentResearchLevel: 1,
+            treatmentResearchMaxLevel: 3,
+            treatmentResearchProjectCost: 1_000,
+            cash: 1_000,
+            levelObjectiveStatus: "lost"
         })).toBe(false);
     });
     it("blocks unavailable level navigation controls before dispatch", () => {
@@ -843,6 +878,11 @@ describe("app shell campaign objectives", () => {
             scenarioEmergencyActiveIndex: 1,
             scenarioNextEmergencyIndex: null
         })).toBe(true);
+        expect(canStartEmergencyFromTelemetry({
+            emergencyActive: false,
+            scenarioEmergencyScheduleSize: 0,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
     });
     it("blocks award ceremonies until imported award criteria are met", () => {
         expect(canRunAwardsFromTelemetry({
@@ -852,6 +892,10 @@ describe("app shell campaign objectives", () => {
             scenarioAwardCriteriaMet: false
         })).toBe(false);
         expect(canRunAwardsFromTelemetry({})).toBe(true);
+        expect(canRunAwardsFromTelemetry({
+            scenarioAwardCriteriaMet: true,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
     });
     it("blocks active epidemic and VIP event controls before dispatch", () => {
         expect(canStartEpidemicFromTelemetry({
@@ -860,12 +904,20 @@ describe("app shell campaign objectives", () => {
         expect(canStartEpidemicFromTelemetry({
             epidemicActive: true
         })).toBe(false);
+        expect(canStartEpidemicFromTelemetry({
+            epidemicActive: false,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
         expect(canStartEpidemicFromTelemetry(null)).toBe(false);
         expect(canStartVipInspectionFromTelemetry({
             vipInspectionActive: false
         })).toBe(true);
         expect(canStartVipInspectionFromTelemetry({
             vipInspectionActive: true
+        })).toBe(false);
+        expect(canStartVipInspectionFromTelemetry({
+            vipInspectionActive: false,
+            levelObjectiveStatus: "lost"
         })).toBe(false);
         expect(canStartVipInspectionFromTelemetry(null)).toBe(false);
     });

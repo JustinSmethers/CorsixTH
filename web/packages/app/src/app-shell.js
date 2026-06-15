@@ -1073,25 +1073,29 @@ export function canHireStaffFromTelemetry(role, telemetry = null) {
     return telemetry.cash >= staffHireCost(role) && staffMarketRemainingForTelemetryRole(role, telemetry) > 0;
 }
 export function canTakeLoanFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && telemetry.outstandingLoan < telemetry.loanMaxOutstanding);
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.outstandingLoan < telemetry.loanMaxOutstanding);
 }
 export function canRepayLoanFromTelemetry(telemetry = null) {
     if (!telemetry) {
         return false;
     }
+    if (isLostLevelTelemetry(telemetry)) {
+        return false;
+    }
     return telemetry.outstandingLoan > 0 && telemetry.cash >= Math.min(telemetry.loanChunkAmount, telemetry.outstandingLoan);
 }
 export function canRunFinanceAuditFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && telemetry.financeLedgerUnlocked && telemetry.financeAuditReady);
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.financeLedgerUnlocked && telemetry.financeAuditReady);
 }
 export function canRunMarketingCampaignFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && telemetry.cash >= telemetry.marketingCampaignCost && telemetry.reputation < 1000);
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.cash >= telemetry.marketingCampaignCost && telemetry.reputation < 1000);
 }
 export function canStartInsuranceContractFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && telemetry.insuranceContractUnlocked && !telemetry.insuranceContractActive);
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.insuranceContractUnlocked && !telemetry.insuranceContractActive);
 }
 export function canStartResearchFromTelemetry(telemetry = null) {
     return Boolean(telemetry &&
+        !isLostLevelTelemetry(telemetry) &&
         !telemetry.treatmentResearchActive &&
         telemetry.treatmentResearchLevel < telemetry.treatmentResearchMaxLevel &&
         telemetry.cash >= telemetry.treatmentResearchProjectCost);
@@ -1164,7 +1168,7 @@ export function canPrioritizePatient(patient = null) {
     return Boolean(patient && (patient.status === "queued" || patient.status === "awaiting-treatment"));
 }
 export function canStartEmergencyFromTelemetry(telemetry = null) {
-    if (!telemetry || telemetry.emergencyActive) {
+    if (!telemetry || isLostLevelTelemetry(telemetry) || telemetry.emergencyActive) {
         return false;
     }
     if ((telemetry.scenarioEmergencyScheduleSize ?? 0) === 0) {
@@ -1173,13 +1177,13 @@ export function canStartEmergencyFromTelemetry(telemetry = null) {
     return telemetry.scenarioEmergencyActiveIndex !== null && telemetry.scenarioEmergencyActiveIndex !== undefined;
 }
 export function canRunAwardsFromTelemetry(telemetry = null) {
-    return telemetry?.scenarioAwardCriteriaMet !== false;
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.scenarioAwardCriteriaMet !== false);
 }
 export function canStartEpidemicFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !telemetry.epidemicActive);
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && !telemetry.epidemicActive);
 }
 export function canStartVipInspectionFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !telemetry.vipInspectionActive);
+    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && !telemetry.vipInspectionActive);
 }
 export function canGiveDrinkToPatient(patient = null, telemetry = null) {
     const drinkHappy = telemetry?.scenarioPatientDrinkHappy;
