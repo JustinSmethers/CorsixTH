@@ -2031,6 +2031,10 @@ describe("app shell campaign objectives", () => {
         expect(formatLevelObjectiveStatus({
             levelObjectiveStatus: "won"
         })).toBe("Level status: won");
+        expect(formatLevelObjectiveStatus({
+            levelObjectiveStatus: "lost",
+            levelObjectiveReason: "deaths"
+        })).toBe("Level status: lost (deaths)");
         expect(formatLevelObjectiveProgress({
             levelObjectiveRequiredDischarges: 10,
             levelObjectiveRemainingDischarges: 7,

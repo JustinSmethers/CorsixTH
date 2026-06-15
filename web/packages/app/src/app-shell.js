@@ -2127,6 +2127,9 @@ export function formatLevelObjectiveSafety(telemetry) {
     return `Safety: ${parts.join(", ")}`;
 }
 export function formatLevelObjectiveStatus(telemetry) {
+    if (telemetry.levelObjectiveStatus === "lost" && telemetry.levelObjectiveReason) {
+        return `Level status: lost (${telemetry.levelObjectiveReason})`;
+    }
     return `Level status: ${telemetry.levelObjectiveStatus}`;
 }
 export function formatLevelObjectiveProgress(telemetry) {

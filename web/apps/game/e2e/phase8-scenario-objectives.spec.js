@@ -987,7 +987,7 @@ test("phase 8 scenario import: custom objective criteria change browser win and 
         await page.getByTestId("step").click();
     }
     await expect(page.getByTestId("patient-deaths")).toContainText("Deaths: 1");
-    await expect(page.getByTestId("level-objective-status")).toHaveText("Level status: lost");
+    await expect(page.getByTestId("level-objective-status")).toHaveText("Level status: lost (deaths)");
     await expect(page.getByTestId("last-event")).toHaveText("Last event: patient-died");
 });
 
@@ -1860,7 +1860,11 @@ test("phase 8 scenario import: original SAM illness pool drives automatic admiss
     await page.getByTestId("admissions-toggle").click();
     await expect(page.getByTestId("next-admission")).toHaveText(/^Next arrival: \d+ ticks; scenario illness 2, pop 3, pool \d+\/2(?:, next [A-Za-z '-]+)?, allocation 4\/1\/2, delay 3m\/192 ticks, auto \d+ ticks\/cap \d+$/u);
 
-    for (let index = 0; index < 210; index += 1) {
+    for (let index = 0; index < 260; index += 1) {
+        const summary = await page.getByTestId("casebook-summary").textContent() ?? "";
+        if (summary.includes("Itchy Feet") && summary.includes("On my way to Ward")) {
+            break;
+        }
         await page.getByTestId("step").click();
     }
 
