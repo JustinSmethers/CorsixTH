@@ -36,6 +36,7 @@ npm run native:presets
 npm run web:dev
 npm run web:build
 npm run web:serve
+npm run web:test:e2e:dev-smoke
 npm run web:test:e2e:preview
 ```
 

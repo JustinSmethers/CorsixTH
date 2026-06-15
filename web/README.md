@@ -15,12 +15,13 @@ npm --prefix web run dev
 npm --prefix web run build
 npm --prefix web run serve
 npm --prefix web run check
+npm --prefix web run test:e2e:dev-smoke
 npm --prefix web run test:e2e
 npm --prefix web run test:e2e:preview
 npm --prefix web run inspect:game-data
 ```
 
-`dev` starts the browser game at `http://127.0.0.1:5173/`. `build` writes the production browser bundle under `web/apps/game/dist/`. `serve` previews that built bundle at `http://127.0.0.1:4173/`. `check` runs the unit/replay/performance suite and production build. `test:e2e` creates synthetic asset fixtures and runs the Chromium browser journey tests against Vite dev mode, preferring `http://127.0.0.1:4173/` unless that port is occupied. `test:e2e:preview` builds first, then runs the smoke, first-time import rendering, and compatibility journeys against `vite preview` on the same fixed port. Set `CORSIXTH_WEB_PORT` to use a specific e2e port.
+`dev` starts the browser game at `http://127.0.0.1:5173/`. `build` writes the production browser bundle under `web/apps/game/dist/`. `serve` previews that built bundle at `http://127.0.0.1:4173/`. `check` runs the unit/replay/performance suite and production build. `test:e2e:dev-smoke` creates synthetic asset fixtures, starts Vite dev mode, and runs the smoke, first-time import rendering, and compatibility journeys. `test:e2e` runs the full Chromium browser journey suite against Vite dev mode, preferring `http://127.0.0.1:4173/` unless that port is occupied. `test:e2e:preview` builds first, then runs the same smoke/import/compatibility journeys against `vite preview` on the same fixed port. Set `CORSIXTH_WEB_PORT` to use a specific e2e port.
 `inspect:game-data` validates the local Theme Hospital assets without writing or staging them; by default it discovers `GameData/Contents/Resources/game`.
 
 If `pnpm` is available, the same scripts can be run with:
