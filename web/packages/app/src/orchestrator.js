@@ -1146,7 +1146,8 @@ function staffHappinessPercentForState(state) {
         return 100;
     }
     const averageStress = staff.reduce((sum, member) => sum + member.stress, 0) / staff.length;
-    return clamp(Math.floor(100 - averageStress), 0, 100);
+    const burnoutPenalty = (state.secondarySystems.staffBurnoutEvents ?? 0) * 30;
+    return clamp(Math.floor(100 - averageStress - burnoutPenalty), 0, 100);
 }
 function cleanlinessLitterPercentForState(state) {
     const admissions = state.counters.totalAdmissions;

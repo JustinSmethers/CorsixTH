@@ -1295,6 +1295,17 @@ test("phase 8 scenario import: staff happiness awards use imported SAM values", 
     await expect(page.getByTestId("hospital-awards")).toContainText("totals 0/+4");
     await expect(page.getByTestId("reputation")).toHaveText(`Reputation: ${Math.min(1000, reputationBefore + 4)}`);
 
+    await page.getByTestId("build-diagnosis-room").click();
+    await page.getByTestId("hospital-map-canvas").hover({ position: { x: 384, y: 160 } });
+    await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
+    await page.getByTestId("hospital-map-canvas").click({ position: { x: 384, y: 160 } });
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await page.getByTestId("hire-diagnostician").click();
+    await page.getByTestId("hospital-map-canvas").hover({ position: { x: 416, y: 176 } });
+    await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
+    await page.getByTestId("hospital-map-canvas").click({ position: { x: 416, y: 176 } });
+    await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
+
     await page.getByTestId("admission-severity").selectOption("3");
     for (let index = 0; index < 48; index += 1) {
         await page.getByTestId("admit").click();
@@ -2010,7 +2021,13 @@ test("phase 8 scenario import: locked object availability gates automatic diseas
     await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 1, disabled 0, research 0; available: Cast Remover; locked: Hair Restorer");
     await page.getByTestId("hire-receptionist").click();
     await page.getByTestId("hospital-map-canvas").click({ position: { x: 416, y: 176 } });
-    await expect(page.getByTestId("front-desk-status")).toHaveText("Front desk: 1 active receptionists, capacity 4, intake cap 4");
+    await page.getByTestId("hire-receptionist").click();
+    await page.getByTestId("hospital-map-canvas").click({ position: { x: 432, y: 176 } });
+    await page.getByTestId("hire-receptionist").click();
+    await page.getByTestId("hospital-map-canvas").click({ position: { x: 448, y: 176 } });
+    await page.getByTestId("hire-receptionist").click();
+    await page.getByTestId("hospital-map-canvas").click({ position: { x: 464, y: 176 } });
+    await expect(page.getByTestId("front-desk-status")).toHaveText("Front desk: 4 active receptionists, capacity 16, intake cap 11");
     await page.getByTestId("admissions-toggle").click();
 
     for (let index = 0; index < 40; index += 1) {
