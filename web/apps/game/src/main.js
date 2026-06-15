@@ -17,6 +17,11 @@ import { buildThemeHospitalMapPreviewInput, renderSceneToFrame } from "@corsixth
 import { phase4SmokeScenarioCommands } from "@corsixth/testkit";
 const ASSET_IMPORT_STORAGE_KEY = "corsixth.phase8.asset-import.v1";
 const ROLLOUT_STAGE_STORAGE_KEY = "corsixth.phase10.rollout-stage.v1";
+const ACCEPTED_ASSET_LAYOUTS = [
+    "Original Theme Hospital installation folder containing DATA, LEVELS, QDATA, HOSPITAL.CFG, and HOSPITAL.EXE.",
+    "GOG GameData/Contents/Resources/game folder.",
+    "Wrapped installer or app-bundle folder containing one nested game-data root; wrapper files outside that root are ignored."
+];
 const ROLLOUT_TRAFFIC_PERCENT = {
     canary: 5,
     progressive: 50,
@@ -389,6 +394,10 @@ function renderImportShell(root) {
       <p data-testid="asset-import-description">
         Import your legally-owned original game data folder to unlock playable web runtime content.
       </p>
+      <h2>Accepted asset layouts</h2>
+      <ul data-testid="asset-import-accepted-layouts">
+        ${ACCEPTED_ASSET_LAYOUTS.map((layout) => `<li>${layout}</li>`).join("")}
+      </ul>
       <h2>Required folders</h2>
       <ul data-testid="asset-import-required-directories">
         ${REQUIRED_ASSET_DIRECTORIES.map((directory) => `<li>${directory}</li>`).join("")}

@@ -13,6 +13,9 @@ async function resumeFromPausedState(page) {
 test("phase 9 compatibility: import shell renders required onboarding UI", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Phase 8 Asset Import" })).toBeVisible();
+    await expect(page.getByTestId("asset-import-accepted-layouts")).toContainText("Original Theme Hospital installation folder");
+    await expect(page.getByTestId("asset-import-accepted-layouts")).toContainText("GOG GameData/Contents/Resources/game folder");
+    await expect(page.getByTestId("asset-import-accepted-layouts")).toContainText("wrapper files outside that root are ignored");
     await expect(page.getByTestId("asset-import-required-directories")).toContainText("DATA");
     await expect(page.getByTestId("asset-import-required-files")).toContainText("HOSPITAL.CFG");
     await expect(page.getByTestId("asset-import-status")).toHaveText("Waiting for folder selection.");
