@@ -6,9 +6,10 @@ import { fileURLToPath } from "node:url";
 const scriptDirectory = dirname(fileURLToPath(import.meta.url));
 const workspaceRoot = dirname(scriptDirectory);
 const host = "127.0.0.1";
+const defaultPort = 4173;
 
 async function main() {
-  const port = process.env.CORSIXTH_WEB_PORT ?? String(await findFreePort());
+  const port = process.env.CORSIXTH_WEB_PORT ?? String(await selectWebPort(defaultPort));
   await run(process.execPath, [join("scripts", "create-e2e-fixtures.js")]);
   const playwrightExecutable = process.platform === "win32"
     ? join("node_modules", ".bin", "playwright.cmd")
@@ -22,6 +23,27 @@ async function main() {
     ...process.env,
     CI: process.env.CI ?? "1",
     CORSIXTH_WEB_PORT: port
+  });
+}
+
+async function selectWebPort(preferredPort) {
+  if (await canListenOnPort(preferredPort)) {
+    return preferredPort;
+  }
+  return findFreePort();
+}
+
+function canListenOnPort(port) {
+  return new Promise((resolve) => {
+    const server = createServer();
+    server.once("error", () => {
+      resolve(false);
+    });
+    server.listen(port, host, () => {
+      server.close(() => {
+        resolve(true);
+      });
+    });
   });
 }
 

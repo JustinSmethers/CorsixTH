@@ -19,7 +19,7 @@ npm --prefix web run test:e2e
 npm --prefix web run inspect:game-data
 ```
 
-`dev` starts the browser game at `http://127.0.0.1:5173/`. `build` writes the production browser bundle under `web/apps/game/dist/`. `serve` previews that built bundle at `http://127.0.0.1:4173/`. `check` runs the unit/replay/performance suite and production build. `test:e2e` creates synthetic asset fixtures and runs the Chromium browser journey tests.
+`dev` starts the browser game at `http://127.0.0.1:5173/`. `build` writes the production browser bundle under `web/apps/game/dist/`. `serve` previews that built bundle at `http://127.0.0.1:4173/`. `check` runs the unit/replay/performance suite and production build. `test:e2e` creates synthetic asset fixtures and runs the Chromium browser journey tests, preferring `http://127.0.0.1:4173/` unless that port is occupied. Set `CORSIXTH_WEB_PORT` to use a specific e2e port.
 `inspect:game-data` validates the local Theme Hospital assets without writing or staging them; by default it discovers `GameData/Contents/Resources/game`.
 
 If `pnpm` is available, the same scripts can be run with:
