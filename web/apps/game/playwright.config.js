@@ -4,6 +4,10 @@ const port = Number(process.env.CORSIXTH_WEB_PORT ?? 4173);
 const host = "127.0.0.1";
 const baseURL = `http://${host}:${port}`;
 const workspaceRoot = new URL("../..", import.meta.url).pathname;
+const serverMode = process.env.CORSIXTH_E2E_SERVER === "preview" ? "preview" : "dev";
+const webServerCommand = serverMode === "preview"
+  ? `node_modules/.bin/vite preview apps/game --host ${host} --port ${port} --config vite.config.js`
+  : `node_modules/.bin/vite apps/game --host ${host} --port ${port} --config vite.config.js`;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -22,7 +26,7 @@ export default defineConfig({
     }
   ],
   webServer: {
-    command: `node_modules/.bin/vite apps/game --host ${host} --port ${port} --config vite.config.js`,
+    command: webServerCommand,
     cwd: workspaceRoot,
     reuseExistingServer: !process.env.CI,
     timeout: 30_000,

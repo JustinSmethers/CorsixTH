@@ -9,21 +9,46 @@ const host = "127.0.0.1";
 const defaultPort = 4173;
 
 async function main() {
+  const options = parseRunnerOptions(process.argv.slice(2));
   const port = process.env.CORSIXTH_WEB_PORT ?? String(await selectWebPort(defaultPort));
+  if (options.server === "preview") {
+    await run(binaryPath("vite"), ["build", "apps/game", "--config", "vite.config.js"]);
+  }
   await run(process.execPath, [join("scripts", "create-e2e-fixtures.js")]);
-  const playwrightExecutable = process.platform === "win32"
-    ? join("node_modules", ".bin", "playwright.cmd")
-    : join("node_modules", ".bin", "playwright");
-  await run(playwrightExecutable, [
+  await run(binaryPath("playwright"), [
     "test",
     "--config",
     join("apps", "game", "playwright.config.js"),
-    ...process.argv.slice(2)
+    ...options.playwrightArgs
   ], {
     ...process.env,
     CI: process.env.CI ?? "1",
+    CORSIXTH_E2E_SERVER: options.server,
     CORSIXTH_WEB_PORT: port
   });
+}
+
+function parseRunnerOptions(args) {
+  const playwrightArgs = [];
+  let server = "dev";
+  for (const arg of args) {
+    if (arg === "--server=preview") {
+      server = "preview";
+      continue;
+    }
+    if (arg === "--server=dev") {
+      server = "dev";
+      continue;
+    }
+    playwrightArgs.push(arg);
+  }
+  return { server, playwrightArgs };
+}
+
+function binaryPath(name) {
+  return process.platform === "win32"
+    ? join("node_modules", ".bin", `${name}.cmd`)
+    : join("node_modules", ".bin", name);
 }
 
 async function selectWebPort(preferredPort) {
