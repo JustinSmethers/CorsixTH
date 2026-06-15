@@ -257,6 +257,38 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("next-level")).toBeDisabled();
+
+  const secondLevelSlot = `playable-loop-second-${Date.now()}`;
+  const secondLevelObjective =
+    (await page.getByTestId("level-objective-progress").textContent()) ?? "";
+  const secondLevelSummary =
+    (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
+  await page.getByTestId("save-slot-name").fill(secondLevelSlot);
+  await page.getByTestId("save-game").click();
+  await expect(page.getByTestId("save-status")).toContainText(
+    `(${secondLevelSlot})`,
+  );
+  await page.getByTestId("hospital-map-select").selectOption("LEVELS/EXAMPLE.MAP");
+  await expect(page.getByTestId("campaign-progress")).toHaveText(
+    "Campaign: level 1/2",
+  );
+  await page.getByTestId("save-slot-name").fill(secondLevelSlot);
+  await page.getByTestId("load-game").click();
+  await expect(page.getByTestId("save-status")).toContainText(
+    "Save: loaded tick",
+  );
+  await expect(page.getByTestId("hospital-map-select")).toHaveValue(
+    "LEVELS/SECOND.MAP",
+  );
+  await expect(page.getByTestId("campaign-progress")).toHaveText(
+    "Campaign: level 2/2",
+  );
+  await expect(page.getByTestId("level-objective-progress")).toHaveText(
+    secondLevelObjective,
+  );
+  await expect(page.getByTestId("hospital-canvas-summary")).toHaveText(
+    secondLevelSummary,
+  );
 });
 
 test("playable loop: front desk capacity blocks manual over-admission", async ({
