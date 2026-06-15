@@ -32,11 +32,14 @@ This branch also contains an incremental browser-playable runtime under [`web/`]
 From the repository root:
 
 ```sh
+npm run native:presets
 npm run web:dev
 npm run web:build
 npm run web:serve
 npm run web:test:e2e:preview
 ```
+
+`native:presets` lists the existing CMake presets as a lightweight sanity check that the native build surface is still present. Use the native CMake presets directly for full desktop builds.
 
 See [`web/README.md`](web/README.md) for asset import layouts, storage notes, current browser limitations, and the full validation command matrix.
 

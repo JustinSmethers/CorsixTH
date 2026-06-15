@@ -1,5 +1,6 @@
 {
 	"scripts": {
+		"native:presets": "cmake --list-presets",
 		"web:dev": "npm --prefix web run dev",
 		"web:build": "npm --prefix web run build",
 		"web:serve": "npm --prefix web run serve",
