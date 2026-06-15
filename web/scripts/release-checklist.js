@@ -1,7 +1,15 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-const operation = process.argv[2] ?? "release-candidate";
+function parseOperation(argv) {
+  const operationFlagIndex = argv.indexOf("--operation");
+  if (operationFlagIndex >= 0 && argv[operationFlagIndex + 1]) {
+    return argv[operationFlagIndex + 1];
+  }
+  return argv.find((argument) => !argument.startsWith("-")) ?? "release-candidate";
+}
+
+const operation = parseOperation(process.argv.slice(2));
 const outputDirectory = new URL("../.tmp/phase10/", import.meta.url);
 const outputPath = join(outputDirectory.pathname, `checklist-${operation}.json`);
 

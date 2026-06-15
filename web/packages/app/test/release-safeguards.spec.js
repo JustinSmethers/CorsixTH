@@ -1,4 +1,10 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+
 import { PHASE10_COMMAND_MATRIX, createReleaseChecklistArtifact, evaluateRolloutPromotion, nextRolloutStage, simulateRollbackPlan } from "../src/release-safeguards";
+
+const workspacePackage = JSON.parse(readFileSync(resolve(import.meta.dirname, "../../../package.json"), "utf8"));
+
 describe("phase 10 release safeguards", () => {
     it("locks command matrix coverage for release, rollback, and hotfix operations", () => {
         expect(Object.keys(PHASE10_COMMAND_MATRIX)).toEqual([
@@ -11,6 +17,13 @@ describe("phase 10 release safeguards", () => {
         expect(PHASE10_COMMAND_MATRIX["staging-dry-run"]).toContain("pnpm --dir web run release:staging-dry-run");
         expect(PHASE10_COMMAND_MATRIX["rollback-simulation"]).toContain("pnpm --dir web run release:rollback-sim");
         expect(PHASE10_COMMAND_MATRIX["hotfix-dry-run"]).toContain("pnpm --dir web run release:hotfix-dry-run");
+    });
+    it("keeps release command matrix scripts runnable from the web workspace", () => {
+        expect(workspacePackage.scripts["release:rc"]).toContain("release-candidate");
+        expect(workspacePackage.scripts["release:staging-dry-run"]).toContain("staging-dry-run");
+        expect(workspacePackage.scripts["release:rollback-sim"]).toContain("rollback-simulation");
+        expect(workspacePackage.scripts["release:hotfix-dry-run"]).toContain("hotfix-dry-run");
+        expect(workspacePackage.scripts["release:checklist"]).toBe("node scripts/release-checklist.js");
     });
     it("advances rollout stages in deterministic order", () => {
         expect(nextRolloutStage("canary")).toBe("progressive");

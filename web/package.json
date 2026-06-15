@@ -19,7 +19,10 @@
     "phase9:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
     "phase10:check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
     "release:rc": "node scripts/release-checklist.js release-candidate",
-    "release:staging-dry-run": "node scripts/release-checklist.js staging-dry-run"
+    "release:staging-dry-run": "node scripts/release-checklist.js staging-dry-run",
+    "release:rollback-sim": "node scripts/release-checklist.js rollback-simulation",
+    "release:hotfix-dry-run": "node scripts/release-checklist.js hotfix-dry-run",
+    "release:checklist": "node scripts/release-checklist.js"
   },
   "devDependencies": {
     "@playwright/test": "1.58.2",
