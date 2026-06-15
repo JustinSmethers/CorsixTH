@@ -394,6 +394,9 @@ function renderImportShell(root) {
       <p data-testid="asset-import-description">
         Import your legally-owned original game data folder to unlock playable web runtime content.
       </p>
+      <p data-testid="asset-import-storage-note">
+        Imported assets and save slots are stored locally in this browser using IndexedDB; the small launch manifest and rollout stage use localStorage when available.
+      </p>
       <h2>Accepted asset layouts</h2>
       <ul data-testid="asset-import-accepted-layouts">
         ${ACCEPTED_ASSET_LAYOUTS.map((layout) => `<li>${layout}</li>`).join("")}
@@ -560,7 +563,7 @@ async function filesToAssetInputs(files) {
     return buffers;
 }
 function loadStoredManifest() {
-    const rawEnvelope = window.localStorage.getItem(ASSET_IMPORT_STORAGE_KEY);
+    const rawEnvelope = safeLocalStorageGet(ASSET_IMPORT_STORAGE_KEY);
     if (!rawEnvelope) {
         return null;
     }
@@ -584,10 +587,10 @@ function persistManifest(manifest) {
         schemaVersion: 1,
         manifest
     };
-    window.localStorage.setItem(ASSET_IMPORT_STORAGE_KEY, JSON.stringify(envelope));
+    safeLocalStorageSet(ASSET_IMPORT_STORAGE_KEY, JSON.stringify(envelope));
 }
 function clearStoredManifest() {
-    window.localStorage.removeItem(ASSET_IMPORT_STORAGE_KEY);
+    safeLocalStorageRemove(ASSET_IMPORT_STORAGE_KEY);
 }
 async function loadStoredAssetBundle() {
     try {
@@ -607,14 +610,38 @@ async function clearStoredAssets() {
     }
 }
 function loadRolloutStage() {
-    const value = window.localStorage.getItem(ROLLOUT_STAGE_STORAGE_KEY);
+    const value = safeLocalStorageGet(ROLLOUT_STAGE_STORAGE_KEY);
     if (value === "canary" || value === "progressive" || value === "full") {
         return value;
     }
     return "canary";
 }
 function persistRolloutStage(stage) {
-    window.localStorage.setItem(ROLLOUT_STAGE_STORAGE_KEY, stage);
+    safeLocalStorageSet(ROLLOUT_STAGE_STORAGE_KEY, stage);
+}
+function safeLocalStorageGet(key) {
+    try {
+        return window.localStorage.getItem(key);
+    }
+    catch {
+        return null;
+    }
+}
+function safeLocalStorageSet(key, value) {
+    try {
+        window.localStorage.setItem(key, value);
+    }
+    catch {
+        // IndexedDB remains the source of truth for imported assets and saves.
+    }
+}
+function safeLocalStorageRemove(key) {
+    try {
+        window.localStorage.removeItem(key);
+    }
+    catch {
+        // Clearing browser storage is best-effort when localStorage is disabled.
+    }
 }
 function isStoredEnvelope(value) {
     if (!value || typeof value !== "object") {

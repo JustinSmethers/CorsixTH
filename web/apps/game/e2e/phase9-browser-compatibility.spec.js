@@ -13,6 +13,8 @@ async function resumeFromPausedState(page) {
 test("phase 9 compatibility: import shell renders required onboarding UI", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Phase 8 Asset Import" })).toBeVisible();
+    await expect(page.getByTestId("asset-import-storage-note")).toContainText("Imported assets and save slots are stored locally in this browser using IndexedDB");
+    await expect(page.getByTestId("asset-import-storage-note")).toContainText("localStorage when available");
     await expect(page.getByTestId("asset-import-accepted-layouts")).toContainText("Original Theme Hospital installation folder");
     await expect(page.getByTestId("asset-import-accepted-layouts")).toContainText("GOG GameData/Contents/Resources/game folder");
     await expect(page.getByTestId("asset-import-accepted-layouts")).toContainText("wrapper files outside that root are ignored");
