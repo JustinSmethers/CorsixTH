@@ -76,8 +76,8 @@ describe("phase 9 stress replay determinism", () => {
         const result = runStressReplay(commands);
         expect(result.finalTick).toBe(2_900);
         const checkpointHashes = [0, 43, 129, 259, 345, 432].map((index) => result.hashes[index]);
-        expect(checkpointHashes).toEqual(["174f3581", "ef4c9086", "25a344cd", "1ae9c184", "45919ce1", "7ae4d2a8"]);
-        expect(result.finalHash).toBe("7ae4d2a8");
+        expect(checkpointHashes).toEqual(["057233c2", "9bfff0f1", "541b9d28", "91a6045f", "169b2d2e", "30a3ff4d"]);
+        expect(result.finalHash).toBe("30a3ff4d");
     });
     it("has zero hash drift for repeated stress runs", () => {
         const commands = buildPhase9StressCommands();

@@ -41,8 +41,8 @@ describe("deterministic simulation", () => {
         }
         expect(leftHashes).toEqual(rightHashes);
         expect(leftTickHashes).toEqual(rightTickHashes);
-        expect(leftHashes[leftHashes.length - 1]).toBe("9fd27b1b");
-        expect(leftTickHashes[leftTickHashes.length - 1]).toBe("130f4159");
+        expect(leftHashes[leftHashes.length - 1]).toBe("1094db8a");
+        expect(leftTickHashes[leftTickHashes.length - 1]).toBe("184debb6");
     });
     it("diverges for different seeds", () => {
         const left = new DeterministicSimulation(1, { bounds: { width: 8, height: 8 } });

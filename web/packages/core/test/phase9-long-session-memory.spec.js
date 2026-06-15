@@ -83,12 +83,12 @@ describe("phase 9 long-session memory guardrails", () => {
         expect(telemetry.maxWaitingPatients).toBeLessThanOrEqual(240);
         expect(telemetry.maxSerializedStateBytes).toBeLessThanOrEqual(55_000);
         expect(telemetry.checkpointHashes).toEqual([
-            "4f88dc2f",
-            "12ce6a55",
-            "f91f2e4f",
-            "d47188a2",
-            "006c5bec",
-            "f23e0bce"
+            "5cae5c52",
+            "20cb282c",
+            "819fa75e",
+            "c8e931df",
+            "526de407",
+            "63a04d2b"
         ]);
     });
 });

@@ -263,6 +263,7 @@ function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = n
     elements.speedStatusMetric.textContent = formatSpeedStatus(telemetry);
     elements.treatedMetric.textContent = formatTreatedPatientsStatus(telemetry);
     elements.waitingMetric.textContent = formatWaitingPatientsStatus(telemetry);
+    elements.receptionMetric.textContent = formatReceptionPatientsStatus(telemetry);
     elements.queueMetric.textContent = formatQueuedPatientsStatus(telemetry);
     elements.walkingToDiagnosisMetric.textContent = formatWalkingToDiagnosisPatientsStatus(telemetry);
     elements.diagnosingMetric.textContent = formatDiagnosingPatientsStatus(telemetry);
@@ -1416,6 +1417,9 @@ export function formatTreatedPatientsStatus(telemetry) {
 }
 export function formatWaitingPatientsStatus(telemetry) {
     return `Waiting: ${telemetry.patientsWaiting}`;
+}
+export function formatReceptionPatientsStatus(telemetry) {
+    return `Reception: ${telemetry.awaitingReceptionPatients ?? 0} waiting, ${telemetry.walkingToReceptionPatients ?? 0} walking, ${telemetry.receptionPatients ?? 0} at desk`;
 }
 export function formatQueuedPatientsStatus(telemetry) {
     return `Queue: ${telemetry.queuedPatients}`;
@@ -3369,6 +3373,7 @@ export function mountAppShell(options) {
           <p data-testid="speed-status" style="margin:0;"></p>
           <p data-testid="treated" style="margin:0;"></p>
           <p data-testid="waiting" style="margin:0;"></p>
+          <p data-testid="reception-size" style="margin:0; grid-column:1 / -1;"></p>
           <p data-testid="queue-size" style="margin:0;"></p>
           <p data-testid="walking-to-diagnosis-size" style="margin:0;"></p>
           <p data-testid="diagnosing-size" style="margin:0;"></p>
@@ -3493,6 +3498,7 @@ export function mountAppShell(options) {
         speedStatusMetric: requiredElement(options.root, "[data-testid='speed-status']"),
         treatedMetric: requiredElement(options.root, "[data-testid='treated']"),
         waitingMetric: requiredElement(options.root, "[data-testid='waiting']"),
+        receptionMetric: requiredElement(options.root, "[data-testid='reception-size']"),
         queueMetric: requiredElement(options.root, "[data-testid='queue-size']"),
         walkingToDiagnosisMetric: requiredElement(options.root, "[data-testid='walking-to-diagnosis-size']"),
         diagnosingMetric: requiredElement(options.root, "[data-testid='diagnosing-size']"),

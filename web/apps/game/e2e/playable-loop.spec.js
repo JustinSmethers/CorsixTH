@@ -47,8 +47,10 @@ async function stepUntilDischarged(page, expectedDischarges, maxSteps) {
 
 async function admitDiagnoseAndTreatOne(page, expectedDischarges) {
   await page.getByTestId("admit").click();
-  await expect(page.getByTestId("queue-size")).toHaveText("Queue: 1");
-  await stepUntilText(page, "diagnosed-size", "Diagnosed: 1", 48);
+  await expect(page.getByTestId("reception-size")).toContainText(
+    "Reception: 1",
+  );
+  await stepUntilText(page, "diagnosed-size", "Diagnosed: 1", 192);
   await page.getByTestId("treat").click();
   await stepUntilDischarged(page, expectedDischarges, 16);
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
@@ -93,6 +95,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("front-desk-status")).toHaveText(
     "Front desk: 1 active receptionists, capacity 4, intake cap 8",
+  );
+  await expect(page.getByTestId("reception-size")).toHaveText(
+    "Reception: 0 waiting, 0 walking, 0 at desk",
   );
 
   await page.getByTestId("admission-severity").selectOption("1");
@@ -155,6 +160,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await page.getByTestId("admit").click();
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
+  await expect(page.getByTestId("reception-size")).toContainText(
+    "Reception: 1",
+  );
 
   await page.getByTestId("save-slot-name").fill(saveSlot);
   await page.getByTestId("load-game").click();

@@ -112,6 +112,34 @@ describe("phase 7 slice 1 hospital loop", () => {
         expect(state.treatedPatients).toBe(1);
         expect(state.cash).toBeGreaterThan(50_000);
     });
+    it("routes new patients through active reception before diagnosis", () => {
+        const simulation = new DeterministicSimulation(7003, { bounds: { width: 8, height: 8 } });
+        simulation.execute({ type: "hire-staff", role: "receptionist", position: { x: 1, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 1, position: { x: 4, y: 4 } });
+        expect(simulation.getState().hospitalLoop).toMatchObject({
+            awaitingReceptionPatients: 1,
+            walkingToReceptionPatients: 0,
+            receptionPatients: 0,
+            queuedPatients: 0
+        });
+        expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("awaiting-reception");
+        simulation.execute({ type: "tick", count: 1 });
+        expect(simulation.getState().hospitalLoop).toMatchObject({
+            awaitingReceptionPatients: 0,
+            walkingToReceptionPatients: 0,
+            receptionPatients: 1,
+            queuedPatients: 0
+        });
+        simulation.execute({ type: "tick", count: 1 });
+        expect(simulation.getState().hospitalLoop).toMatchObject({
+            awaitingReceptionPatients: 0,
+            walkingToReceptionPatients: 0,
+            receptionPatients: 0,
+            queuedPatients: 1
+        });
+        expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("queued");
+        expect(simulation.getState().events.recent.map((event) => event.type)).toContain("patient-reception-complete");
+    });
     it("applies treatment pricing policy to discharge revenue and reputation", () => {
         const discount = new DeterministicSimulation(7008, { bounds: { width: 8, height: 8 } });
         discount.execute({ type: "set-pricing-policy", policy: "discount" });

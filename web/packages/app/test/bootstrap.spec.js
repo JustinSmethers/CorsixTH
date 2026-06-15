@@ -8,7 +8,7 @@ describe("app bootstrap script", () => {
             { type: "tick", count: 2 }
         ]);
         expect(result).toEqual({
-            hash: "2cb298a6",
+            hash: "9cf10727",
             tick: 5,
             treatedPatients: 1
         });

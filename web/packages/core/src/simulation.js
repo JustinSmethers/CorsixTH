@@ -975,7 +975,9 @@ export class DeterministicSimulation {
     patientBehavior;
     autopsyConfig;
     diagnosisQueue = [];
+    receptionQueue = [];
     treatmentQueue = [];
+    receptionAssignments = [];
     diagnosisAssignments = [];
     treatmentAssignments = [];
     terrain;
@@ -1344,6 +1346,9 @@ export class DeterministicSimulation {
             position: { x: object.position.x, y: object.position.y }
         }));
         let queuedPatients = 0;
+        let awaitingReceptionPatients = 0;
+        let walkingToReceptionPatients = 0;
+        let receptionPatients = 0;
         let walkingToDiagnosisPatients = 0;
         let diagnosingPatients = 0;
         let diagnosedPatients = 0;
@@ -1359,6 +1364,15 @@ export class DeterministicSimulation {
         let veryUnhappyPatients = 0;
         const hasPatientMoodThresholds = this.hasPatientMoodThresholds();
         for (const patient of waitingPatients) {
+            if (patient.status === "awaiting-reception") {
+                awaitingReceptionPatients += 1;
+            }
+            if (patient.status === "walking-to-reception") {
+                walkingToReceptionPatients += 1;
+            }
+            if (patient.status === "reception") {
+                receptionPatients += 1;
+            }
             if (patient.status === "queued") {
                 queuedPatients += 1;
             }
@@ -1487,6 +1501,9 @@ export class DeterministicSimulation {
             }
         }
         const hospitalLoop = {
+            awaitingReceptionPatients,
+            walkingToReceptionPatients,
+            receptionPatients,
             queuedPatients,
             walkingToDiagnosisPatients,
             diagnosingPatients,
@@ -1497,6 +1514,7 @@ export class DeterministicSimulation {
             dischargedPatients: this.totalDischarges,
             patientDeaths: this.totalPatientDeaths,
             treatmentFailures: this.totalTreatmentFailures,
+            activeReceptionAssignments: this.receptionAssignments.length,
             activeDiagnosisAssignments: this.diagnosisAssignments.length,
             activeTreatmentAssignments: this.treatmentAssignments.length,
             ...(this.totalPatientWalkouts > 0 ? { patientWalkouts: this.totalPatientWalkouts } : {})
@@ -1511,6 +1529,7 @@ export class DeterministicSimulation {
         };
         const staffLifecycle = {
             activeStaff,
+            receptionStaff: countUniqueAssignments(this.receptionAssignments, "staffId"),
             onBreakStaff,
             diagnosingStaff: countUniqueAssignments(this.diagnosisAssignments, "staffId"),
             treatingStaff: countUniqueAssignments(this.treatmentAssignments, "staffId")
@@ -1992,9 +2011,11 @@ export class DeterministicSimulation {
         for (const admission of dueAdmissions) {
             this.admitPatient(admission.severity, admission.position, { diseaseId: admission.diseaseId });
         }
+        this.startReceptionAssignments();
         this.startDiagnosisAssignments();
         this.startTreatmentAssignments();
         this.progressPatientMovement();
+        this.progressReceptionAssignments(utilizedStaffIds);
         this.progressDiagnosisAssignments(utilizedStaffIds, utilizedRoomIds);
         this.progressTreatmentAssignments(utilizedStaffIds, utilizedRoomIds);
         this.applyPatientPatience();
@@ -2054,7 +2075,7 @@ export class DeterministicSimulation {
             maxHealth,
             position: { x: resolvedPosition.x, y: resolvedPosition.y },
             admittedTick: this.clock.now(),
-            status: "queued",
+            status: this.hasActiveReceptionist() ? "awaiting-reception" : "queued",
             movement: null,
             assignedStaffId: null,
             assignedRoomId: null,
@@ -2068,7 +2089,12 @@ export class DeterministicSimulation {
             epidemicOutbreakId: Number.isInteger(options.epidemicOutbreakId) ? options.epidemicOutbreakId : null,
             insuranceContractId: Number.isInteger(options.insuranceContractId) ? options.insuranceContractId : null
         });
-        this.diagnosisQueue.push(patientId);
+        if (this.hasActiveReceptionist()) {
+            this.receptionQueue.push(patientId);
+        }
+        else {
+            this.diagnosisQueue.push(patientId);
+        }
         this.nextEntityId += 1;
         this.totalAdmissions += 1;
         return patientId;
@@ -2873,6 +2899,26 @@ export class DeterministicSimulation {
             }
         }
     }
+    startReceptionAssignments() {
+        const availableStaffIds = this.availableStaffIds("receptionist", this.receptionAssignments);
+        for (const staffId of availableStaffIds) {
+            const patient = this.dequeuePatientForStage(this.receptionQueue, "awaiting-reception");
+            if (!patient) {
+                return;
+            }
+            const staff = this.getStaffById(staffId);
+            if (!staff) {
+                this.receptionQueue.unshift(patient.id);
+                return;
+            }
+            const assignment = this.createReceptionAssignment(patient, staff);
+            if (!assignment) {
+                this.receptionQueue.unshift(patient.id);
+                return;
+            }
+            this.receptionAssignments.push(assignment);
+        }
+    }
     startTreatmentAssignments() {
         while (true) {
             const availableRoomIds = this.availableTreatmentRoomIds(this.treatmentAssignments)
@@ -2923,6 +2969,21 @@ export class DeterministicSimulation {
             staffId,
             roomId,
             remainingTicks
+        };
+    }
+    createReceptionAssignment(patient, staff) {
+        const movement = this.createPatientMovement(patient.position, patient.position, "reception");
+        if (!movement) {
+            return null;
+        }
+        patient.assignedStaffId = staff.id;
+        patient.assignedRoomId = null;
+        patient.movement = movement.path.length > 1 ? movement : null;
+        patient.status = movement.path.length > 1 ? "walking-to-reception" : "reception";
+        return {
+            patientId: patient.id,
+            staffId: staff.id,
+            remainingTicks: 2
         };
     }
     diagnosisTicksForStaff(severity, staffId) {
@@ -3006,8 +3067,38 @@ export class DeterministicSimulation {
             }
             const stage = patient.movement.stage;
             patient.movement = null;
-            patient.status = stage === "diagnosis" ? "diagnosing" : "treating";
+            patient.status = stage === "reception" ? "reception" : stage === "diagnosis" ? "diagnosing" : "treating";
         }
+    }
+    progressReceptionAssignments(utilizedStaffIds) {
+        const activeAssignments = [];
+        for (const assignment of this.receptionAssignments) {
+            const patient = this.getPatientById(assignment.patientId);
+            if (!patient) {
+                continue;
+            }
+            if (patient.status === "walking-to-reception") {
+                activeAssignments.push(assignment);
+                continue;
+            }
+            if (!this.isReceptionAssignmentOperational(assignment)) {
+                activeAssignments.push(assignment);
+                continue;
+            }
+            utilizedStaffIds.add(assignment.staffId);
+            assignment.remainingTicks -= 1;
+            if (assignment.remainingTicks > 0) {
+                activeAssignments.push(assignment);
+                continue;
+            }
+            patient.status = "queued";
+            patient.movement = null;
+            patient.assignedStaffId = null;
+            patient.assignedRoomId = null;
+            this.emitEvent("patient-reception-complete", String(patient.id));
+            this.diagnosisQueue.push(patient.id);
+        }
+        this.receptionAssignments = activeAssignments;
     }
     progressDiagnosisAssignments(utilizedStaffIds, utilizedRoomIds) {
         const activeAssignments = [];
@@ -3188,8 +3279,6 @@ export class DeterministicSimulation {
         if (!patient) {
             return false;
         }
-        removeFromQueue(this.diagnosisQueue, patientId);
-        removeFromQueue(this.treatmentQueue, patientId);
         this.removeAssignmentsForPatient(patientId);
         this.waitingPatients.splice(patientIndex, 1);
         this.totalPatientDeaths += 1;
@@ -3226,7 +3315,7 @@ export class DeterministicSimulation {
             return;
         }
         const walkoutPatientIds = this.waitingPatients
-            .filter((patient) => (patient.status === "queued" || patient.status === "awaiting-treatment") && this.clock.now() - patient.admittedTick >= leaveMaxTicks)
+            .filter((patient) => (patient.status === "awaiting-reception" || patient.status === "queued" || patient.status === "awaiting-treatment") && this.clock.now() - patient.admittedTick >= leaveMaxTicks)
             .map((patient) => patient.id);
         for (const patientId of walkoutPatientIds) {
             this.removeImpatientPatient(patientId);
@@ -3241,8 +3330,6 @@ export class DeterministicSimulation {
         if (!patient) {
             return false;
         }
-        removeFromQueue(this.diagnosisQueue, patientId);
-        removeFromQueue(this.treatmentQueue, patientId);
         this.removeAssignmentsForPatient(patientId);
         this.waitingPatients.splice(patientIndex, 1);
         this.totalPatientWalkouts += 1;
@@ -3286,8 +3373,6 @@ export class DeterministicSimulation {
         if (!patient) {
             return false;
         }
-        removeFromQueue(this.diagnosisQueue, patient.id);
-        removeFromQueue(this.treatmentQueue, patient.id);
         this.removeAssignmentsForPatient(patient.id);
         this.waitingPatients.splice(patientIndex, 1);
         this.totalPatientAbductions += 1;
@@ -3390,6 +3475,8 @@ export class DeterministicSimulation {
             this.treatmentQueue[0] ??
             this.diagnosisAssignments[0]?.patientId ??
             this.diagnosisQueue[0] ??
+            this.receptionAssignments[0]?.patientId ??
+            this.receptionQueue[0] ??
             null;
         if (candidate === null || candidate === undefined) {
             return false;
@@ -3397,8 +3484,6 @@ export class DeterministicSimulation {
         if (!this.getPatientById(candidate)) {
             return false;
         }
-        removeFromQueue(this.treatmentQueue, candidate);
-        removeFromQueue(this.diagnosisQueue, candidate);
         this.removeAssignmentsForPatient(candidate);
         return this.dischargePatientById(candidate);
     }
@@ -3561,6 +3646,13 @@ export class DeterministicSimulation {
         const role = roomType === "diagnosis" ? "diagnostician" : "nurse";
         return this.staff.some((member) => member.role === role && member.status === "active") ? 0 : 1;
     }
+    hasActiveReceptionist() {
+        return this.staff.some((member) => member.role === "receptionist" && member.status === "active");
+    }
+    isReceptionAssignmentOperational(assignment) {
+        const staff = this.getStaffById(assignment.staffId);
+        return Boolean(staff && staff.role === "receptionist" && staff.status === "active");
+    }
     isAssignmentOperational(assignment, staffRole, roomType) {
         const staff = this.getStaffById(assignment.staffId);
         const room = this.getRoomById(assignment.roomId);
@@ -3573,18 +3665,27 @@ export class DeterministicSimulation {
         return Boolean(staff && room && staff.role === "diagnostician" && staff.status === "active" && staff.specialties?.includes("surgeon") && room.roomType === "specialist" && room.status === "open");
     }
     removeAssignmentsForPatient(patientId) {
+        removeFromQueue(this.receptionQueue, patientId);
+        removeFromQueue(this.diagnosisQueue, patientId);
+        removeFromQueue(this.treatmentQueue, patientId);
+        this.receptionAssignments = this.receptionAssignments.filter((assignment) => assignment.patientId !== patientId);
         this.diagnosisAssignments = this.diagnosisAssignments.filter((assignment) => assignment.patientId !== patientId);
         this.treatmentAssignments = this.treatmentAssignments.filter((assignment) => assignment.patientId !== patientId);
     }
     cancelAssignmentsForStaff(staffId) {
+        const receptionAssignments = this.receptionAssignments.filter((assignment) => assignment.staffId === staffId);
         const diagnosisAssignments = this.diagnosisAssignments.filter((assignment) => assignment.staffId === staffId);
         const treatmentAssignments = this.treatmentAssignments.filter((assignment) => assignment.staffId === staffId);
+        for (const assignment of receptionAssignments) {
+            this.cancelAssignment(assignment, "reception");
+        }
         for (const assignment of diagnosisAssignments) {
             this.cancelAssignment(assignment, "diagnosis");
         }
         for (const assignment of treatmentAssignments) {
             this.cancelAssignment(assignment, "treatment");
         }
+        this.receptionAssignments = this.receptionAssignments.filter((assignment) => assignment.staffId !== staffId);
         this.diagnosisAssignments = this.diagnosisAssignments.filter((assignment) => assignment.staffId !== staffId);
         this.treatmentAssignments = this.treatmentAssignments.filter((assignment) => assignment.staffId !== staffId);
     }
@@ -3608,6 +3709,11 @@ export class DeterministicSimulation {
         patient.movement = null;
         patient.assignedStaffId = null;
         patient.assignedRoomId = null;
+        if (stage === "reception") {
+            patient.status = "awaiting-reception";
+            this.enqueueUnique(this.receptionQueue, patient.id);
+            return;
+        }
         if (stage === "diagnosis") {
             patient.status = "queued";
             this.enqueueUnique(this.diagnosisQueue, patient.id);
@@ -3636,7 +3742,7 @@ export class DeterministicSimulation {
         }
     }
     applyQueuePressure() {
-        const pressure = this.waitingPatients.filter((patient) => patient.status === "queued" || patient.status === "awaiting-treatment").length;
+        const pressure = this.waitingPatients.filter((patient) => patient.status === "awaiting-reception" || patient.status === "queued" || patient.status === "awaiting-treatment").length;
         const nextStatus = pressure >= QUEUE_PRESSURE_HIGH_THRESHOLD ? "high" : "normal";
         if (nextStatus !== this.queuePressureStatus) {
             this.queuePressureStatus = nextStatus;
