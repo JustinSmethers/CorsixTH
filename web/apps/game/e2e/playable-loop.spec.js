@@ -109,6 +109,17 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("cash")).toContainText("Cash:");
   await expect(page.getByTestId("reputation")).toContainText("Reputation:");
 
+  await page.getByTestId("speed-select").selectOption("4");
+  await expect(page.getByTestId("speed-status")).toHaveText("Speed: 4x");
+  await page.getByTestId("admission-policy").selectOption("aggressive");
+  await expect(page.getByTestId("admission-policy-status")).toHaveText(
+    "Admission policy: aggressive",
+  );
+  await page.getByTestId("pricing-policy").selectOption("premium");
+  await expect(page.getByTestId("pricing-policy-status")).toHaveText(
+    "Pricing: premium, cash 135%, reputation -3/cure",
+  );
+
   const restoredSummary =
     (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
   const restoredObjective =
@@ -118,11 +129,27 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("reputation").textContent()) ?? "";
   const restoredDischarged =
     (await page.getByTestId("discharged").textContent()) ?? "";
+  const restoredPaused = (await page.getByTestId("paused").textContent()) ?? "";
+  const restoredSpeed =
+    (await page.getByTestId("speed-status").textContent()) ?? "";
+  const restoredAdmissionPolicy =
+    await page.getByTestId("admission-policy").inputValue();
+  const restoredAdmissionPolicyStatus =
+    (await page.getByTestId("admission-policy-status").textContent()) ?? "";
+  const restoredPricingPolicy =
+    await page.getByTestId("pricing-policy").inputValue();
+  const restoredPricingPolicyStatus =
+    (await page.getByTestId("pricing-policy-status").textContent()) ?? "";
+  const restoredStateHash =
+    (await page.getByTestId("hash").textContent()) ?? "";
   const saveSlot = `playable-loop-${Date.now()}`;
   await page.getByTestId("save-slot-name").fill(saveSlot);
   await page.getByTestId("save-game").click();
   await expect(page.getByTestId("save-status")).toContainText(`(${saveSlot})`);
 
+  await page.getByTestId("speed-select").selectOption("1");
+  await page.getByTestId("admission-policy").selectOption("conservative");
+  await page.getByTestId("pricing-policy").selectOption("discount");
   const extraNursePosition = await placeOnFirstValidTile(page, "hire-nurse");
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "staff 5",
@@ -179,6 +206,21 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("reputation")).toHaveText(restoredReputation);
   await expect(page.getByTestId("discharged")).toHaveText(restoredDischarged);
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
+  await expect(page.getByTestId("paused")).toHaveText(restoredPaused);
+  await expect(page.getByTestId("speed-status")).toHaveText(restoredSpeed);
+  await expect(page.getByTestId("admission-policy")).toHaveValue(
+    restoredAdmissionPolicy,
+  );
+  await expect(page.getByTestId("admission-policy-status")).toHaveText(
+    restoredAdmissionPolicyStatus,
+  );
+  await expect(page.getByTestId("pricing-policy")).toHaveValue(
+    restoredPricingPolicy,
+  );
+  await expect(page.getByTestId("pricing-policy-status")).toHaveText(
+    restoredPricingPolicyStatus,
+  );
+  await expect(page.getByTestId("hash")).toHaveText(restoredStateHash);
 
   await admitDiagnoseAndTreatOne(page, 3);
   await expect(page.getByTestId("level-objective-status")).toHaveText(
