@@ -1,4 +1,13 @@
 {
+	"scripts": {
+		"web:dev": "npm --prefix web run dev",
+		"web:build": "npm --prefix web run build",
+		"web:serve": "npm --prefix web run serve",
+		"web:check": "npm --prefix web run check",
+		"web:test:e2e": "npm --prefix web run test:e2e",
+		"web:test:e2e:preview": "npm --prefix web run test:e2e:preview",
+		"web:inspect:game-data": "npm --prefix web run inspect:game-data"
+	},
 	"devDependencies": {
 		"vite": "^7.3.1",
 		"typescript": "^5.9.3",

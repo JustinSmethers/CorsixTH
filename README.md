@@ -25,6 +25,21 @@ You will need the following:
 
  Head over to our [getting started](https://github.com/CorsixTH/CorsixTH/wiki/Getting-Started) page for more detail.
 
+## Browser Runtime ##
+
+This branch also contains an incremental browser-playable runtime under [`web/`](web/README.md). It is separate from the existing native CMake/C++/Lua build and does not replace the desktop release path.
+
+From the repository root:
+
+```sh
+npm run web:dev
+npm run web:build
+npm run web:serve
+npm run web:test:e2e:preview
+```
+
+See [`web/README.md`](web/README.md) for asset import layouts, storage notes, current browser limitations, and the full validation command matrix.
+
 ### What's Working? ###
 Most features of the game are available -- and we're at a state where you can complete the full campaign without issue.
 ##### Original Features #####
