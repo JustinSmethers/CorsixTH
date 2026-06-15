@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite apps/game --config vite.config.js --host 127.0.0.1",
     "build": "vite build apps/game --config vite.config.js",
+    "serve": "vite preview apps/game --config vite.config.js --host 127.0.0.1 --port 4173",
     "check": "vitest run --config vitest.config.js && vite build apps/game --config vite.config.js",
     "test": "vitest run --config vitest.config.js",
     "test:unit": "vitest run --config vitest.config.js",
