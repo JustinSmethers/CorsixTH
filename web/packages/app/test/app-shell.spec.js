@@ -689,6 +689,12 @@ describe("app shell campaign objectives", () => {
         expect(canToggleTreatmentRoomFromState({ entities: { rooms: [{ id: 4, roomType: "diagnosis" }] } })).toBe(false);
         expect(canToggleStaffBreakFromState({ entities: { staff: [] } }, { id: 9, role: "handyman" })).toBe(true);
         expect(canToggleTreatmentRoomFromState({ entities: { rooms: [] } }, { id: 8, roomType: "pharmacy" })).toBe(true);
+        expect(canToggleStaffBreakFromState(state, null, {
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canToggleTreatmentRoomFromState(state, null, {
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
     });
     it("blocks pristine or unaffordable selected-room repairs before dispatch", () => {
         expect(canRepairRoomFromTelemetry({
@@ -706,6 +712,14 @@ describe("app shell campaign objectives", () => {
             wear: 2,
             maintenanceRemainingTicks: 1
         }, { cash: 10 })).toBe(false);
+        expect(canRepairRoomFromTelemetry({
+            roomType: "diagnosis",
+            wear: 2,
+            maintenanceRemainingTicks: 0
+        }, {
+            cash: 1_000,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
     });
     it("blocks unavailable selected-staff rest and training before dispatch", () => {
         expect(canRestStaffFromTelemetry({
@@ -722,6 +736,13 @@ describe("app shell campaign objectives", () => {
             status: "on-break",
             trainingRemainingTicks: 1,
             stress: 4
+        })).toBe(false);
+        expect(canRestStaffFromTelemetry({
+            status: "on-break",
+            trainingRemainingTicks: 0,
+            stress: 4
+        }, {
+            levelObjectiveStatus: "lost"
         })).toBe(false);
         expect(canTrainStaffFromTelemetry({
             trainingRemainingTicks: 0,
@@ -755,6 +776,15 @@ describe("app shell campaign objectives", () => {
             staffTrainingCost: 400,
             cash: 100
         })).toBe(false);
+        expect(canTrainStaffFromTelemetry({
+            trainingRemainingTicks: 0,
+            skillLevel: 1
+        }, {
+            maxStaffSkillLevel: 3,
+            staffTrainingCost: 400,
+            cash: 500,
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
     });
     it("blocks selected-patient prioritization outside queueable states", () => {
         expect(canPrioritizePatient({
@@ -783,8 +813,14 @@ describe("app shell campaign objectives", () => {
         ]);
         expect(canFireStaff({ id: 3 })).toBe(true);
         expect(canFireStaff(null)).toBe(false);
+        expect(canFireStaff({ id: 3 }, {
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
         expect(canSellRoom({ id: 4 })).toBe(true);
         expect(canSellRoom(null)).toBe(false);
+        expect(canSellRoom({ id: 4 }, {
+            levelObjectiveStatus: "lost"
+        })).toBe(false);
     });
     it("blocks scheduled emergency controls outside the active scenario window", () => {
         expect(canStartEmergencyFromTelemetry({

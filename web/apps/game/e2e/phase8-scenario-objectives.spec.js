@@ -152,6 +152,24 @@ async function selectVisibleStaff(page, expectedSelection) {
     throw new Error(`Unable to select visible staff: ${expectedSelection}`);
 }
 
+async function selectVisibleRoom(page, expectedSelection) {
+    const canvas = page.getByTestId("hospital-map-canvas");
+    for (let index = 0; index < 16; index += 1) {
+        await page.getByTestId("hospital-camera-west").click();
+        await page.getByTestId("hospital-camera-north").click();
+    }
+    for (const y of [32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240, 256, 272]) {
+        for (const x of [128, 160, 192, 224, 256, 288, 320, 352, 384, 416, 448, 480, 512, 544, 576, 608]) {
+            await canvas.click({ position: { x, y } });
+            const selection = (await page.getByTestId("selection-status").textContent()) ?? "";
+            if (selection.includes(expectedSelection)) {
+                return;
+            }
+        }
+    }
+    throw new Error(`Unable to select visible room: ${expectedSelection}`);
+}
+
 async function savedCommandLog(page, slotName) {
     const uniqueSlotName = await saveGameToUniqueSlot(page, slotName);
     return readSavedCommandLog(page, uniqueSlotName);
@@ -994,6 +1012,12 @@ test("phase 8 scenario import: custom objective criteria change browser win and 
     await expect(page.getByTestId("build-diagnosis-room")).toBeDisabled();
     await expect(page.getByTestId("hire-receptionist")).toBeDisabled();
     await expect(page.getByTestId("restart-level")).toBeEnabled();
+    await selectVisibleRoom(page, "Selection: GP's Office room");
+    await expect(page.getByTestId("sell-selected-room")).toBeDisabled();
+    await expect(page.getByTestId("treatment-room-toggle")).toBeDisabled();
+    await selectVisibleStaff(page, "Selection: Nurse");
+    await expect(page.getByTestId("fire-selected-staff")).toBeDisabled();
+    await expect(page.getByTestId("staff-break-toggle")).toBeDisabled();
 });
 
 test("phase 8 scenario import: objectives without cures do not invent browser discharges", async ({ page }) => {
