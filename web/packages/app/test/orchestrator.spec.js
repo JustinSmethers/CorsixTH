@@ -3639,6 +3639,8 @@ describe("app orchestrator", () => {
             levelObjectiveReason: "bankruptcy"
         });
         const before = lost.getState();
+        expect(lost.dispatch({ device: "ui", action: "admissions-toggle", source: "ui:admissions-toggle" })).toEqual(["admissions.blocked"]);
+        expect(lost.dispatch({ device: "ui", action: "admission-policy-set", admissionPolicy: "aggressive", source: "ui:admission-policy" })).toEqual(["admission-policy.blocked"]);
         expect(lost.dispatch({ device: "ui", action: "take-loan", source: "ui:take-loan" })).toEqual(["loan.take-blocked"]);
         expect(lost.dispatch({ device: "ui", action: "build-room", roomType: "diagnosis", pointer: { x: 8, y: 56 }, source: "ui:build-diagnosis-room" })).toEqual(["room.build-blocked"]);
         expect(lost.dispatch({ device: "ui", action: "hire-staff", role: "nurse", pointer: { x: 48, y: 64 }, source: "ui:hire-nurse" })).toEqual(["staff.hire-blocked"]);
@@ -3654,6 +3656,7 @@ describe("app orchestrator", () => {
         expect(after.patientsWaiting).toBe(before.patientsWaiting);
         expect(lost.telemetry()).toMatchObject({
             paused: true,
+            admissionPolicy: "standard",
             levelObjectiveStatus: "lost",
             levelObjectiveReason: "bankruptcy"
         });

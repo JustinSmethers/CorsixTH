@@ -536,6 +536,12 @@ describe("app shell campaign objectives", () => {
             roomAvailabilityStatus: "unrestricted",
             scenarioRoomCostOverrides: { diagnosis: 2_280 }
         })).toBe(false);
+        expect(canBuildRoomFromTelemetry("diagnosis", {
+            cash: 2_500,
+            levelObjectiveStatus: "won",
+            roomAvailabilityStatus: "unrestricted",
+            scenarioRoomCostOverrides: { diagnosis: 2_280 }
+        })).toBe(false);
     });
     it("uses imported staff role names and scenario wages in hire labels", () => {
         expect(["diagnostician", "nurse", "handyman", "receptionist"].map((role) => formatHireStaffButtonLabel(role).replace(/\s+\(\d+, wage \d+\)$/, ""))).toEqual([
@@ -568,6 +574,11 @@ describe("app shell campaign objectives", () => {
             levelObjectiveStatus: "lost",
             staffMarketReceptionistsAvailable: 1
         })).toBe(false);
+        expect(canHireStaffFromTelemetry("receptionist", {
+            cash: 500,
+            levelObjectiveStatus: "won",
+            staffMarketReceptionistsAvailable: 1
+        })).toBe(false);
     });
     it("blocks unavailable finance and campaign controls before dispatch", () => {
         expect(formatFinanceActionButtonLabel("take-loan")).toBe("Take Loan");
@@ -594,6 +605,11 @@ describe("app shell campaign objectives", () => {
             outstandingLoan: 0,
             loanMaxOutstanding: 6_000,
             levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canTakeLoanFromTelemetry({
+            outstandingLoan: 0,
+            loanMaxOutstanding: 6_000,
+            levelObjectiveStatus: "won"
         })).toBe(false);
         expect(canRepayLoanFromTelemetry({
             outstandingLoan: 1_000,
@@ -680,6 +696,14 @@ describe("app shell campaign objectives", () => {
             cash: 1_000,
             levelObjectiveStatus: "lost"
         })).toBe(false);
+        expect(canStartResearchFromTelemetry({
+            treatmentResearchActive: false,
+            treatmentResearchLevel: 1,
+            treatmentResearchMaxLevel: 3,
+            treatmentResearchProjectCost: 1_000,
+            cash: 1_000,
+            levelObjectiveStatus: "won"
+        })).toBe(false);
     });
     it("blocks unavailable level navigation controls before dispatch", () => {
         const view = {
@@ -729,6 +753,12 @@ describe("app shell campaign objectives", () => {
         })).toBe(false);
         expect(canToggleTreatmentRoomFromState(state, null, {
             levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canToggleStaffBreakFromState(state, null, {
+            levelObjectiveStatus: "won"
+        })).toBe(false);
+        expect(canToggleTreatmentRoomFromState(state, null, {
+            levelObjectiveStatus: "won"
         })).toBe(false);
     });
     it("blocks pristine or unaffordable selected-room repairs before dispatch", () => {
@@ -851,10 +881,16 @@ describe("app shell campaign objectives", () => {
         expect(canFireStaff({ id: 3 }, {
             levelObjectiveStatus: "lost"
         })).toBe(false);
+        expect(canFireStaff({ id: 3 }, {
+            levelObjectiveStatus: "won"
+        })).toBe(false);
         expect(canSellRoom({ id: 4 })).toBe(true);
         expect(canSellRoom(null)).toBe(false);
         expect(canSellRoom({ id: 4 }, {
             levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canSellRoom({ id: 4 }, {
+            levelObjectiveStatus: "won"
         })).toBe(false);
     });
     it("blocks scheduled emergency controls outside the active scenario window", () => {
@@ -882,6 +918,11 @@ describe("app shell campaign objectives", () => {
             emergencyActive: false,
             scenarioEmergencyScheduleSize: 0,
             levelObjectiveStatus: "lost"
+        })).toBe(false);
+        expect(canStartEmergencyFromTelemetry({
+            emergencyActive: false,
+            scenarioEmergencyScheduleSize: 0,
+            levelObjectiveStatus: "won"
         })).toBe(false);
     });
     it("blocks award ceremonies until imported award criteria are met", () => {
@@ -1006,6 +1047,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("app.step")).toBe("Action: step");
         expect(formatActionStatus("admissions.opened")).toBe("Action: admissions open");
         expect(formatActionStatus("admissions.closed")).toBe("Action: admissions closed");
+        expect(formatActionStatus("admissions.blocked")).toBe("Action: admissions blocked");
         expect(formatActionStatus("speed.changed")).toBe("Action: speed changed");
         expect(formatActionStatus("cancel-action-blocked")).toBe("Action: cancel blocked");
         expect(formatActionStatus("camera.unavailable")).toBe("Action: camera unavailable");
@@ -1015,6 +1057,7 @@ describe("app shell campaign objectives", () => {
         expect(formatActionStatus("transparent-walls.unavailable")).toBe("Action: transparent walls unavailable");
         expect(formatActionStatus("zoom.unavailable")).toBe("Action: zoom unavailable");
         expect(formatActionStatus("admission-policy.changed")).toBe("Action: admission policy changed");
+        expect(formatActionStatus("admission-policy.blocked")).toBe("Action: admission policy blocked");
         expect(formatActionStatus("pricing-policy.changed")).toBe("Action: pricing policy changed");
         expect(formatActionStatus("pricing-policy.unchanged")).toBe("Action: pricing policy unchanged");
         expect(formatActionStatus("loan.taken")).toBe("Action: loan taken");

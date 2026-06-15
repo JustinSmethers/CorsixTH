@@ -184,6 +184,15 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("level-objective-status")).toHaveText(
     "Level status: won",
   );
+  await expect(page.getByTestId("admit")).toBeDisabled();
+  await expect(page.getByTestId("treat")).toBeDisabled();
+  await expect(page.getByTestId("build-diagnosis-room")).toBeDisabled();
+  await expect(page.getByTestId("hire-receptionist")).toBeDisabled();
+  await expect(page.getByTestId("take-loan")).toBeDisabled();
+  await expect(page.getByTestId("start-research")).toBeDisabled();
+  await expect(page.getByTestId("admissions-toggle")).toBeDisabled();
+  await expect(page.getByTestId("admission-policy")).toBeDisabled();
+  await expect(page.getByTestId("pricing-policy")).toBeDisabled();
   await expect(page.getByTestId("next-level")).toBeEnabled();
   await page.getByTestId("next-level").click();
   await expect(page.getByTestId("save-status")).toHaveText(

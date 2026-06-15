@@ -25,6 +25,8 @@ const BASE_AVAILABLE_ROOM_TYPES = ["diagnosis", "treatment"];
 const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman", "receptionist"];
 const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
+    ["admissions-toggle", ["admissions.blocked"]],
+    ["admission-policy-set", ["admission-policy.blocked"]],
     ["pricing-policy-set", ["pricing-policy.unchanged"]],
     ["take-loan", ["loan.take-blocked"]],
     ["repay-loan", ["loan.repay-blocked"]],
@@ -2012,21 +2014,21 @@ export class AppOrchestrator {
             this.paused = !this.paused;
             return [this.paused ? "app.paused" : "app.resumed"];
         }
-        if (action.action === "admissions-toggle") {
-            this.admissionsOpen = !this.admissionsOpen;
-            return [this.admissionsOpen ? "admissions.opened" : "admissions.closed"];
-        }
         if (action.action === "speed-set") {
             this.speedMultiplier = normalizeSpeedMultiplier(action.speedMultiplier);
             return ["speed.changed"];
         }
-        if (action.action === "admission-policy-set") {
-            this.admissionPolicy = normalizeAdmissionPolicy(action.admissionPolicy);
-            return ["admission-policy.changed"];
-        }
         if (this.isLostLevel()) {
             const blockedEvents = LOST_LEVEL_DISPATCH_BLOCK_EVENTS.get(action.action);
             return blockedEvents ? [...blockedEvents] : ["patient.admit-blocked"];
+        }
+        if (action.action === "admissions-toggle") {
+            this.admissionsOpen = !this.admissionsOpen;
+            return [this.admissionsOpen ? "admissions.opened" : "admissions.closed"];
+        }
+        if (action.action === "admission-policy-set") {
+            this.admissionPolicy = normalizeAdmissionPolicy(action.admissionPolicy);
+            return ["admission-policy.changed"];
         }
         if (action.action === "pricing-policy-set") {
             const pricingPolicyBefore = this.simulation.getState().economy.treatmentPricingPolicy;

@@ -70,6 +70,7 @@ const ACTION_STATUS_LABELS = {
     "app.step": "Action: step",
     "admissions.opened": "Action: admissions open",
     "admissions.closed": "Action: admissions closed",
+    "admissions.blocked": "Action: admissions blocked",
     "speed.changed": "Action: speed changed",
     "cancel-action-blocked": "Action: cancel blocked",
     "confirm-action-blocked": "Action: confirm blocked",
@@ -79,6 +80,7 @@ const ACTION_STATUS_LABELS = {
     "transparent-walls.unavailable": "Action: transparent walls unavailable",
     "zoom.unavailable": "Action: zoom unavailable",
     "admission-policy.changed": "Action: admission policy changed",
+    "admission-policy.blocked": "Action: admission policy blocked",
     "pricing-policy.changed": "Action: pricing policy changed",
     "pricing-policy.unchanged": "Action: pricing policy unchanged",
     "loan.taken": "Action: loan taken",
@@ -249,6 +251,9 @@ function renderTelemetry(elements, orchestrator, audioMixer, languageSummary = n
     elements.treatmentRoomToggleButton.textContent = formatTreatmentRoomToggleLabel(telemetry);
     elements.muteToggleButton.textContent = formatMuteToggleLabel(audioStatus);
     elements.volumeSlider.value = String(Math.round(audioStatus.volume * 100));
+    elements.admissionsToggleButton.disabled = isTerminalLevelTelemetry(telemetry);
+    elements.admissionPolicySelect.disabled = isTerminalLevelTelemetry(telemetry);
+    elements.pricingPolicySelect.disabled = isTerminalLevelTelemetry(telemetry);
     elements.takeLoanButton.disabled = !canTakeLoanFromTelemetry(telemetry);
     elements.repayLoanButton.disabled = !canRepayLoanFromTelemetry(telemetry);
     elements.financeAuditButton.disabled = !canRunFinanceAuditFromTelemetry(telemetry);
@@ -1039,7 +1044,7 @@ export function canBuildRoomFromTelemetry(roomType, telemetry = null) {
     if (!telemetry) {
         return true;
     }
-    if (telemetry.levelObjectiveStatus === "lost") {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     const cost = telemetry.scenarioRoomCostOverrides?.[roomType] ?? roomBuildCost(roomType);
@@ -1067,54 +1072,54 @@ export function canHireStaffFromTelemetry(role, telemetry = null) {
     if (!telemetry) {
         return true;
     }
-    if (telemetry.levelObjectiveStatus === "lost") {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     return telemetry.cash >= staffHireCost(role) && staffMarketRemainingForTelemetryRole(role, telemetry) > 0;
 }
 export function canTakeLoanFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.outstandingLoan < telemetry.loanMaxOutstanding);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && telemetry.outstandingLoan < telemetry.loanMaxOutstanding);
 }
 export function canRepayLoanFromTelemetry(telemetry = null) {
     if (!telemetry) {
         return false;
     }
-    if (isLostLevelTelemetry(telemetry)) {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     return telemetry.outstandingLoan > 0 && telemetry.cash >= Math.min(telemetry.loanChunkAmount, telemetry.outstandingLoan);
 }
 export function canRunFinanceAuditFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.financeLedgerUnlocked && telemetry.financeAuditReady);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && telemetry.financeLedgerUnlocked && telemetry.financeAuditReady);
 }
 export function canRunMarketingCampaignFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.cash >= telemetry.marketingCampaignCost && telemetry.reputation < 1000);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && telemetry.cash >= telemetry.marketingCampaignCost && telemetry.reputation < 1000);
 }
 export function canStartInsuranceContractFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.insuranceContractUnlocked && !telemetry.insuranceContractActive);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && telemetry.insuranceContractUnlocked && !telemetry.insuranceContractActive);
 }
 export function canStartResearchFromTelemetry(telemetry = null) {
     return Boolean(telemetry &&
-        !isLostLevelTelemetry(telemetry) &&
+        !isTerminalLevelTelemetry(telemetry) &&
         !telemetry.treatmentResearchActive &&
         telemetry.treatmentResearchLevel < telemetry.treatmentResearchMaxLevel &&
         telemetry.cash >= telemetry.treatmentResearchProjectCost);
 }
-function isLostLevelTelemetry(telemetry = null) {
-    return telemetry?.levelObjectiveStatus === "lost";
+function isTerminalLevelTelemetry(telemetry = null) {
+    return telemetry?.levelObjectiveStatus === "lost" || telemetry?.levelObjectiveStatus === "won";
 }
 export function canRepairRoomFromTelemetry(room, telemetry = null) {
     if (!room || !telemetry) {
         return false;
     }
-    if (isLostLevelTelemetry(telemetry)) {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     const needsRepair = room.wear > 0 || room.maintenanceRemainingTicks > 0;
     return needsRepair && telemetry.cash >= roomRepairCost(room.roomType);
 }
 export function canRestStaffFromTelemetry(staff = null, telemetry = null) {
-    if (isLostLevelTelemetry(telemetry)) {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     return Boolean(staff && staff.status === "on-break" && staff.trainingRemainingTicks === 0 && staff.stress > 0);
@@ -1123,7 +1128,7 @@ export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
     if (!staff || !telemetry) {
         return false;
     }
-    if (isLostLevelTelemetry(telemetry)) {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     return staff.trainingRemainingTicks === 0 &&
@@ -1131,10 +1136,10 @@ export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
         telemetry.cash >= telemetry.staffTrainingCost;
 }
 export function canFireStaff(staff = null, telemetry = null) {
-    return Boolean(staff && !isLostLevelTelemetry(telemetry));
+    return Boolean(staff && !isTerminalLevelTelemetry(telemetry));
 }
 export function canSellRoom(room = null, telemetry = null) {
-    return Boolean(room && !isLostLevelTelemetry(telemetry));
+    return Boolean(room && !isTerminalLevelTelemetry(telemetry));
 }
 function defaultStaffBreakTargetFromState(state = null) {
     if (!Array.isArray(state?.entities?.staff)) {
@@ -1153,13 +1158,13 @@ function defaultTreatmentRoomToggleTargetFromState(state = null) {
         .sort((left, right) => left.id - right.id)[0] ?? null;
 }
 export function canToggleStaffBreakFromState(state = null, selectedStaff = null, telemetry = null) {
-    if (isLostLevelTelemetry(telemetry)) {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     return Boolean(selectedStaff ?? defaultStaffBreakTargetFromState(state));
 }
 export function canToggleTreatmentRoomFromState(state = null, selectedRoom = null, telemetry = null) {
-    if (isLostLevelTelemetry(telemetry)) {
+    if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
     return Boolean(selectedRoom ?? defaultTreatmentRoomToggleTargetFromState(state));
@@ -1168,7 +1173,7 @@ export function canPrioritizePatient(patient = null) {
     return Boolean(patient && (patient.status === "queued" || patient.status === "awaiting-treatment"));
 }
 export function canStartEmergencyFromTelemetry(telemetry = null) {
-    if (!telemetry || isLostLevelTelemetry(telemetry) || telemetry.emergencyActive) {
+    if (!telemetry || isTerminalLevelTelemetry(telemetry) || telemetry.emergencyActive) {
         return false;
     }
     if ((telemetry.scenarioEmergencyScheduleSize ?? 0) === 0) {
@@ -1177,13 +1182,13 @@ export function canStartEmergencyFromTelemetry(telemetry = null) {
     return telemetry.scenarioEmergencyActiveIndex !== null && telemetry.scenarioEmergencyActiveIndex !== undefined;
 }
 export function canRunAwardsFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && telemetry.scenarioAwardCriteriaMet !== false);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && telemetry.scenarioAwardCriteriaMet !== false);
 }
 export function canStartEpidemicFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && !telemetry.epidemicActive);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && !telemetry.epidemicActive);
 }
 export function canStartVipInspectionFromTelemetry(telemetry = null) {
-    return Boolean(telemetry && !isLostLevelTelemetry(telemetry) && !telemetry.vipInspectionActive);
+    return Boolean(telemetry && !isTerminalLevelTelemetry(telemetry) && !telemetry.vipInspectionActive);
 }
 export function canGiveDrinkToPatient(patient = null, telemetry = null) {
     const drinkHappy = telemetry?.scenarioPatientDrinkHappy;
@@ -3881,8 +3886,8 @@ export function mountAppShell(options) {
         const telemetry = orchestrator.telemetry();
         giveDrinkSelectedPatientButton.disabled = !(resolved?.type === "patient" && canGiveDrinkToPatient(resolved.value, telemetry));
         sendSelectedPatientToiletButton.disabled = !(resolved?.type === "patient" && canSendPatientToilet(resolved.value, telemetry));
-        const levelLost = isLostLevelTelemetry(telemetry);
-        moveSelectedStaffButton.disabled = levelLost || resolved?.type !== "staff";
+        const terminalLevel = isTerminalLevelTelemetry(telemetry);
+        moveSelectedStaffButton.disabled = terminalLevel || resolved?.type !== "staff";
         restSelectedStaffButton.disabled = !(resolved?.type === "staff" && canRestStaffFromTelemetry(resolved.value, telemetry));
         trainSelectedStaffButton.disabled = !(resolved?.type === "staff" && canTrainStaffFromTelemetry(resolved.value, telemetry));
         fireSelectedStaffButton.disabled = !(resolved?.type === "staff" && canFireStaff(resolved.value, telemetry));
@@ -3969,6 +3974,8 @@ export function mountAppShell(options) {
         policyPanelRoutingRulesMetric.textContent = formatRoutingRulesStatus(telemetry);
         policyPanelAdmissionPolicySelect.value = telemetry.admissionPolicy;
         policyPanelPricingPolicySelect.value = telemetry.treatmentPricingPolicy;
+        policyPanelAdmissionPolicySelect.disabled = isTerminalLevelTelemetry(telemetry);
+        policyPanelPricingPolicySelect.disabled = isTerminalLevelTelemetry(telemetry);
         messagePanelAdvisorMetric.textContent = telemetry.advisorStatus;
         messagePanelCountMetric.textContent = formatEventRulesStatus(telemetry);
         messagePanelLastMetric.textContent = formatLastEventStatus(telemetry);
@@ -3987,8 +3994,8 @@ export function mountAppShell(options) {
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
         hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
         hireReceptionistButton.textContent = formatHireStaffButtonLabel("receptionist", telemetry, hospitalView?.languageSummary ?? null);
-        admitButton.disabled = telemetry.levelObjectiveStatus === "lost";
-        treatButton.disabled = telemetry.levelObjectiveStatus === "lost";
+        admitButton.disabled = isTerminalLevelTelemetry(telemetry);
+        treatButton.disabled = isTerminalLevelTelemetry(telemetry);
         buildDiagnosisRoomButton.disabled = !canBuildRoomFromTelemetry("diagnosis", telemetry);
         buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
         buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
@@ -4583,7 +4590,7 @@ export function mountAppShell(options) {
     const onMoveSelectedStaff = () => {
         const telemetry = orchestrator.telemetry();
         const resolved = selectedEntityFromState(orchestrator.getState(), selectedEntity);
-        if (resolved?.type !== "staff" || isLostLevelTelemetry(telemetry)) {
+        if (resolved?.type !== "staff" || isTerminalLevelTelemetry(telemetry)) {
             actionStatus.textContent = formatActionStatus("staff.move-blocked");
             renderRuntime();
             return;
