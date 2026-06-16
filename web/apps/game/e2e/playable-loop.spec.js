@@ -204,6 +204,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("open-treatment-rooms").textContent()) ?? "";
   const restoredFrontDesk =
     (await page.getByTestId("front-desk-status").textContent()) ?? "";
+  const restoredTick = (await page.getByTestId("tick").textContent()) ?? "";
   const restoredStateHash =
     (await page.getByTestId("hash").textContent()) ?? "";
   const saveSlot = `playable-loop-${Date.now()}`;
@@ -272,6 +273,8 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("reception-size")).toContainText(
     "Reception: 1",
   );
+  await page.getByTestId("step").click();
+  await expect(page.getByTestId("tick")).not.toHaveText(restoredTick);
   await page.getByTestId("hospital-camera-east").click();
   await page.getByTestId("hospital-camera-south").click();
   await page.getByTestId("playfield").focus();
@@ -330,6 +333,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("front-desk-status")).toHaveText(
     restoredFrontDesk,
   );
+  await expect(page.getByTestId("tick")).toHaveText(restoredTick);
   await expect(page.getByTestId("hash")).toHaveText(restoredStateHash);
   await page.getByTestId("admissions-toggle").click();
   await expect(page.getByTestId("admissions-status")).toHaveText(
