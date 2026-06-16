@@ -196,6 +196,14 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("admissions-status").textContent()) ?? "";
   const restoredAdmissionsToggle =
     (await page.getByTestId("admissions-toggle").textContent()) ?? "";
+  const restoredActiveStaff =
+    (await page.getByTestId("active-staff").textContent()) ?? "";
+  const restoredOpenDiagnosisRooms =
+    (await page.getByTestId("open-diagnosis-rooms").textContent()) ?? "";
+  const restoredOpenTreatmentRooms =
+    (await page.getByTestId("open-treatment-rooms").textContent()) ?? "";
+  const restoredFrontDesk =
+    (await page.getByTestId("front-desk-status").textContent()) ?? "";
   const restoredStateHash =
     (await page.getByTestId("hash").textContent()) ?? "";
   const saveSlot = `playable-loop-${Date.now()}`;
@@ -227,6 +235,14 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "staff 4",
   );
+  await placeOnFirstValidTile(page, "hire-handyman");
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: staff hired",
+  );
+  await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
+    "staff 5",
+  );
+  await expect(page.getByTestId("active-staff")).toHaveText("Active staff: 5");
   const extraRoomPosition = await placeOnFirstValidTile(
     page,
     "build-treatment-room",
@@ -301,6 +317,18 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("admissions-toggle")).toHaveText(
     restoredAdmissionsToggle,
+  );
+  await expect(page.getByTestId("active-staff")).toHaveText(
+    restoredActiveStaff,
+  );
+  await expect(page.getByTestId("open-diagnosis-rooms")).toHaveText(
+    restoredOpenDiagnosisRooms,
+  );
+  await expect(page.getByTestId("open-treatment-rooms")).toHaveText(
+    restoredOpenTreatmentRooms,
+  );
+  await expect(page.getByTestId("front-desk-status")).toHaveText(
+    restoredFrontDesk,
   );
   await expect(page.getByTestId("hash")).toHaveText(restoredStateHash);
   await page.getByTestId("admissions-toggle").click();
