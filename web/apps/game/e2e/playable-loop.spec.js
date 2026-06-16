@@ -253,6 +253,19 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     `Reputation: ${Math.min(1000, reputationBeforeMarketing + 35)}`,
   );
 
+  await expect(page.getByTestId("vip-inspection-status")).toHaveText(
+    "VIP: ready (8 ticks)",
+  );
+  await expect(page.getByTestId("start-vip-inspection")).toBeEnabled();
+  await page.getByTestId("start-vip-inspection").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: VIP inspection started",
+  );
+  await expect(page.getByTestId("vip-inspection-status")).toHaveText(
+    /^VIP: visit 1 \(8 ticks\), queue 0\/2, rooms \d+$/u,
+  );
+  await expect(page.getByTestId("start-vip-inspection")).toBeDisabled();
+
   const restoredSummary =
     (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
   const restoredObjective =
@@ -280,6 +293,10 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("research-effect").textContent()) ?? "";
   const restoredMarketingCampaign =
     (await page.getByTestId("marketing-campaign").textContent()) ?? "";
+  const restoredVipInspectionStatus =
+    (await page.getByTestId("vip-inspection-status").textContent()) ?? "";
+  const restoredVipInspectionReward =
+    (await page.getByTestId("vip-inspection-reward").textContent()) ?? "";
   const restoredPaused = (await page.getByTestId("paused").textContent()) ?? "";
   const restoredSpeed =
     (await page.getByTestId("speed-status").textContent()) ?? "";
@@ -391,6 +408,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("research-status")).not.toHaveText(
     restoredResearchStatus,
   );
+  await expect(page.getByTestId("vip-inspection-status")).not.toHaveText(
+    restoredVipInspectionStatus,
+  );
   await page.getByTestId("hospital-camera-east").click();
   await page.getByTestId("hospital-camera-south").click();
   await page.getByTestId("playfield").focus();
@@ -434,6 +454,12 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("marketing-campaign")).toHaveText(
     restoredMarketingCampaign,
+  );
+  await expect(page.getByTestId("vip-inspection-status")).toHaveText(
+    restoredVipInspectionStatus,
+  );
+  await expect(page.getByTestId("vip-inspection-reward")).toHaveText(
+    restoredVipInspectionReward,
   );
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("paused")).toHaveText(restoredPaused);
