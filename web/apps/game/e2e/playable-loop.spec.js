@@ -1,6 +1,14 @@
 import { expect, test } from "@playwright/test";
 import { importAssetsAndEnterPlayableShell } from "./helpers/phase8-import";
 
+function parseCash(raw) {
+  const match = raw.match(/^Cash: (-?\d+)/u);
+  if (!match) {
+    throw new Error(`Unable to parse cash from: ${raw}`);
+  }
+  return Number(match[1]);
+}
+
 async function placeOnFirstValidTile(page, buttonTestId) {
   await page.getByTestId(buttonTestId).click();
   const canvas = page.getByTestId("hospital-map-canvas");
@@ -87,6 +95,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Objective: discharge 0/3",
   );
 
+  const initialCash = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
   await placeOnFirstValidTile(page, "build-diagnosis-room");
   await expect(page.getByTestId("action-status")).toHaveText(
     "Action: room built",
@@ -94,6 +105,10 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "rooms 3",
   );
+  const cashAfterDiagnosisRoom = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  expect(cashAfterDiagnosisRoom).toBeLessThan(initialCash);
   await placeOnFirstValidTile(page, "hire-diagnostician");
   await expect(page.getByTestId("action-status")).toHaveText(
     "Action: staff hired",
@@ -111,9 +126,20 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("reception-size")).toHaveText(
     "Reception: 0 waiting, 0 walking, 0 at desk",
   );
+  const cashAfterStaffing = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  expect(cashAfterStaffing).toBeLessThan(cashAfterDiagnosisRoom);
 
   await page.getByTestId("admission-severity").selectOption("1");
+  const cashBeforeFirstTreatment = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
   await admitDiagnoseAndTreatOne(page, 1);
+  const cashAfterFirstTreatment = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  expect(cashAfterFirstTreatment).toBeGreaterThan(cashBeforeFirstTreatment);
   await admitDiagnoseAndTreatOne(page, 2);
   await expect(page.getByTestId("level-objective-progress")).toHaveText(
     "Objective: discharge 2/3",
