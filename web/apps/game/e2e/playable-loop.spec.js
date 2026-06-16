@@ -62,6 +62,15 @@ async function admitDiagnoseAndTreatOne(page, expectedDischarges) {
   await expect(page.getByTestId("casebook-summary")).toContainText(
     /H\d+\/\d+/u,
   );
+  await page.getByTestId("playfield").focus();
+  await page.keyboard.press("KeyC");
+  await expect(page.getByTestId("casebook-panel")).toBeVisible();
+  await expect(page.getByTestId("casebook-panel-summary")).toHaveText(
+    (await page.getByTestId("casebook-summary").textContent()) ?? "",
+  );
+  await expect(page.getByTestId("casebook-panel-row")).toHaveCount(1);
+  await page.getByTestId("casebook-panel-close").click();
+  await expect(page.getByTestId("casebook-panel")).toBeHidden();
   await expect(page.getByTestId("critical-patients")).toHaveText(
     /^Critical patients: \d+, lowest health \d+$/u,
   );
