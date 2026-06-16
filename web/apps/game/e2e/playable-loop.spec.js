@@ -9,6 +9,14 @@ function parseCash(raw) {
   return Number(match[1]);
 }
 
+function parseReputation(raw) {
+  const match = raw.match(/^Reputation: (\d+)/u);
+  if (!match) {
+    throw new Error(`Unable to parse reputation from: ${raw}`);
+  }
+  return Number(match[1]);
+}
+
 async function placeOnFirstValidTile(page, buttonTestId) {
   await page.getByTestId(buttonTestId).click();
   const canvas = page.getByTestId("hospital-map-canvas");
@@ -222,6 +230,29 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("start-research")).toBeDisabled();
 
+  const cashBeforeMarketing = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  const reputationBeforeMarketing = parseReputation(
+    (await page.getByTestId("reputation").textContent()) ?? "",
+  );
+  await expect(page.getByTestId("marketing-campaign")).toHaveText(
+    `Marketing: 600 => +35 reputation (${reputationBeforeMarketing}->${Math.min(
+      1000,
+      reputationBeforeMarketing + 35,
+    )}), ready`,
+  );
+  await page.getByTestId("run-marketing-campaign").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: marketing campaign launched",
+  );
+  await expect(page.getByTestId("cash")).toHaveText(
+    `Cash: ${cashBeforeMarketing - 600}`,
+  );
+  await expect(page.getByTestId("reputation")).toHaveText(
+    `Reputation: ${Math.min(1000, reputationBeforeMarketing + 35)}`,
+  );
+
   const restoredSummary =
     (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
   const restoredObjective =
@@ -247,6 +278,8 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("research-status").textContent()) ?? "";
   const restoredResearchEffect =
     (await page.getByTestId("research-effect").textContent()) ?? "";
+  const restoredMarketingCampaign =
+    (await page.getByTestId("marketing-campaign").textContent()) ?? "";
   const restoredPaused = (await page.getByTestId("paused").textContent()) ?? "";
   const restoredSpeed =
     (await page.getByTestId("speed-status").textContent()) ?? "";
@@ -291,6 +324,13 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("loan-status")).toHaveText(
     "Loan: 0/20000, chunk 5000, available 5000, repay 0",
+  );
+  await page.getByTestId("run-marketing-campaign").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: marketing campaign launched",
+  );
+  await expect(page.getByTestId("marketing-campaign")).not.toHaveText(
+    restoredMarketingCampaign,
   );
   const extraNursePosition = await placeOnFirstValidTile(page, "hire-nurse");
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
@@ -391,6 +431,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("research-effect")).toHaveText(
     restoredResearchEffect,
+  );
+  await expect(page.getByTestId("marketing-campaign")).toHaveText(
+    restoredMarketingCampaign,
   );
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("paused")).toHaveText(restoredPaused);
