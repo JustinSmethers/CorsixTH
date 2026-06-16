@@ -184,6 +184,25 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Close Admissions",
   );
 
+  const cashBeforeLoan = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  await expect(page.getByTestId("loan-status")).toHaveText(
+    "Loan: 0/20000, chunk 5000, available 5000, repay 0",
+  );
+  await expect(page.getByTestId("repay-loan")).toBeDisabled();
+  await page.getByTestId("take-loan").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: loan taken",
+  );
+  await expect(page.getByTestId("cash")).toHaveText(
+    `Cash: ${cashBeforeLoan + 5000}`,
+  );
+  await expect(page.getByTestId("loan-status")).toHaveText(
+    "Loan: 5000/20000, chunk 5000, available 5000, repay 5000",
+  );
+  await expect(page.getByTestId("repay-loan")).toBeEnabled();
+
   const restoredSummary =
     (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
   const restoredObjective =
@@ -242,6 +261,13 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await page.getByTestId("admissions-toggle").click();
   await expect(page.getByTestId("admissions-status")).toHaveText(
     "Admissions: closed",
+  );
+  await page.getByTestId("repay-loan").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: loan repaid",
+  );
+  await expect(page.getByTestId("loan-status")).toHaveText(
+    "Loan: 0/20000, chunk 5000, available 5000, repay 0",
   );
   const extraNursePosition = await placeOnFirstValidTile(page, "hire-nurse");
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
