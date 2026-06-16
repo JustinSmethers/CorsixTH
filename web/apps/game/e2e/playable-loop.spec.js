@@ -105,6 +105,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "rooms 3",
   );
+  await expect(page.getByTestId("open-diagnosis-rooms")).toHaveText(
+    "Open diagnosis rooms: 2",
+  );
   const cashAfterDiagnosisRoom = parseCash(
     (await page.getByTestId("cash").textContent()) ?? "",
   );
@@ -116,6 +119,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "staff 3",
   );
+  await expect(page.getByTestId("active-staff")).toHaveText("Active staff: 3");
   await placeOnFirstValidTile(page, "hire-receptionist");
   await expect(page.getByTestId("action-status")).toHaveText(
     "Action: staff hired",
@@ -126,6 +130,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("reception-size")).toHaveText(
     "Reception: 0 waiting, 0 walking, 0 at desk",
   );
+  await expect(page.getByTestId("active-staff")).toHaveText("Active staff: 4");
   const cashAfterStaffing = parseCash(
     (await page.getByTestId("cash").textContent()) ?? "",
   );
@@ -229,6 +234,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "rooms 4",
   );
+  await expect(page.getByTestId("open-treatment-rooms")).toHaveText(
+    "Open treatment rooms: 2",
+  );
   await page
     .getByTestId("hospital-map-canvas")
     .click({ position: extraRoomPosition });
@@ -239,6 +247,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
     "rooms 3",
+  );
+  await expect(page.getByTestId("open-treatment-rooms")).toHaveText(
+    "Open treatment rooms: 1",
   );
   await page.getByTestId("admit").click();
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 1");
