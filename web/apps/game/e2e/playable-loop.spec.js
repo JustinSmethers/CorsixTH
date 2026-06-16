@@ -51,8 +51,20 @@ async function admitDiagnoseAndTreatOne(page, expectedDischarges) {
     "Reception: 1",
   );
   await stepUntilText(page, "diagnosed-size", "Diagnosed: 1", 192);
+  await expect(page.getByTestId("casebook-summary")).toContainText(
+    /H\d+\/\d+/u,
+  );
+  await expect(page.getByTestId("critical-patients")).toHaveText(
+    /^Critical patients: \d+, lowest health \d+$/u,
+  );
+  await expect(page.getByTestId("patient-mood")).toHaveText(
+    /^Mood: happy \d+, unhappy \d+, very \d+, peep happy \d+%/u,
+  );
   await page.getByTestId("treat").click();
   await stepUntilDischarged(page, expectedDischarges, 16);
+  await expect(page.getByTestId("treatment-failures")).toContainText(
+    "Treatment failures: 0",
+  );
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
 }
 
