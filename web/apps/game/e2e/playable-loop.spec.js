@@ -79,6 +79,9 @@ async function admitDiagnoseAndTreatOne(page, expectedDischarges) {
   );
   await page.getByTestId("treat").click();
   await stepUntilDischarged(page, expectedDischarges, 16);
+  await expect(page.getByTestId("treated")).toHaveText(
+    `Treated: ${expectedDischarges}`,
+  );
   await expect(page.getByTestId("treatment-failures")).toContainText(
     "Treatment failures: 0",
   );
@@ -190,6 +193,8 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("reputation").textContent()) ?? "";
   const restoredDischarged =
     (await page.getByTestId("discharged").textContent()) ?? "";
+  const restoredTreated =
+    (await page.getByTestId("treated").textContent()) ?? "";
   const restoredPaused = (await page.getByTestId("paused").textContent()) ?? "";
   const restoredSpeed =
     (await page.getByTestId("speed-status").textContent()) ?? "";
@@ -309,6 +314,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("cash")).toHaveText(restoredCash);
   await expect(page.getByTestId("reputation")).toHaveText(restoredReputation);
   await expect(page.getByTestId("discharged")).toHaveText(restoredDischarged);
+  await expect(page.getByTestId("treated")).toHaveText(restoredTreated);
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("paused")).toHaveText(restoredPaused);
   await expect(page.getByTestId("speed-status")).toHaveText(restoredSpeed);
