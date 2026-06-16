@@ -139,6 +139,8 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   const cashAfterFirstTreatment = parseCash(
     (await page.getByTestId("cash").textContent()) ?? "",
   );
+  const standardTreatmentCashGain =
+    cashAfterFirstTreatment - cashBeforeFirstTreatment;
   expect(cashAfterFirstTreatment).toBeGreaterThan(cashBeforeFirstTreatment);
   await admitDiagnoseAndTreatOne(page, 2);
   await expect(page.getByTestId("level-objective-progress")).toHaveText(
@@ -295,7 +297,16 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Admissions: closed",
   );
 
+  const cashBeforePremiumTreatment = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
   await admitDiagnoseAndTreatOne(page, 3);
+  const cashAfterPremiumTreatment = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  expect(cashAfterPremiumTreatment - cashBeforePremiumTreatment).toBeGreaterThan(
+    standardTreatmentCashGain,
+  );
   await expect(page.getByTestId("level-objective-status")).toHaveText(
     "Level status: won",
   );
