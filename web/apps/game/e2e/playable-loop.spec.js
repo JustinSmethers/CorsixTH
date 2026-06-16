@@ -203,6 +203,25 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("repay-loan")).toBeEnabled();
 
+  const cashBeforeResearch = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
+  );
+  await expect(page.getByTestId("research-status")).toHaveText(
+    "Research: treatment 0/3, invested 0",
+  );
+  await expect(page.getByTestId("start-research")).toBeEnabled();
+  await page.getByTestId("start-research").click();
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: research started",
+  );
+  await expect(page.getByTestId("cash")).toHaveText(
+    `Cash: ${cashBeforeResearch - 1500}`,
+  );
+  await expect(page.getByTestId("research-status")).toHaveText(
+    "Research: treatment 0/3 (6 ticks), invested 1500",
+  );
+  await expect(page.getByTestId("start-research")).toBeDisabled();
+
   const restoredSummary =
     (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "";
   const restoredObjective =
@@ -224,6 +243,10 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("cashflow-cumulative").textContent()) ?? "";
   const restoredLoanStatus =
     (await page.getByTestId("loan-status").textContent()) ?? "";
+  const restoredResearchStatus =
+    (await page.getByTestId("research-status").textContent()) ?? "";
+  const restoredResearchEffect =
+    (await page.getByTestId("research-effect").textContent()) ?? "";
   const restoredPaused = (await page.getByTestId("paused").textContent()) ?? "";
   const restoredSpeed =
     (await page.getByTestId("speed-status").textContent()) ?? "";
@@ -325,6 +348,9 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await page.getByTestId("step").click();
   await expect(page.getByTestId("tick")).not.toHaveText(restoredTick);
+  await expect(page.getByTestId("research-status")).not.toHaveText(
+    restoredResearchStatus,
+  );
   await page.getByTestId("hospital-camera-east").click();
   await page.getByTestId("hospital-camera-south").click();
   await page.getByTestId("playfield").focus();
@@ -360,6 +386,12 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     restoredCumulativeCashflow,
   );
   await expect(page.getByTestId("loan-status")).toHaveText(restoredLoanStatus);
+  await expect(page.getByTestId("research-status")).toHaveText(
+    restoredResearchStatus,
+  );
+  await expect(page.getByTestId("research-effect")).toHaveText(
+    restoredResearchEffect,
+  );
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("paused")).toHaveText(restoredPaused);
   await expect(page.getByTestId("speed-status")).toHaveText(restoredSpeed);
