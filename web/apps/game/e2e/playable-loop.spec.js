@@ -205,6 +205,16 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("reception-size")).toContainText(
     "Reception: 1",
   );
+  await page.getByTestId("hospital-camera-east").click();
+  await page.getByTestId("hospital-camera-south").click();
+  await page.getByTestId("playfield").focus();
+  await page.keyboard.press("Equal");
+  await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
+    "zoom 150%",
+  );
+  expect(
+    (await page.getByTestId("hospital-canvas-summary").textContent()) ?? "",
+  ).not.toBe(restoredSummary);
 
   await page.getByTestId("save-slot-name").fill(saveSlot);
   await page.getByTestId("load-game").click();
