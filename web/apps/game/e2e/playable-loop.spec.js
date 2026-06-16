@@ -195,6 +195,16 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     (await page.getByTestId("discharged").textContent()) ?? "";
   const restoredTreated =
     (await page.getByTestId("treated").textContent()) ?? "";
+  const restoredDeaths =
+    (await page.getByTestId("patient-deaths").textContent()) ?? "";
+  const restoredObjectiveSafety =
+    (await page.getByTestId("level-objective-safety").textContent()) ?? "";
+  const restoredCashflow =
+    (await page.getByTestId("cashflow-net").textContent()) ?? "";
+  const restoredCumulativeCashflow =
+    (await page.getByTestId("cashflow-cumulative").textContent()) ?? "";
+  const restoredLoanStatus =
+    (await page.getByTestId("loan-status").textContent()) ?? "";
   const restoredPaused = (await page.getByTestId("paused").textContent()) ?? "";
   const restoredSpeed =
     (await page.getByTestId("speed-status").textContent()) ?? "";
@@ -315,6 +325,15 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("reputation")).toHaveText(restoredReputation);
   await expect(page.getByTestId("discharged")).toHaveText(restoredDischarged);
   await expect(page.getByTestId("treated")).toHaveText(restoredTreated);
+  await expect(page.getByTestId("patient-deaths")).toHaveText(restoredDeaths);
+  await expect(page.getByTestId("level-objective-safety")).toHaveText(
+    restoredObjectiveSafety,
+  );
+  await expect(page.getByTestId("cashflow-net")).toHaveText(restoredCashflow);
+  await expect(page.getByTestId("cashflow-cumulative")).toHaveText(
+    restoredCumulativeCashflow,
+  );
+  await expect(page.getByTestId("loan-status")).toHaveText(restoredLoanStatus);
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("paused")).toHaveText(restoredPaused);
   await expect(page.getByTestId("speed-status")).toHaveText(restoredSpeed);
