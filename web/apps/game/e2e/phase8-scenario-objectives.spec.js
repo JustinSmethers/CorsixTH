@@ -2100,8 +2100,9 @@ test("phase 8 scenario import: visuals-available months gate automatic admission
 test("phase 8 scenario import: locked object availability gates automatic disease admissions", async ({ page }) => {
     await importScenarioFixture(page, objectDiseaseGateFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
-    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Inflation Room");
+    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Fracture Clinic");
     await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 1, disabled 0, research 0; available: Cast Remover; locked: Hair Restorer");
+    await expect(page.getByTestId("build-fracture-clinic-room")).toHaveText("Build Fracture Clinic (1500)");
     await page.getByTestId("hire-receptionist").click();
     await page.getByTestId("hospital-map-canvas").click({ position: { x: 416, y: 176 } });
     await page.getByTestId("hire-receptionist").click();
@@ -2126,7 +2127,7 @@ test("phase 8 scenario import: locked object availability gates automatic diseas
     }
 
     await expect(page.getByTestId("tick")).toHaveText("Tick: 77");
-    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Inflation Room");
+    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Fracture Clinic, Inflation Room");
     expect(await savedAdmissionDiseaseIds(page, "object-disease-gate-late")).toContain("baldness");
 });
 
@@ -2144,7 +2145,7 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, DNA Fixer 1");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Fracture Clinic 0, DNA Fixer 1");
 
     await page.getByTestId("hire-diagnostician").click();
     await canvas.click({ position: { x: 432, y: 176 } });

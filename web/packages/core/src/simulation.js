@@ -17,6 +17,7 @@ const ROOM_FOOTPRINTS = {
     treatment: { width: 3, height: 3 },
     pharmacy: { width: 3, height: 3 },
     specialist: { width: 3, height: 3 },
+    "fracture-clinic": { width: 3, height: 3 },
     "dna-fixer": { width: 3, height: 3 }
 };
 const ROOM_TYPES = Object.freeze(Object.keys(ROOM_FOOTPRINTS));

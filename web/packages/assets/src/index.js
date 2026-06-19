@@ -1937,9 +1937,9 @@ const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [18, "specialist"],
     [19, "specialist"],
     [20, "specialist"],
-    [21, "treatment"],
+    [21, "fracture-clinic"],
     [23, "dna-fixer"],
-    [24, "specialist"],
+    [24, "fracture-clinic"],
     [27, "diagnosis"],
     [30, "specialist"]
 ]);
@@ -1981,7 +1981,7 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [14, "diagnosis"],
     [22, "diagnosis"],
     [23, "dna-fixer"],
-    [24, "specialist"],
+    [24, "fracture-clinic"],
     [25, "specialist"],
     [26, "specialist"],
     [27, "diagnosis"],

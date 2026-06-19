@@ -38,7 +38,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(diseaseForSeverity(3, 2)).toMatchObject({ id: "cranial-pressure", name: "Cranial Pressure", severity: 3 });
     });
     it("locks deterministic disease-to-treatment-room mapping and specialty bonuses", () => {
-        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "dna-fixer"]);
+        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "fracture-clinic", "dna-fixer"]);
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("gut-rot")).toBe("pharmacy");
@@ -46,7 +46,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("king-complex")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("spare-ribs")).toBe("specialist");
-        expect(treatmentRoomTypeForDisease("fractured-bones")).toBe("specialist");
+        expect(treatmentRoomTypeForDisease("fractured-bones")).toBe("fracture-clinic");
         expect(treatmentRoomTypeForDisease("corrugated-ankles")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("baldness")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("broken-wind")).toBe("pharmacy");
@@ -167,9 +167,11 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(requiredStaffRoleForRoom("treatment")).toBe("nurse");
         expect(requiredStaffRoleForRoom("pharmacy")).toBe("nurse");
         expect(requiredStaffRoleForRoom("specialist")).toBe("nurse");
+        expect(requiredStaffRoleForRoom("fracture-clinic")).toBe("nurse");
         expect(requiredStaffRoleForRoom("dna-fixer")).toBe("diagnostician");
         expect(requiredStaffSpecialtyForRoom("specialist")).toBe("surgeon");
         expect(requiredStaffSpecialtyForRoom("dna-fixer")).toBe("researcher");
+        expect(requiredStaffSpecialtyForRoom("fracture-clinic")).toBeNull();
         expect(requiredStaffSpecialtyForRoom("pharmacy")).toBeNull();
         expect(DEFAULT_STAFF_BLUEPRINT).toEqual(["diagnostician", "nurse"]);
         expect(DEFAULT_ROOM_BLUEPRINT).toEqual(["diagnosis", "treatment"]);

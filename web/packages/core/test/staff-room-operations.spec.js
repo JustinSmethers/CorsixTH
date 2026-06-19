@@ -511,7 +511,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
     });
-    it("requires disease-specific treatment rooms for pharmacy and specialist diseases", () => {
+    it("requires disease-specific treatment rooms for pharmacy, fracture, and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -534,24 +534,23 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         });
         expect(fallback.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
         const fracture = new DeterministicSimulation(7212, { bounds: { width: 12, height: 12 } });
-        fracture.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
-        fracture.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
-        const specialist = fracture.getState().entities.rooms.find((room) => room.roomType === "specialist");
-        expect(specialist).toBeTruthy();
+        fracture.execute({ type: "open-room", roomType: "fracture-clinic", position: { x: 1, y: 7 } });
+        const fractureClinic = fracture.getState().entities.rooms.find((room) => room.roomType === "fracture-clinic");
+        expect(fractureClinic).toBeTruthy();
         fracture.execute({ type: "admit-patient", severity: 2, diseaseId: "fractured-bones", position: { x: 2, y: 4 } });
         fracture.execute({ type: "tick", count: 4 });
         expect(fracture.getState().entities.waitingPatients[0]).toMatchObject({
             diseaseId: "fractured-bones",
-            preferredTreatmentRoomType: "specialist",
+            preferredTreatmentRoomType: "fracture-clinic",
             status: "walking-to-treatment",
-            assignedRoomId: specialist.id
+            assignedRoomId: fractureClinic.id
         });
         const missingSpecialist = new DeterministicSimulation(7213, { bounds: { width: 12, height: 12 } });
         missingSpecialist.execute({ type: "admit-patient", severity: 2, diseaseId: "fractured-bones", position: { x: 2, y: 4 } });
         missingSpecialist.execute({ type: "tick", count: 5 });
         expect(missingSpecialist.getState().entities.waitingPatients[0]).toMatchObject({
             diseaseId: "fractured-bones",
-            preferredTreatmentRoomType: "specialist",
+            preferredTreatmentRoomType: "fracture-clinic",
             status: "awaiting-treatment"
         });
         expect(missingSpecialist.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();

@@ -177,7 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "fracture-clinic", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -190,7 +190,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "king-complex": "specialist",
     "spare-ribs": "specialist",
     "kidney-beans": "specialist",
-    "fractured-bones": "specialist",
+    "fractured-bones": "fracture-clinic",
     "corrugated-ankles": "specialist",
     "transparency": "specialist",
     "baldness": "specialist",
@@ -223,6 +223,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     treatment: "nurse",
     pharmacy: "nurse",
     specialist: "nurse",
+    "fracture-clinic": "nurse",
     "dna-fixer": "diagnostician"
 };
 const STAFF_SPECIALTY_BY_ROOM_TYPE = {
@@ -240,6 +241,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     treatment: 3,
     pharmacy: 4,
     specialist: 5,
+    "fracture-clinic": 5,
     "dna-fixer": 6
 };
 const STAFF_HIRE_COST_BY_ROLE = {
@@ -253,6 +255,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     treatment: 1000,
     pharmacy: 1200,
     specialist: 1600,
+    "fracture-clinic": 1500,
     "dna-fixer": 1800
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
@@ -260,6 +263,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     treatment: 150,
     pharmacy: 170,
     specialist: 220,
+    "fracture-clinic": 220,
     "dna-fixer": 240
 };
 const STAFF_BURNOUT_TICKS_BY_ROLE = {
@@ -279,6 +283,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     treatment: 8,
     pharmacy: 8,
     specialist: 8,
+    "fracture-clinic": 8,
     "dna-fixer": 8
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
@@ -286,6 +291,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     treatment: 2,
     pharmacy: 2,
     specialist: 3,
+    "fracture-clinic": 3,
     "dna-fixer": 3
 };
 const MAINTENANCE_STAFF_REPAIR_BONUS_TICKS = 1;

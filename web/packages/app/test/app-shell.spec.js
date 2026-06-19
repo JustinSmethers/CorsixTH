@@ -183,8 +183,8 @@ describe("app shell campaign objectives", () => {
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
+            "build-fracture-clinic-room",
             "build-dna-fixer-room",
-            "hire-diagnostician"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -197,10 +197,10 @@ describe("app shell campaign objectives", () => {
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
+            "build-fracture-clinic-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
-            "hire-handyman"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -213,14 +213,14 @@ describe("app shell campaign objectives", () => {
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
+            "build-fracture-clinic-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
             "hire-handyman",
             "hire-receptionist",
             "admit",
-            "treat",
-            "staff-break-toggle"
+            "treat"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -233,6 +233,7 @@ describe("app shell campaign objectives", () => {
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
+            "build-fracture-clinic-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
@@ -240,8 +241,7 @@ describe("app shell campaign objectives", () => {
             "hire-receptionist",
             "admit",
             "treat",
-            "staff-break-toggle",
-            "treatment-room-toggle"
+            "staff-break-toggle"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -254,6 +254,7 @@ describe("app shell campaign objectives", () => {
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
+            "build-fracture-clinic-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
@@ -271,8 +272,7 @@ describe("app shell campaign objectives", () => {
             "open-map",
             "open-staff",
             "open-research",
-            "open-policy",
-            "open-machine-menu"
+            "open-policy"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -285,6 +285,7 @@ describe("app shell campaign objectives", () => {
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
+            "build-fracture-clinic-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
@@ -312,14 +313,13 @@ describe("app shell campaign objectives", () => {
             "start-insurance-contract",
             "run-awards-ceremony",
             "start-emergency-wave",
-            "start-epidemic-outbreak",
-            "start-vip-inspection"
+            "start-epidemic-outbreak"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
                 sprites: Array.from({ length: 46 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
-        }, 740, 40).map((zone) => zone.id).slice(35)).toEqual([
+        }, 740, 40).map((zone) => zone.id).slice(36)).toEqual([
             "save-game",
             "load-game",
             "refresh-save-slots",
@@ -329,8 +329,7 @@ describe("app shell campaign objectives", () => {
             "next-level",
             "hospital-camera-west",
             "hospital-camera-east",
-            "hospital-camera-north",
-            "hospital-camera-south"
+            "hospital-camera-north"
         ]);
     });
     it("uses imported original language names in the patient casebook", () => {
@@ -544,11 +543,12 @@ describe("app shell campaign objectives", () => {
         })).toBe("Room availability: unrestricted");
     });
     it("uses imported room names and scenario costs in build labels", () => {
-        expect(["diagnosis", "treatment", "pharmacy", "specialist", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
+        expect(["diagnosis", "treatment", "pharmacy", "specialist", "fracture-clinic", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
             "Build Diagnosis",
             "Build Treatment",
             "Build Pharmacy",
             "Build Specialist",
+            "Build Fracture Clinic",
             "Build DNA Fixer"
         ]);
         expect(formatBuildRoomButtonLabel("diagnosis", {
@@ -1731,8 +1731,9 @@ describe("app shell campaign objectives", () => {
         expect(formatSpecializedTreatmentRoomsStatus({
             openPharmacyRooms: 1,
             openSpecialistRooms: 2,
+            openFractureClinicRooms: 1,
             openDnaFixerRooms: 3
-        })).toBe("Specialized rooms: pharmacy 1, specialist 2, DNA Fixer 3");
+        })).toBe("Specialized rooms: pharmacy 1, specialist 2, Fracture Clinic 1, DNA Fixer 3");
         expect(formatSpecializedTreatmentQueueStatus({
             awaitingSpecializedTreatmentPatients: 3
         })).toBe("Specialty queue: 3");
@@ -2074,7 +2075,7 @@ describe("app shell campaign objectives", () => {
                 { index: 1, name: "Desk", startAvailable: true, availableForLevel: true },
                 { index: 9, name: "Inflator Machine", roomType: "specialist", startAvailable: true, availableForLevel: true },
                 { index: 13, name: "Cardiogram", roomType: "diagnosis", startAvailable: false, availableForLevel: true },
-                { index: 24, name: "Cast Remover", roomType: "specialist", startAvailable: true, availableForLevel: false }
+                { index: 24, name: "Cast Remover", roomType: "fracture-clinic", startAvailable: true, availableForLevel: false }
             ],
             expertise: [{ category: "DIAGNOSIS", known: false, researchRequired: 10000 }]
         }, {
@@ -2098,7 +2099,7 @@ describe("app shell campaign objectives", () => {
             objectAvailability: [
                 { index: 9, name: "Inflator Machine", roomType: "specialist", startAvailable: true, availableForLevel: true },
                 { index: 13, name: "Cardiogram", roomType: "diagnosis", startAvailable: false, availableForLevel: true },
-                { index: 24, name: "Cast Remover", roomType: "specialist", startAvailable: false, availableForLevel: true }
+                { index: 24, name: "Cast Remover", roomType: "fracture-clinic", startAvailable: false, availableForLevel: true }
             ],
             expertise: [{ category: "DIAGNOSIS", known: false, researchRequired: 10000 }]
         })).toBe("Object availability: 1/3 available, locked 1, disabled 0, research 1; available: Inflator Machine; locked: Cast Remover; research: Cardiogram");
@@ -2352,7 +2353,7 @@ describe("app shell scenario room availability", () => {
                 { index: 9, roomType: "specialist", startAvailable: true, whenAvailable: 0, startStrength: 8, availableForLevel: false },
                 { index: 13, roomType: "diagnosis", startAvailable: true, whenAvailable: 0, startStrength: 13, availableForLevel: true },
                 { index: 14, roomType: "diagnosis", startAvailable: false, whenAvailable: 1, startStrength: 12, availableForLevel: true },
-                { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 2, startStrength: 11, availableForLevel: true }
+                { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 2, startStrength: 11, availableForLevel: true }
             ],
             expertise: [
                 { index: 38, known: false, researchRequired: 40000, token: "I_D_CARDIO", category: "DIAGNOSIS" }
@@ -2363,18 +2364,18 @@ describe("app shell scenario room availability", () => {
             { index: 9, roomType: "specialist", startAvailable: true, whenAvailable: 0, availableForLevel: false },
             { index: 13, roomType: "diagnosis", startAvailable: true, whenAvailable: 0, availableForLevel: true },
             { index: 14, roomType: "diagnosis", startAvailable: false, whenAvailable: 1, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" },
-            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 2, availableForLevel: true }
+            { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 2, availableForLevel: true }
         ]);
         expect(createRoomWearThresholdOverridesFromScenario(scenario)).toEqual({
             diagnosis: 12,
-            specialist: 11
+            "fracture-clinic": 11
         });
         expect(createRoomWearThresholdOverridesFromScenario({
             ...scenario,
             researchSettings: { maxObjectStrength: 10 }
         })).toEqual({
             diagnosis: 10,
-            specialist: 10
+            "fracture-clinic": 10
         });
     });
     it("includes imported corridor object strength in furnish actions", () => {

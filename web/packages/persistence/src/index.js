@@ -9,7 +9,7 @@ const DEFAULT_SPEED_MULTIPLIER = 1;
 const ALLOWED_SPEED_MULTIPLIERS = [0.5, 1, 2, 4];
 const DEFAULT_ADMISSION_POLICY = "standard";
 const ALLOWED_ADMISSION_POLICIES = ["conservative", "standard", "aggressive"];
-const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "dna-fixer"];
+const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "fracture-clinic", "dna-fixer"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman"];
 class IndexedDbPersistenceAdapterImpl {
     indexedDbFactory;

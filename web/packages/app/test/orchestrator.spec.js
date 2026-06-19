@@ -1983,10 +1983,10 @@ describe("app orchestrator", () => {
             pointerTileSize: 8,
             roomAvailability: [],
             roomAvailabilitySchedule: [
-                { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+                { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
             ],
             emergencySchedule: [
-                { index: 0, startMonth: 0, endMonth: 2, minPatients: 2, maxPatients: 2, illnessCode: 2, percentToWin: 50, bonusCash: 500, diseaseId: "cranial-pressure", severity: 3 }
+                { index: 0, startMonth: 0, endMonth: 2, minPatients: 2, maxPatients: 2, illnessCode: 9, percentToWin: 50, bonusCash: 500, diseaseId: "fractured-bones", severity: 2 }
             ],
             eventSettings: { disasterLaunch: 8 }
         });
@@ -2001,7 +2001,7 @@ describe("app orchestrator", () => {
         expect(orchestrator.telemetry()).toMatchObject({
             emergencyActive: true,
             emergencyTotalPatients: 2,
-            roomAvailabilityStatus: "diagnosis,treatment,specialist"
+            roomAvailabilityStatus: "diagnosis,treatment,fracture-clinic"
         });
         expect(orchestrator.createPersistenceSnapshot().commandLog).toContainEqual({
             type: "start-emergency-wave",
@@ -2009,7 +2009,7 @@ describe("app orchestrator", () => {
         });
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.roomAvailabilitySchedule).toEqual([
-            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+            { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
@@ -2909,7 +2909,7 @@ describe("app orchestrator", () => {
             roomAvailability: [],
             roomAvailabilitySchedule: [
                 { index: 13, roomType: "diagnosis", startAvailable: true, whenAvailable: 0, availableForLevel: true },
-                { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+                { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
             ]
         });
         expect(orchestrator.telemetry().roomAvailabilityStatus).toBe("diagnosis,treatment");
@@ -2923,8 +2923,8 @@ describe("app orchestrator", () => {
         expect(orchestrator.evaluatePlacement({
             device: "ui",
             action: "build-room",
-            roomType: "specialist",
-            source: "ui:build-specialist-room",
+            roomType: "fracture-clinic",
+            source: "ui:build-fracture-clinic-room",
             pointer: { x: 64, y: 56 }
         })).toMatchObject({
             valid: false,
@@ -2932,15 +2932,15 @@ describe("app orchestrator", () => {
         });
         orchestrator.advanceFrame(16_000);
         expect(orchestrator.telemetry()).toMatchObject({
-            roomAvailabilityStatus: "diagnosis,treatment,specialist",
+            roomAvailabilityStatus: "diagnosis,treatment,fracture-clinic",
             scenarioObjectAvailableCount: 2,
             scenarioObjectLockedCount: 0
         });
         expect(orchestrator.evaluatePlacement({
             device: "ui",
             action: "build-room",
-            roomType: "specialist",
-            source: "ui:build-specialist-room",
+            roomType: "fracture-clinic",
+            source: "ui:build-fracture-clinic-room",
             pointer: { x: 64, y: 56 }
         })).toMatchObject({
             valid: true
@@ -2948,7 +2948,7 @@ describe("app orchestrator", () => {
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.roomAvailabilitySchedule).toEqual([
             { index: 13, roomType: "diagnosis", startAvailable: true, whenAvailable: 0, availableForLevel: true },
-            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+            { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
@@ -2961,7 +2961,7 @@ describe("app orchestrator", () => {
             roomAvailability: [],
             objectAvailability: [
                 { index: 13, name: "Cardiogram", roomType: "diagnosis", startCost: 1000, startStrength: 12, startAvailable: true, whenAvailable: 0, availableForLevel: true },
-                { index: 24, name: "Cast Remover", roomType: "specialist", startCost: 2000, startStrength: 10, startAvailable: false, whenAvailable: 1, availableForLevel: true },
+                { index: 24, name: "Cast Remover", roomType: "fracture-clinic", startCost: 2000, startStrength: 10, startAvailable: false, whenAvailable: 1, availableForLevel: true },
                 { index: 5, name: "Plant", startCost: 100, startStrength: 7, startAvailable: true, whenAvailable: 0, availableForLevel: true }
             ]
         });
@@ -2975,7 +2975,7 @@ describe("app orchestrator", () => {
         });
         orchestrator.advanceFrame(16_000);
         expect(orchestrator.telemetry()).toMatchObject({
-            roomAvailabilityStatus: "diagnosis,treatment,specialist",
+            roomAvailabilityStatus: "diagnosis,treatment,fracture-clinic",
             scenarioObjectAvailableCount: 3,
             scenarioObjectLockedCount: 0
         });
@@ -2983,11 +2983,11 @@ describe("app orchestrator", () => {
         expect(snapshot.objectAvailability).toEqual([
             { index: 5, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 100, startStrength: 7, name: "Plant" },
             { index: 13, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 1000, startStrength: 12, roomType: "diagnosis", name: "Cardiogram" },
-            { index: 24, startAvailable: false, whenAvailable: 1, availableForLevel: true, startCost: 2000, startStrength: 10, roomType: "specialist", name: "Cast Remover" }
+            { index: 24, startAvailable: false, whenAvailable: 1, availableForLevel: true, startCost: 2000, startStrength: 10, roomType: "fracture-clinic", name: "Cast Remover" }
         ]);
         expect(snapshot.roomAvailabilitySchedule).toEqual([
             { index: 13, roomType: "diagnosis", startAvailable: true, whenAvailable: 0, availableForLevel: true },
-            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+            { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
@@ -2999,7 +2999,7 @@ describe("app orchestrator", () => {
             bounds: { width: 12, height: 12 },
             roomAvailability: [],
             roomAvailabilitySchedule: [
-                { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 99, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
+                { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 99, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
             ],
             expertise: [
                 { index: 38, known: false, researchRequired: 40000, token: "I_D_CARDIO", category: "DIAGNOSIS" }
@@ -3019,8 +3019,8 @@ describe("app orchestrator", () => {
         expect(orchestrator.evaluatePlacement({
             device: "ui",
             action: "build-room",
-            roomType: "specialist",
-            source: "ui:build-specialist-room",
+            roomType: "fracture-clinic",
+            source: "ui:build-fracture-clinic-room",
             pointer: { x: 64, y: 56 }
         })).toMatchObject({
             valid: false,
@@ -3033,7 +3033,7 @@ describe("app orchestrator", () => {
         expect(orchestrator.telemetry()).toMatchObject({
             treatmentResearchLevel: 1,
             scenarioKnownExpertiseCount: 1,
-            roomAvailabilityStatus: "diagnosis,treatment,specialist",
+            roomAvailabilityStatus: "diagnosis,treatment,fracture-clinic",
             scenarioObjectAvailableCount: 1,
             scenarioObjectLockedCount: 0,
             scenarioObjectResearchLockedCount: 0,
@@ -3044,15 +3044,15 @@ describe("app orchestrator", () => {
         expect(orchestrator.evaluatePlacement({
             device: "ui",
             action: "build-room",
-            roomType: "specialist",
-            source: "ui:build-specialist-room",
+            roomType: "fracture-clinic",
+            source: "ui:build-fracture-clinic-room",
             pointer: { x: 64, y: 56 }
         })).toMatchObject({
             valid: true
         });
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.roomAvailabilitySchedule).toEqual([
-            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 99, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
+            { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 99, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
@@ -4334,7 +4334,7 @@ describe("app orchestrator", () => {
             .map((command) => command.diseaseId);
         expect(earlyDiseaseIds.length).toBeGreaterThan(0);
         expect(earlyDiseaseIds).toEqual(earlyDiseaseIds.map(() => "mild-cold"));
-        for (let index = 0; index < 36; index += 1) {
+        for (let index = 0; index < 56; index += 1) {
             orchestrator.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
         }
         expect(orchestrator.createPersistenceSnapshot().commandLog
@@ -4353,7 +4353,7 @@ describe("app orchestrator", () => {
             populationSchedule: [{ index: 0, month: 0, change: 10 }],
             roomAvailability: [],
             roomAvailabilitySchedule: [
-                { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+                { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
             ],
             diseasePool: [
                 { source: "non_visuals", token: "I_BROKEN_BONES", diseaseId: "fractured-bones", severity: 2, weight: 9 },
@@ -4370,7 +4370,7 @@ describe("app orchestrator", () => {
             .map((command) => command.diseaseId);
         expect(earlyDiseaseIds.length).toBeGreaterThan(0);
         expect(earlyDiseaseIds).toEqual(earlyDiseaseIds.map(() => "mild-cold"));
-        for (let index = 0; index < 36; index += 1) {
+        for (let index = 0; index < 96; index += 1) {
             orchestrator.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
         }
         expect(orchestrator.createPersistenceSnapshot().commandLog
@@ -4378,7 +4378,7 @@ describe("app orchestrator", () => {
             .map((command) => command.diseaseId)).toContain("fractured-bones");
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.roomAvailabilitySchedule).toEqual([
-            { index: 24, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+            { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 1, availableForLevel: true }
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
@@ -4390,7 +4390,7 @@ describe("app orchestrator", () => {
             populationSchedule: [{ index: 0, month: 0, change: 10 }],
             roomAvailability: [],
             roomAvailabilitySchedule: [
-                { index: 24, roomType: "specialist", startAvailable: true, whenAvailable: 0, availableForLevel: true },
+                { index: 24, roomType: "fracture-clinic", startAvailable: true, whenAvailable: 0, availableForLevel: true },
                 { index: 25, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
             ],
             diseasePool: [
