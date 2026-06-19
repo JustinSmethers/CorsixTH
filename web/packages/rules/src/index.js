@@ -177,7 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -201,7 +201,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "sweaty-palms": "treatment",
     "unexpected-swelling": "specialist",
     "hairyitis": "specialist",
-    "jellyitis": "specialist",
+    "jellyitis": "jelly-vat",
     "gastric-ejections": "pharmacy",
     "discrete-itching": "treatment",
     "broken-heart": "treatment",
@@ -227,6 +227,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     "slack-tongue-clinic": "diagnostician",
     "fracture-clinic": "nurse",
     "hair-restoration": "diagnostician",
+    "jelly-vat": "diagnostician",
     "dna-fixer": "diagnostician"
 };
 const STAFF_SPECIALTY_BY_ROOM_TYPE = {
@@ -248,6 +249,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     "slack-tongue-clinic": 5,
     "fracture-clinic": 5,
     "hair-restoration": 5,
+    "jelly-vat": 6,
     "dna-fixer": 6
 };
 const STAFF_HIRE_COST_BY_ROLE = {
@@ -265,6 +267,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     "slack-tongue-clinic": 1600,
     "fracture-clinic": 1500,
     "hair-restoration": 1600,
+    "jelly-vat": 4500,
     "dna-fixer": 1800
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
@@ -276,6 +279,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     "slack-tongue-clinic": 220,
     "fracture-clinic": 220,
     "hair-restoration": 220,
+    "jelly-vat": 280,
     "dna-fixer": 240
 };
 const STAFF_BURNOUT_TICKS_BY_ROLE = {
@@ -299,6 +303,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     "slack-tongue-clinic": 8,
     "fracture-clinic": 8,
     "hair-restoration": 8,
+    "jelly-vat": 9,
     "dna-fixer": 8
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
@@ -310,6 +315,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     "slack-tongue-clinic": 3,
     "fracture-clinic": 3,
     "hair-restoration": 3,
+    "jelly-vat": 3,
     "dna-fixer": 3
 };
 const MAINTENANCE_STAFF_REPAIR_BONUS_TICKS = 1;

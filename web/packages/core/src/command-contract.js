@@ -64,7 +64,7 @@ function isStaffRestType(value) {
     return value === "standing" || value === "sofa" || value === "game" || value === "snooker";
 }
 function isRoomType(value) {
-    return value === "diagnosis" || value === "treatment" || value === "pharmacy" || value === "specialist" || value === "inflation-room" || value === "slack-tongue-clinic" || value === "fracture-clinic" || value === "hair-restoration" || value === "dna-fixer";
+    return value === "diagnosis" || value === "treatment" || value === "pharmacy" || value === "specialist" || value === "inflation-room" || value === "slack-tongue-clinic" || value === "fracture-clinic" || value === "hair-restoration" || value === "jelly-vat" || value === "dna-fixer";
 }
 function isRoomOperationalStatus(value) {
     return value === "open" || value === "closed";

@@ -48,6 +48,7 @@ const ROOM_TYPE_COLORS = {
     "slack-tongue-clinic": "#e07a8a",
     "fracture-clinic": "#d0a15d",
     "hair-restoration": "#76b7a3",
+    "jelly-vat": "#8ebf6a",
     "dna-fixer": "#c59bf7"
 };
 const STAFF_ROLE_COLORS = {
@@ -587,6 +588,7 @@ export function formatOriginalUiStripControlLabel(control) {
         "build-slack-tongue-clinic": "Build Tongue",
         "build-fracture-clinic-room": "Build Fracture",
         "build-hair-restoration-room": "Build Hair",
+        "build-jelly-vat-room": "Build Jelly",
         "build-dna-fixer-room": "Build DNA Fixer",
         "hire-diagnostician": "Hire Doctor",
         "hire-nurse": "Hire Nurse",
@@ -1001,6 +1003,9 @@ function roomTypeDisplayName(roomType, languageSummary) {
     }
     if (roomType === "hair-restoration") {
         return languageSummary?.roomNames?.[roomType] ?? "Hair Restoration";
+    }
+    if (roomType === "jelly-vat") {
+        return languageSummary?.roomNames?.[roomType] ?? "Jelly Vat";
     }
     const importedName = languageSummary?.roomNames?.[roomType];
     return typeof importedName === "string" && importedName.length > 0 ? importedName : titleCase(roomType);
@@ -1605,7 +1610,7 @@ export function formatOpenTreatmentRoomsStatus(telemetry) {
     return `Open treatment rooms: ${telemetry.openTreatmentRooms}`;
 }
 export function formatSpecializedTreatmentRoomsStatus(telemetry) {
-    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}, Inflation Room ${telemetry.openInflationRooms ?? 0}, Slack Tongue Clinic ${telemetry.openSlackTongueClinicRooms ?? 0}, Fracture Clinic ${telemetry.openFractureClinicRooms ?? 0}, Hair Restoration ${telemetry.openHairRestorationRooms ?? 0}, DNA Fixer ${telemetry.openDnaFixerRooms ?? 0}`;
+    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}, Inflation Room ${telemetry.openInflationRooms ?? 0}, Slack Tongue Clinic ${telemetry.openSlackTongueClinicRooms ?? 0}, Fracture Clinic ${telemetry.openFractureClinicRooms ?? 0}, Hair Restoration ${telemetry.openHairRestorationRooms ?? 0}, Jelly Vat ${telemetry.openJellyVatRooms ?? 0}, DNA Fixer ${telemetry.openDnaFixerRooms ?? 0}`;
 }
 export function formatSpecializedTreatmentQueueStatus(telemetry) {
     return `Specialty queue: ${telemetry.awaitingSpecializedTreatmentPatients}`;
@@ -1870,6 +1875,7 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "build-slack-tongue-clinic", label: formatOriginalUiStripControlLabel("build-slack-tongue-clinic") },
     { id: "build-fracture-clinic-room", label: formatOriginalUiStripControlLabel("build-fracture-clinic-room") },
     { id: "build-hair-restoration-room", label: formatOriginalUiStripControlLabel("build-hair-restoration-room") },
+    { id: "build-jelly-vat-room", label: formatOriginalUiStripControlLabel("build-jelly-vat-room") },
     { id: "build-dna-fixer-room", label: formatOriginalUiStripControlLabel("build-dna-fixer-room") },
     { id: "hire-diagnostician", label: formatOriginalUiStripControlLabel("hire-diagnostician") },
     { id: "hire-nurse", label: formatOriginalUiStripControlLabel("hire-nurse") },
@@ -3133,6 +3139,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="build-slack-tongue-clinic">${formatBuildRoomButtonLabel("slack-tongue-clinic")}</button>
           <button type="button" data-testid="build-fracture-clinic-room">${formatBuildRoomButtonLabel("fracture-clinic")}</button>
           <button type="button" data-testid="build-hair-restoration-room">${formatBuildRoomButtonLabel("hair-restoration")}</button>
+          <button type="button" data-testid="build-jelly-vat-room">${formatBuildRoomButtonLabel("jelly-vat")}</button>
           <button type="button" data-testid="build-dna-fixer-room">${formatBuildRoomButtonLabel("dna-fixer")}</button>
           <button type="button" data-testid="hire-diagnostician">${formatHireStaffButtonLabel("diagnostician")}</button>
           <button type="button" data-testid="hire-nurse">${formatHireStaffButtonLabel("nurse")}</button>
@@ -3733,6 +3740,7 @@ export function mountAppShell(options) {
     const buildSlackTongueClinicButton = requiredElement(options.root, "[data-testid='build-slack-tongue-clinic']");
     const buildFractureClinicRoomButton = requiredElement(options.root, "[data-testid='build-fracture-clinic-room']");
     const buildHairRestorationRoomButton = requiredElement(options.root, "[data-testid='build-hair-restoration-room']");
+    const buildJellyVatRoomButton = requiredElement(options.root, "[data-testid='build-jelly-vat-room']");
     const buildDnaFixerRoomButton = requiredElement(options.root, "[data-testid='build-dna-fixer-room']");
     const hireDiagnosticianButton = requiredElement(options.root, "[data-testid='hire-diagnostician']");
     const hireNurseButton = requiredElement(options.root, "[data-testid='hire-nurse']");
@@ -4056,6 +4064,7 @@ export function mountAppShell(options) {
         buildSlackTongueClinicButton.textContent = formatBuildRoomButtonLabel("slack-tongue-clinic", telemetry, hospitalView?.languageSummary ?? null);
         buildFractureClinicRoomButton.textContent = formatBuildRoomButtonLabel("fracture-clinic", telemetry, hospitalView?.languageSummary ?? null);
         buildHairRestorationRoomButton.textContent = formatBuildRoomButtonLabel("hair-restoration", telemetry, hospitalView?.languageSummary ?? null);
+        buildJellyVatRoomButton.textContent = formatBuildRoomButtonLabel("jelly-vat", telemetry, hospitalView?.languageSummary ?? null);
         buildDnaFixerRoomButton.textContent = formatBuildRoomButtonLabel("dna-fixer", telemetry, hospitalView?.languageSummary ?? null);
         hireDiagnosticianButton.textContent = formatHireStaffButtonLabel("diagnostician", telemetry, hospitalView?.languageSummary ?? null);
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
@@ -4071,6 +4080,7 @@ export function mountAppShell(options) {
         buildSlackTongueClinicButton.disabled = !canBuildRoomFromTelemetry("slack-tongue-clinic", telemetry);
         buildFractureClinicRoomButton.disabled = !canBuildRoomFromTelemetry("fracture-clinic", telemetry);
         buildHairRestorationRoomButton.disabled = !canBuildRoomFromTelemetry("hair-restoration", telemetry);
+        buildJellyVatRoomButton.disabled = !canBuildRoomFromTelemetry("jelly-vat", telemetry);
         buildDnaFixerRoomButton.disabled = !canBuildRoomFromTelemetry("dna-fixer", telemetry);
         hireDiagnosticianButton.disabled = !canHireStaffFromTelemetry("diagnostician", telemetry);
         hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
@@ -4972,6 +4982,24 @@ export function mountAppShell(options) {
             orientation: "north",
             source: "ui:build-hair-restoration-room",
             label: `build ${roomTypeDisplayName("hair-restoration", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildJellyVatRoom = () => {
+        if (!canBuildRoomFromTelemetry("jelly-vat", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
+        placementAction = {
+            action: "build-room",
+            roomType: "jelly-vat",
+            orientation: "north",
+            source: "ui:build-jelly-vat-room",
+            label: `build ${roomTypeDisplayName("jelly-vat", hospitalView?.languageSummary ?? null)}`
         };
         placementPreview = null;
         selectedEntity = null;
@@ -6182,6 +6210,7 @@ export function mountAppShell(options) {
         ["build-slack-tongue-clinic", onBuildSlackTongueClinic],
         ["build-fracture-clinic-room", onBuildFractureClinicRoom],
         ["build-hair-restoration-room", onBuildHairRestorationRoom],
+        ["build-jelly-vat-room", onBuildJellyVatRoom],
         ["build-dna-fixer-room", onBuildDnaFixerRoom],
         ["hire-diagnostician", onHireDiagnostician],
         ["hire-nurse", onHireNurse],
@@ -6284,6 +6313,7 @@ export function mountAppShell(options) {
     buildSlackTongueClinicButton.addEventListener("click", onBuildSlackTongueClinic);
     buildFractureClinicRoomButton.addEventListener("click", onBuildFractureClinicRoom);
     buildHairRestorationRoomButton.addEventListener("click", onBuildHairRestorationRoom);
+    buildJellyVatRoomButton.addEventListener("click", onBuildJellyVatRoom);
     buildDnaFixerRoomButton.addEventListener("click", onBuildDnaFixerRoom);
     hireDiagnosticianButton.addEventListener("click", onHireDiagnostician);
     hireNurseButton.addEventListener("click", onHireNurse);
@@ -6410,6 +6440,7 @@ export function mountAppShell(options) {
             buildSlackTongueClinicButton.removeEventListener("click", onBuildSlackTongueClinic);
             buildFractureClinicRoomButton.removeEventListener("click", onBuildFractureClinicRoom);
             buildHairRestorationRoomButton.removeEventListener("click", onBuildHairRestorationRoom);
+            buildJellyVatRoomButton.removeEventListener("click", onBuildJellyVatRoom);
             buildDnaFixerRoomButton.removeEventListener("click", onBuildDnaFixerRoom);
             hireDiagnosticianButton.removeEventListener("click", onHireDiagnostician);
             hireNurseButton.removeEventListener("click", onHireNurse);

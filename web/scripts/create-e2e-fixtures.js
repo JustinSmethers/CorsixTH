@@ -87,6 +87,8 @@ function syntheticLanguageBytes() {
   entries[455] = "Ward";
   entries[457] = "Pharmacy";
   entries[463] = "Inflation Room";
+  entries[466] = "Slack Tongue Clinic";
+  entries[469] = "Jelly Vat";
   entries[2487] = "Awaiting your decision";
   entries[2488] = "Queuing for %s";
   entries[2489] = "On my way to %s";

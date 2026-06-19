@@ -1088,7 +1088,8 @@ function summarizeThemeHospitalLanguage(filesByPath) {
             pharmacy: entries[457] ?? "Pharmacy",
             specialist: entries[465] ?? "Operating Theatre",
             "inflation-room": entries[463] ?? "Inflation Room",
-            "slack-tongue-clinic": entries[466] ?? "Slack Tongue Clinic"
+            "slack-tongue-clinic": entries[466] ?? "Slack Tongue Clinic",
+            "jelly-vat": entries[469] ?? "Jelly Vat"
         },
         patientStatusNames: {
             queued: entries[2488] ?? "Queuing for %s",
@@ -1941,7 +1942,7 @@ const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [20, "slack-tongue-clinic"],
     [21, "fracture-clinic"],
     [23, "dna-fixer"],
-    [24, "fracture-clinic"],
+    [24, "jelly-vat"],
     [27, "diagnosis"],
     [30, "specialist"]
 ]);
@@ -1990,7 +1991,7 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [30, "specialist"],
     [39, "pharmacy"],
     [46, "specialist"],
-    [47, "specialist"],
+    [47, "jelly-vat"],
     [54, "specialist"]
 ]);
 function parseScenarioObjectLine(line) {

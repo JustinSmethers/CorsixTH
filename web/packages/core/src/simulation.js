@@ -21,6 +21,7 @@ const ROOM_FOOTPRINTS = {
     "slack-tongue-clinic": { width: 3, height: 3 },
     "fracture-clinic": { width: 3, height: 3 },
     "hair-restoration": { width: 3, height: 3 },
+    "jelly-vat": { width: 4, height: 4 },
     "dna-fixer": { width: 3, height: 3 }
 };
 const ROOM_TYPES = Object.freeze(Object.keys(ROOM_FOOTPRINTS));

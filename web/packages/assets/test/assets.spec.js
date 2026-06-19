@@ -109,6 +109,8 @@ describe("assets scaffold", () => {
         languageEntries[457] = "Pharmacy";
         languageEntries[463] = "Inflation Room";
         languageEntries[465] = "Operating Theatre";
+        languageEntries[466] = "Slack Tongue Clinic";
+        languageEntries[469] = "Jelly Vat";
         languageEntries[2488] = "Queuing for %s";
         languageEntries[2489] = "On my way to %s";
         languageEntries[2490] = "Cured!";
@@ -140,7 +142,9 @@ describe("assets scaffold", () => {
                 treatment: "Ward",
                 pharmacy: "Pharmacy",
                 specialist: "Operating Theatre",
-                "inflation-room": "Inflation Room"
+                "inflation-room": "Inflation Room",
+                "slack-tongue-clinic": "Slack Tongue Clinic",
+                "jelly-vat": "Jelly Vat"
             },
             patientStatusNames: {
                 queued: "Queuing for %s",

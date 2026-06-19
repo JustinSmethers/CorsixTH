@@ -511,7 +511,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
     });
-    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, and specialist diseases", () => {
+    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, jelly, and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -619,6 +619,28 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         expect(missingHair.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
+        const jelly = new DeterministicSimulation(72136, { bounds: { width: 12, height: 12 } });
+        jelly.execute({ type: "open-room", roomType: "jelly-vat", position: { x: 1, y: 7 } });
+        jelly.execute({ type: "hire-staff", role: "diagnostician", position: { x: 8, y: 4 } });
+        const jellyVat = jelly.getState().entities.rooms.find((room) => room.roomType === "jelly-vat");
+        expect(jellyVat).toBeTruthy();
+        jelly.execute({ type: "admit-patient", severity: 3, diseaseId: "jellyitis", position: { x: 2, y: 4 } });
+        jelly.execute({ type: "tick", count: 8 });
+        expect(jelly.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "jellyitis",
+            preferredTreatmentRoomType: "jelly-vat",
+            status: "walking-to-treatment",
+            assignedRoomId: jellyVat.id
+        });
+        const missingJelly = new DeterministicSimulation(72137, { bounds: { width: 12, height: 12 } });
+        missingJelly.execute({ type: "admit-patient", severity: 3, diseaseId: "jellyitis", position: { x: 2, y: 4 } });
+        missingJelly.execute({ type: "tick", count: 5 });
+        expect(missingJelly.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "jellyitis",
+            preferredTreatmentRoomType: "jelly-vat",
+            status: "awaiting-treatment"
+        });
+        expect(missingJelly.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
     });
     it("keeps generic treatment rooms available for diseases that prefer treatment", () => {
         const simulation = new DeterministicSimulation(7214, { bounds: { width: 12, height: 12 } });
