@@ -105,12 +105,12 @@ test("phase 7 slice 2 player journey: handyman hiring surfaces maintenance staff
 test("phase 7 slice 2 player journey: specialized treatment rooms route matching diseases", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Inflation Room 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
     await page.getByTestId("treatment-room-toggle").click();
     await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 0");
     await placeRoomOnFirstValidTile(page, "build-pharmacy-room");
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 1, specialist 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 1, specialist 0, Inflation Room 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
     await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 1");
     await page.getByTestId("admission-severity").selectOption("2");
     await page.getByTestId("admit").click();
@@ -127,12 +127,12 @@ test("phase 7 slice 2 player journey: specialized treatment rooms route matching
 test("phase 7 slice 2 player journey: specialist rooms can be built from browser controls", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Inflation Room 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
     await page.getByTestId("treatment-room-toggle").click();
     await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 0");
     await placeRoomOnFirstValidTile(page, "build-specialist-room");
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 1, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 1, Inflation Room 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 0");
     await expect(page.getByTestId("open-treatment-rooms")).toHaveText("Open treatment rooms: 1");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("rooms 3");
 });

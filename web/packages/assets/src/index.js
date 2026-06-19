@@ -1086,7 +1086,8 @@ function summarizeThemeHospitalLanguage(filesByPath) {
             diagnosis: entries[453] ?? "GP's Office",
             treatment: entries[455] ?? "Ward",
             pharmacy: entries[457] ?? "Pharmacy",
-            specialist: entries[463] ?? "Inflation Room"
+            specialist: entries[465] ?? "Operating Theatre",
+            "inflation-room": entries[463] ?? "Inflation Room"
         },
         patientStatusNames: {
             queued: entries[2488] ?? "Queuing for %s",
@@ -1933,7 +1934,7 @@ const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [14, "diagnosis"],
     [15, "diagnosis"],
     [16, "diagnosis"],
-    [17, "specialist"],
+    [17, "inflation-room"],
     [18, "specialist"],
     [19, "hair-restoration"],
     [20, "specialist"],
@@ -1976,7 +1977,7 @@ function parseScenarioStaffSalaryLine(line) {
     };
 }
 const SCENARIO_OBJECT_ROOM_MAP = new Map([
-    [9, "specialist"],
+    [9, "inflation-room"],
     [13, "diagnosis"],
     [14, "diagnosis"],
     [22, "diagnosis"],

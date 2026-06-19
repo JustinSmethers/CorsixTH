@@ -1707,6 +1707,10 @@ function writeScenarioVisualsAvailableFixtureSet() {
     allocationDelay: 0,
     knownScenarioDiseases: true,
     diseaseLines,
+    objectLines: [
+      "#objects[22].StartAvail.WhenAvail.StartStrength.AvailableForLevel 1 0 9 1 22 Ultrascan",
+      "#objects[30].StartAvail.WhenAvail.StartStrength.AvailableForLevel 1 0 12 1 30 Operating Table",
+    ],
     disasterLaunch: 999,
   };
   writeFileSync(join(base, "LEVELS", "FULL01.SAM"), scenarioBytes({

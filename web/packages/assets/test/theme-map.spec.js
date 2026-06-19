@@ -399,7 +399,7 @@ Emergency Mappings
             { index: 9, cost: 1700, roomType: "treatment", name: "WARD" },
             { index: 11, cost: 500, roomType: "pharmacy", name: "PHARMACY" },
             { index: 12, cost: 470, roomType: "diagnosis", name: "CARDIO" },
-            { index: 17, cost: 1500, roomType: "specialist", name: "INFLATOR" },
+            { index: 17, cost: 1500, roomType: "inflation-room", name: "INFLATOR" },
             { index: 19, cost: 500, roomType: "hair-restoration", name: "HAIR_RESTORE" },
             { index: 21, cost: 500, roomType: "fracture-clinic", name: "FRACTURE" },
             { index: 23, cost: 1800, roomType: "dna-fixer", name: "DNA_FIXER" }
@@ -496,7 +496,7 @@ Network Level
                 whenAvailable: 0,
                 startStrength: 12,
                 availableForLevel: true,
-                roomType: "specialist",
+                roomType: "inflation-room",
                 name: "Inflator Machine"
             },
             {
@@ -568,10 +568,10 @@ Network Level
             diseasePool: [{ source: "visuals", index: 0, weight: 5, token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3 }],
             staffLevels: [{ month: 0, nurses: 8, doctors: 7, handymen: 3, receptionists: 5 }],
             financialSettings: { index: 1, startCash: 40000, illnessRate: 2, interestRate: 100, name: "Level 1" },
-            roomCostOverrides: { diagnosis: 1470, treatment: 1700, pharmacy: 500, specialist: 4000, "hair-restoration": 500, "fracture-clinic": 500, "dna-fixer": 3600 },
+            roomCostOverrides: { diagnosis: 1470, treatment: 1700, pharmacy: 500, "inflation-room": 4000, "hair-restoration": 500, "fracture-clinic": 500, "dna-fixer": 3600 },
             staffWageOverrides: { nurse: 5, diagnostician: 6, handyman: 2, receptionist: 2 },
             objectAvailability: [
-                { index: 9, startCost: 2500, startAvailable: true, roomType: "specialist" },
+                { index: 9, startCost: 2500, startAvailable: true, roomType: "inflation-room" },
                 { index: 13, startCost: 1000, startAvailable: false, whenAvailable: 2, roomType: "diagnosis" },
                 { index: 23, startCost: 1800, startAvailable: true, roomType: "dna-fixer" }
             ],

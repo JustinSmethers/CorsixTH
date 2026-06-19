@@ -273,7 +273,7 @@ test("phase 8 scenario import: original SAM criteria drive browser level objecti
     await expect(page.getByTestId("build-diagnosis-room")).toHaveText("Build GP's Office (2280)");
     await expect(page.getByTestId("build-treatment-room")).toHaveText("Build Ward (1700)");
     await expect(page.getByTestId("build-pharmacy-room")).toHaveText("Build Pharmacy (500)");
-    await expect(page.getByTestId("build-specialist-room")).toHaveText("Build Inflation Room (1500)");
+    await expect(page.getByTestId("build-inflation-room")).toHaveText("Build Inflation Room (1500)");
     await expect(page.getByTestId("hire-diagnostician")).toHaveText("Hire Doctor (300, wage 6)");
     await expect(page.getByTestId("hire-nurse")).toHaveText("Hire Nurse (250, wage 5)");
     await expect(page.getByTestId("hire-handyman")).toHaveText("Hire Handyman (200, wage 2)");
@@ -367,12 +367,12 @@ test("phase 8 scenario import: browser hires use imported salary settings", asyn
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
-    await canvas.click({ position: { x: 416, y: 176 } });
+    await canvas.click({ position: { x: 408, y: 184 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
     await expect(page.getByTestId("staff-market-status")).toContainText("nurses 6");
     await expect(page.getByTestId("salary-pressure")).toHaveText("Salary pressure: underpaid 0, overpaid 1; scenario divisor 10, low -10, high 20, bands 3");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("staff 3");
-    await canvas.click({ position: { x: 416, y: 176 } });
+    await canvas.click({ position: { x: 408, y: 184 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: Nurse");
     await expect(page.getByTestId("selection-status")).toContainText("skill 1");
 });
@@ -1014,9 +1014,9 @@ test("phase 8 scenario import: custom room and object costs change browser build
     await importScenarioFixture(page, roomCostFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("build-diagnosis-room")).toHaveText("Build GP's Office (1111)");
-    await expect(page.getByTestId("build-specialist-room")).toHaveText("Build Inflation Room (555)");
+    await expect(page.getByTestId("build-inflation-room")).toHaveText("Build Inflation Room (555)");
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
-    await page.getByTestId("build-specialist-room").click();
+    await page.getByTestId("build-inflation-room").click();
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
@@ -1684,7 +1684,7 @@ test("phase 8 scenario import: object availability unlocks room builds by scenar
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward");
     await expect(page.getByTestId("object-availability")).toContainText("Object availability: 0/2 available, locked 1, disabled 0, research 1");
-    await page.getByTestId("build-specialist-room").click();
+    await page.getByTestId("build-inflation-room").click();
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("blocked: room unavailable in scenario");
@@ -1706,7 +1706,7 @@ test("phase 8 scenario import: disabled object availability blocks browser room 
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward");
     await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 0, disabled 1, research 0; available: Cardiogram; disabled: Inflator Machine");
-    await page.getByTestId("build-specialist-room").click();
+    await page.getByTestId("build-inflation-room").click();
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("blocked: room unavailable in scenario");
@@ -2015,11 +2015,11 @@ test("phase 8 scenario import: distance routing assigns browser patients to near
     await canvas.click({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
     await page.getByTestId("hire-diagnostician").click();
-    await canvas.click({ position: { x: 416, y: 176 } });
+    await canvas.click({ position: { x: 464, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
     await canvas.click({ button: "right", position: { x: 416, y: 176 } });
     await page.getByTestId("step").click();
-    await canvas.click({ position: { x: 416, y: 176 } });
+    await canvas.click({ position: { x: 408, y: 184 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: GP's Office room #3");
     await expect(page.getByTestId("selection-status")).toContainText("patients #");
 });
@@ -2146,7 +2146,7 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 1");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Inflation Room 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 1");
 
     await page.getByTestId("hire-diagnostician").click();
     await canvas.click({ position: { x: 432, y: 176 } });

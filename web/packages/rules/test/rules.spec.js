@@ -38,12 +38,12 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(diseaseForSeverity(3, 2)).toMatchObject({ id: "cranial-pressure", name: "Cranial Pressure", severity: 3 });
     });
     it("locks deterministic disease-to-treatment-room mapping and specialty bonuses", () => {
-        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "fracture-clinic", "hair-restoration", "dna-fixer"]);
+        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "inflation-room", "fracture-clinic", "hair-restoration", "dna-fixer"]);
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("gut-rot")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("slack-tongue")).toBe("specialist");
-        expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("specialist");
+        expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("inflation-room");
         expect(treatmentRoomTypeForDisease("king-complex")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("spare-ribs")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("fractured-bones")).toBe("fracture-clinic");
@@ -58,7 +58,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("ruptured-nodules")).toBe("treatment");
         expect(treatmentRoomSuccessBonusForDisease("pharmacy", "gastric-grumble")).toBe(15);
         expect(treatmentRoomSuccessBonusForDisease("treatment", "gastric-grumble")).toBe(0);
-        expect(treatmentRoomDurationReductionForDisease("specialist", "cranial-pressure")).toBe(1);
+        expect(treatmentRoomDurationReductionForDisease("inflation-room", "cranial-pressure")).toBe(1);
         expect(treatmentRoomSuccessBonusForDisease("dna-fixer", "alien-dna")).toBe(15);
         expect(treatmentRoomSuccessBonusForDisease("specialist", "alien-dna")).toBe(0);
         expect(treatmentRoomDurationReductionForDisease("dna-fixer", "alien-dna")).toBe(1);
@@ -93,7 +93,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
             severity: 3,
             diseaseId: "cranial-pressure",
             diagnosisKnown: true
-        }, 0, "specialist")).toBe(true);
+        }, 0, "inflation-room")).toBe(true);
         expect(treatmentSucceedsForPatient({
             id: 1,
             severity: 1,
@@ -189,6 +189,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomUpkeepCostPerTick("treatment")).toBe(3);
         expect(roomUpkeepCostPerTick("pharmacy")).toBe(4);
         expect(roomUpkeepCostPerTick("specialist")).toBe(5);
+        expect(roomUpkeepCostPerTick("inflation-room")).toBe(5);
         expect(roomUpkeepCostPerTick("dna-fixer")).toBe(6);
         expect(staffHireCost("diagnostician")).toBe(300);
         expect(staffHireCost("nurse")).toBe(250);
@@ -197,16 +198,19 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomBuildCost("treatment")).toBe(1000);
         expect(roomBuildCost("pharmacy")).toBe(1200);
         expect(roomBuildCost("specialist")).toBe(1600);
+        expect(roomBuildCost("inflation-room")).toBe(1600);
         expect(roomBuildCost("dna-fixer")).toBe(1800);
         expect(roomSellRefund("diagnosis")).toBe(400);
         expect(roomSellRefund("treatment")).toBe(500);
         expect(roomSellRefund("pharmacy")).toBe(600);
         expect(roomSellRefund("specialist")).toBe(800);
+        expect(roomSellRefund("inflation-room")).toBe(800);
         expect(roomSellRefund("dna-fixer")).toBe(900);
         expect(roomRepairCost("diagnosis")).toBe(120);
         expect(roomRepairCost("treatment")).toBe(150);
         expect(roomRepairCost("pharmacy")).toBe(170);
         expect(roomRepairCost("specialist")).toBe(220);
+        expect(roomRepairCost("inflation-room")).toBe(220);
         expect(roomRepairCost("dna-fixer")).toBe(240);
         expect(progressionIncomeBonusForUnlock("unlock.finance-ledger")).toBe(2);
         expect(progressionIncomeBonusForUnlock("unlock.insurance-contracts")).toBe(4);
