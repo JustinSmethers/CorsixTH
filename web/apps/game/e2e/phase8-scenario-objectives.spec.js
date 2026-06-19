@@ -214,6 +214,43 @@ async function savedAdmissionDiseaseIds(page, slotName) {
         .filter((diseaseId) => typeof diseaseId === "string");
 }
 
+async function stepUntilMetricText(page, testId, expectedText, maxSteps) {
+    const locator = page.getByTestId(testId);
+    for (let index = 0; index < maxSteps; index += 1) {
+        if ((await locator.textContent()) === expectedText) {
+            return;
+        }
+        await page.getByTestId("step").click();
+    }
+    await expect(locator).toHaveText(expectedText);
+}
+
+async function stepUntilMetricContains(page, testId, expectedText, maxSteps) {
+    const locator = page.getByTestId(testId);
+    for (let index = 0; index < maxSteps; index += 1) {
+        if (((await locator.textContent()) ?? "").includes(expectedText)) {
+            return;
+        }
+        await page.getByTestId("step").click();
+    }
+    await expect(locator).toContainText(expectedText);
+}
+
+async function stepUntilMetricNumberAtLeast(page, testId, label, expectedMinimum, maxSteps) {
+    const locator = page.getByTestId(testId);
+    const pattern = new RegExp(`^${label}: (\\d+)`, "u");
+    for (let index = 0; index < maxSteps; index += 1) {
+        const match = ((await locator.textContent()) ?? "").match(pattern);
+        if (match && Number(match[1]) >= expectedMinimum) {
+            return;
+        }
+        await page.getByTestId("step").click();
+    }
+    const finalText = (await locator.textContent()) ?? "";
+    const finalMatch = finalText.match(pattern);
+    expect(finalMatch ? Number(finalMatch[1]) : Number.NaN).toBeGreaterThanOrEqual(expectedMinimum);
+}
+
 test("phase 8 scenario import: original SAM criteria drive browser level objectives", async ({ page }) => {
     await importScenarioFixture(page);
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L1");
@@ -2099,6 +2136,7 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await expect(page.getByTestId("room-availability")).toContainText("DNA Fixer");
     await expect(page.getByTestId("object-availability")).toContainText("available: DNA Fixer");
     await expect(page.getByTestId("build-dna-fixer-room")).toHaveText("Build DNA Fixer (1800)");
+    await expect(page.getByTestId("staff-market-status")).toContainText("researchers 100");
 
     const canvas = page.getByTestId("hospital-map-canvas");
     await page.getByTestId("build-dna-fixer-room").click();
@@ -2108,6 +2146,10 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
     await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, DNA Fixer 1");
 
+    await page.getByTestId("hire-diagnostician").click();
+    await canvas.click({ position: { x: 432, y: 176 } });
+    await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
     await page.getByTestId("hire-receptionist").click();
     await canvas.click({ position: { x: 416, y: 176 } });
     await page.getByTestId("admissions-toggle").click();
@@ -2119,6 +2161,12 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     const diseaseIds = await savedAdmissionDiseaseIds(page, "dna-fixer-alien-dna");
     expect(diseaseIds.length).toBeGreaterThan(0);
     expect(diseaseIds).toEqual(diseaseIds.map(() => "alien-dna"));
+    await stepUntilMetricContains(page, "casebook-summary", "DNA Fixer", 160);
+    await stepUntilMetricNumberAtLeast(page, "discharged", "Discharged", 1, 160);
+    await stepUntilMetricNumberAtLeast(page, "treated", "Treated", 1, 1);
+    await expect(page.getByTestId("treatment-failures")).toContainText("Treatment failures: 0");
+    await expect(page.getByTestId("level-objective-progress")).toHaveText(/Objective: discharge [1-9]\d*\/10/u);
+    await stepUntilMetricContains(page, "specialized-treatment-rooms", "DNA Fixer 1", 1);
 });
 
 test("phase 8 scenario import: contagious reducers gate automatic disease admissions", async ({ page }) => {

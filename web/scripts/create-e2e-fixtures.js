@@ -1802,6 +1802,9 @@ function writeScenarioDnaFixerFixtureSet() {
       "#expertise[5].Known.RschReqd.MaxDiagDiff 1 10000 1 INVIS",
       "#expertise[28].Known.RschReqd.MaxDiagDiff 1 10000 100 ALIEN",
     ],
+    researcherRate: 100,
+    consultantRate: 0,
+    juniorRate: 0,
     disasterLaunch: 999,
   };
   writeFileSync(join(base, "LEVELS", "FULL01.SAM"), scenarioBytes({
