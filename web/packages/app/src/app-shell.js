@@ -579,6 +579,7 @@ export function formatOriginalUiStripControlLabel(control) {
         "build-treatment-room": "Build Ward",
         "build-pharmacy-room": "Build Pharmacy",
         "build-specialist-room": "Build Specialist",
+        "build-dna-fixer-room": "Build DNA Fixer",
         "hire-diagnostician": "Hire Doctor",
         "hire-nurse": "Hire Nurse",
         "hire-handyman": "Hire Handyman",
@@ -978,6 +979,9 @@ function staffRoleDisplayName(role, languageSummary) {
     return typeof importedName === "string" && importedName.length > 0 ? importedName : titleCase(role);
 }
 function roomTypeDisplayName(roomType, languageSummary) {
+    if (roomType === "dna-fixer") {
+        return languageSummary?.roomNames?.[roomType] ?? "DNA Fixer";
+    }
     const importedName = languageSummary?.roomNames?.[roomType];
     return typeof importedName === "string" && importedName.length > 0 ? importedName : titleCase(roomType);
 }
@@ -1581,7 +1585,7 @@ export function formatOpenTreatmentRoomsStatus(telemetry) {
     return `Open treatment rooms: ${telemetry.openTreatmentRooms}`;
 }
 export function formatSpecializedTreatmentRoomsStatus(telemetry) {
-    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}`;
+    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}, DNA Fixer ${telemetry.openDnaFixerRooms ?? 0}`;
 }
 export function formatSpecializedTreatmentQueueStatus(telemetry) {
     return `Specialty queue: ${telemetry.awaitingSpecializedTreatmentPatients}`;
@@ -1842,6 +1846,7 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "build-treatment-room", label: formatOriginalUiStripControlLabel("build-treatment-room") },
     { id: "build-pharmacy-room", label: formatOriginalUiStripControlLabel("build-pharmacy-room") },
     { id: "build-specialist-room", label: formatOriginalUiStripControlLabel("build-specialist-room") },
+    { id: "build-dna-fixer-room", label: formatOriginalUiStripControlLabel("build-dna-fixer-room") },
     { id: "hire-diagnostician", label: formatOriginalUiStripControlLabel("hire-diagnostician") },
     { id: "hire-nurse", label: formatOriginalUiStripControlLabel("hire-nurse") },
     { id: "hire-handyman", label: formatOriginalUiStripControlLabel("hire-handyman") },
@@ -3100,6 +3105,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="build-treatment-room">${formatBuildRoomButtonLabel("treatment")}</button>
           <button type="button" data-testid="build-pharmacy-room">${formatBuildRoomButtonLabel("pharmacy")}</button>
           <button type="button" data-testid="build-specialist-room">${formatBuildRoomButtonLabel("specialist")}</button>
+          <button type="button" data-testid="build-dna-fixer-room">${formatBuildRoomButtonLabel("dna-fixer")}</button>
           <button type="button" data-testid="hire-diagnostician">${formatHireStaffButtonLabel("diagnostician")}</button>
           <button type="button" data-testid="hire-nurse">${formatHireStaffButtonLabel("nurse")}</button>
           <button type="button" data-testid="hire-handyman">${formatHireStaffButtonLabel("handyman")}</button>
@@ -3695,6 +3701,7 @@ export function mountAppShell(options) {
     const buildTreatmentRoomButton = requiredElement(options.root, "[data-testid='build-treatment-room']");
     const buildPharmacyRoomButton = requiredElement(options.root, "[data-testid='build-pharmacy-room']");
     const buildSpecialistRoomButton = requiredElement(options.root, "[data-testid='build-specialist-room']");
+    const buildDnaFixerRoomButton = requiredElement(options.root, "[data-testid='build-dna-fixer-room']");
     const hireDiagnosticianButton = requiredElement(options.root, "[data-testid='hire-diagnostician']");
     const hireNurseButton = requiredElement(options.root, "[data-testid='hire-nurse']");
     const hireHandymanButton = requiredElement(options.root, "[data-testid='hire-handyman']");
@@ -4013,6 +4020,7 @@ export function mountAppShell(options) {
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
         buildSpecialistRoomButton.textContent = formatBuildRoomButtonLabel("specialist", telemetry, hospitalView?.languageSummary ?? null);
+        buildDnaFixerRoomButton.textContent = formatBuildRoomButtonLabel("dna-fixer", telemetry, hospitalView?.languageSummary ?? null);
         hireDiagnosticianButton.textContent = formatHireStaffButtonLabel("diagnostician", telemetry, hospitalView?.languageSummary ?? null);
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
         hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
@@ -4023,6 +4031,7 @@ export function mountAppShell(options) {
         buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
         buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
         buildSpecialistRoomButton.disabled = !canBuildRoomFromTelemetry("specialist", telemetry);
+        buildDnaFixerRoomButton.disabled = !canBuildRoomFromTelemetry("dna-fixer", telemetry);
         hireDiagnosticianButton.disabled = !canHireStaffFromTelemetry("diagnostician", telemetry);
         hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
         hireHandymanButton.disabled = !canHireStaffFromTelemetry("handyman", telemetry);
@@ -4851,6 +4860,24 @@ export function mountAppShell(options) {
             orientation: "north",
             source: "ui:build-specialist-room",
             label: `build ${roomTypeDisplayName("specialist", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildDnaFixerRoom = () => {
+        if (!canBuildRoomFromTelemetry("dna-fixer", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
+        placementAction = {
+            action: "build-room",
+            roomType: "dna-fixer",
+            orientation: "north",
+            source: "ui:build-dna-fixer-room",
+            label: `build ${roomTypeDisplayName("dna-fixer", hospitalView?.languageSummary ?? null)}`
         };
         placementPreview = null;
         selectedEntity = null;
@@ -6039,6 +6066,7 @@ export function mountAppShell(options) {
         ["build-treatment-room", onBuildTreatmentRoom],
         ["build-pharmacy-room", onBuildPharmacyRoom],
         ["build-specialist-room", onBuildSpecialistRoom],
+        ["build-dna-fixer-room", onBuildDnaFixerRoom],
         ["hire-diagnostician", onHireDiagnostician],
         ["hire-nurse", onHireNurse],
         ["hire-handyman", onHireHandyman],
@@ -6136,6 +6164,7 @@ export function mountAppShell(options) {
     buildTreatmentRoomButton.addEventListener("click", onBuildTreatmentRoom);
     buildPharmacyRoomButton.addEventListener("click", onBuildPharmacyRoom);
     buildSpecialistRoomButton.addEventListener("click", onBuildSpecialistRoom);
+    buildDnaFixerRoomButton.addEventListener("click", onBuildDnaFixerRoom);
     hireDiagnosticianButton.addEventListener("click", onHireDiagnostician);
     hireNurseButton.addEventListener("click", onHireNurse);
     hireHandymanButton.addEventListener("click", onHireHandyman);
@@ -6257,6 +6286,7 @@ export function mountAppShell(options) {
             buildTreatmentRoomButton.removeEventListener("click", onBuildTreatmentRoom);
             buildPharmacyRoomButton.removeEventListener("click", onBuildPharmacyRoom);
             buildSpecialistRoomButton.removeEventListener("click", onBuildSpecialistRoom);
+            buildDnaFixerRoomButton.removeEventListener("click", onBuildDnaFixerRoom);
             hireDiagnosticianButton.removeEventListener("click", onHireDiagnostician);
             hireNurseButton.removeEventListener("click", onHireNurse);
             hireHandymanButton.removeEventListener("click", onHireHandyman);

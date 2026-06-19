@@ -2830,12 +2830,20 @@ describe("app orchestrator", () => {
             source: "ui:build-specialist-room",
             pointer: { x: 64, y: 56 }
         })).toEqual(["room.built"]);
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "build-room",
+            roomType: "dna-fixer",
+            source: "ui:build-dna-fixer-room",
+            pointer: { x: 32, y: 56 }
+        })).toEqual(["room.built"]);
         expect(orchestrator.telemetry()).toMatchObject({
-            openTreatmentRooms: 3,
+            openTreatmentRooms: 4,
             openGeneralTreatmentRooms: 1,
             openPharmacyRooms: 1,
             openSpecialistRooms: 1,
-            specializedTreatmentRooms: 2
+            openDnaFixerRooms: 1,
+            specializedTreatmentRooms: 3
         });
         orchestrator.dispatch({ device: "ui", action: "pause-toggle", source: "ui:pause-toggle" });
         orchestrator.dispatch({ device: "ui", action: "admit-patient", severity: 2, source: "ui:admit" });

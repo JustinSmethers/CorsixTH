@@ -2326,6 +2326,7 @@ export class AppOrchestrator {
         const openGeneralTreatmentRooms = state.entities.rooms.filter((room) => room.roomType === "treatment" && room.status === "open").length;
         const openPharmacyRooms = state.entities.rooms.filter((room) => room.roomType === "pharmacy" && room.status === "open").length;
         const openSpecialistRooms = state.entities.rooms.filter((room) => room.roomType === "specialist" && room.status === "open").length;
+        const openDnaFixerRooms = state.entities.rooms.filter((room) => room.roomType === "dna-fixer" && room.status === "open").length;
         const scenarioObjectAvailability = this.scenarioObjectAvailabilityForTick(state.tick);
         const scenarioAvailableDiseases = this.scenarioAvailableDiseases(state);
         const scenarioNextDisease = this.scenarioDiseaseForAdmission(state, scenarioAvailableDiseases);
@@ -2598,7 +2599,8 @@ export class AppOrchestrator {
             openGeneralTreatmentRooms,
             openPharmacyRooms,
             openSpecialistRooms,
-            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms,
+            openDnaFixerRooms,
+            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openDnaFixerRooms,
             awaitingSpecializedTreatmentPatients,
             cash: state.cash,
             reputation: state.reputation,
