@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
 import { fileURLToPath } from "node:url";
+import { expectCanvasNonBlank } from "./helpers/phase8-import";
 
 const realGameDataDirectory = fileURLToPath(new URL("../../../../GameData", import.meta.url));
 
@@ -21,6 +22,11 @@ async function stepTicks(page, count) {
     }
 }
 
+async function expectHospitalCanvasForLevel(page, mapPath) {
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText(mapPath);
+    await expectCanvasNonBlank(page, "hospital-map-canvas");
+}
+
 test("phase 8 real GoG import: browser loads actual GameData into a playable scenario", async ({ page }) => {
     test.setTimeout(45_000);
     await page.goto("/");
@@ -33,6 +39,7 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await page.getByTestId("asset-import-confirm").click();
     await expect(page.getByRole("heading", { name: "CorsixTH Browser Hospital" })).toBeVisible();
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L1");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L1");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 1/12 (Level One (19-02-97))");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/10, cash \d+\/1000, reputation \d+\/300, treated \d+\/40%, value \d+\/55000$/u);
     await expect(page.getByTestId("level-objective-safety")).toContainText("cash > -2000");
@@ -66,6 +73,7 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await page.getByTestId("load-game").click();
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 1/12 (Level One (19-02-97))");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L1");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/10, cash \d+\/1000, reputation \d+\/300, treated \d+\/40%, value \d+\/55000$/u);
     await expect(page.getByTestId("scenario-opponents")).toHaveText("Scenario opponents: 3/3 active (ORAC, COLOSSUS, HAL)");
     await expect(page.getByTestId("event-count")).toHaveText("Events: 1; scenario score 300, vacc 50, rats 3000, abduct 4y/2 (0 triggered), mayor 150, disaster 200");
@@ -73,6 +81,7 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await winCurrentLevel(page, 30);
     await page.getByTestId("next-level").click();
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L2");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L2");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 2/12 (Level Two (19-02-97))");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/40, cash \d+\/10000, reputation \d+\/300, treated \d+\/40%, value \d+\/60000$/u);
     await expect(page.getByTestId("level-objective-safety")).toContainText("cash > -10000");
@@ -95,12 +104,14 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await page.getByTestId("load-game").click();
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L2");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L2");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 2/12 (Level Two (19-02-97))");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/40, cash \d+\/10000, reputation \d+\/300, treated \d+\/40%, value \d+\/60000$/u);
 
     await winCurrentLevel(page, 100);
     await page.getByTestId("next-level").click();
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L3");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L3");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 3/12 (Level Three (19-02-97))");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/60, cash \d+\/20000, reputation \d+\/1, value \d+\/80000$/u);
     await expect(page.getByTestId("level-objective-safety")).toContainText("cash > -5000");
@@ -114,6 +125,7 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
 
     await page.getByTestId("hospital-map-select").selectOption("LEVELS/LEVEL.L5");
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L5");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L5");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 5/12 (Level Five (19-02-97))");
     await expect(page.getByTestId("level-objective-progress")).toHaveText(/^Objective: discharge 0\/200, cash \d+\/50000, reputation \d+\/400, treated \d+\/45%, value \d+\/120000$/u);
     await expect(page.getByTestId("level-objective-safety")).toContainText("cash > -20000");
@@ -129,6 +141,7 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await page.getByTestId("pause-toggle").click();
     await stepTicks(page, 384);
     await expect(page.getByTestId("tick")).toHaveText("Tick: 385");
+    await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L5");
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 7, nurses 4, handymen 4, receptionists 4, consultants 255, juniors 1, psych 255, surgeons 255, researchers 255, receptionists target 4; scenario staff month 4, seed 83498");
     await expect(page.getByTestId("quake-status")).toHaveText("Quake: scheduled 7, active none, severity 0, triggered 1, next 1 months 18-24 severity 2");
     await expect(page.getByTestId("emergency-status")).toHaveText(/^Emergency: wave 1 0\/[4-6] saved, need [3-5] \(2[34] ticks, [A-Za-z '-]+\); scenario scheduled 10, active none, disaster 200 ticks$/u);

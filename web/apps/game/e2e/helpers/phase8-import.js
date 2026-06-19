@@ -12,3 +12,26 @@ export async function importAssetsAndEnterPlayableShell(page) {
 export function phase8FixtureDirectory(relativePath) {
     return `${fixturesRoot}/${relativePath}`;
 }
+export async function expectCanvasNonBlank(page, testId, { mode = "alpha" } = {}) {
+    await expect(page.getByTestId(testId)).toBeVisible();
+    await expect
+        .poll(async () => page.getByTestId(testId).evaluate((canvas, checkMode) => {
+        const context = canvas.getContext("2d");
+        if (!context) {
+            return false;
+        }
+        const pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        for (let index = 0; index < pixels.length; index += 4) {
+            if (checkMode === "rgb") {
+                if (pixels[index] !== 0 || pixels[index + 1] !== 0 || pixels[index + 2] !== 0) {
+                    return true;
+                }
+            }
+            else if (pixels[index + 3] !== 0) {
+                return true;
+            }
+        }
+        return false;
+    }, mode))
+        .toBe(true);
+}
