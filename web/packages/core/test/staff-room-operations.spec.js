@@ -511,7 +511,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
     });
-    it("requires disease-specific treatment rooms for pharmacy, fracture, and specialist diseases", () => {
+    it("requires disease-specific treatment rooms for pharmacy, fracture, hair, and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -554,6 +554,27 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         expect(missingSpecialist.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
+        const hair = new DeterministicSimulation(72131, { bounds: { width: 12, height: 12 } });
+        hair.execute({ type: "open-room", roomType: "hair-restoration", position: { x: 1, y: 7 } });
+        const hairRestoration = hair.getState().entities.rooms.find((room) => room.roomType === "hair-restoration");
+        expect(hairRestoration).toBeTruthy();
+        hair.execute({ type: "admit-patient", severity: 2, diseaseId: "baldness", position: { x: 2, y: 4 } });
+        hair.execute({ type: "tick", count: 4 });
+        expect(hair.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "baldness",
+            preferredTreatmentRoomType: "hair-restoration",
+            status: "walking-to-treatment",
+            assignedRoomId: hairRestoration.id
+        });
+        const missingHair = new DeterministicSimulation(72132, { bounds: { width: 12, height: 12 } });
+        missingHair.execute({ type: "admit-patient", severity: 2, diseaseId: "baldness", position: { x: 2, y: 4 } });
+        missingHair.execute({ type: "tick", count: 5 });
+        expect(missingHair.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "baldness",
+            preferredTreatmentRoomType: "hair-restoration",
+            status: "awaiting-treatment"
+        });
+        expect(missingHair.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
     });
     it("keeps generic treatment rooms available for diseases that prefer treatment", () => {
         const simulation = new DeterministicSimulation(7214, { bounds: { width: 12, height: 12 } });

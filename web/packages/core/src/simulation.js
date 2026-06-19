@@ -1,4 +1,4 @@
-import { diagnosisTicksForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, diseaseForId, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, isTreatmentRoomType, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, maintenanceStaffRepairBonusTicks, marketingCampaignCost, marketingCampaignReputationGain, OPERATING_COST_PER_ACTIVE_PATIENT_PER_TICK, PATIENT_CRITICAL_HEALTH_THRESHOLD, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientMaxHealthForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, roomBuildCost, roomMaintenanceTicks, roomMaintenanceWearThreshold, roomRepairCost, roomSellRefund, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomTypeForDisease, treatmentSucceedsForPatient, treatmentTicksForSeverity, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, progressionIncomeBonusForUnlock, roomUpkeepCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "@corsixth/rules";
+import { diagnosisTicksForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, diseaseForId, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, isTreatmentRoomType, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, maintenanceStaffRepairBonusTicks, marketingCampaignCost, marketingCampaignReputationGain, OPERATING_COST_PER_ACTIVE_PATIENT_PER_TICK, PATIENT_CRITICAL_HEALTH_THRESHOLD, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientMaxHealthForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, requiredStaffRoleForRoom, roomBuildCost, roomMaintenanceTicks, roomMaintenanceWearThreshold, roomRepairCost, roomSellRefund, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomTypeForDisease, treatmentSucceedsForPatient, treatmentTicksForSeverity, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, progressionIncomeBonusForUnlock, roomUpkeepCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "@corsixth/rules";
 import { assertGameCommand } from "./command-contract";
 import { DeterministicRng, SimulationClock, TickScheduler } from "./deterministic";
 import { TileMap } from "./map-model";
@@ -18,6 +18,7 @@ const ROOM_FOOTPRINTS = {
     pharmacy: { width: 3, height: 3 },
     specialist: { width: 3, height: 3 },
     "fracture-clinic": { width: 3, height: 3 },
+    "hair-restoration": { width: 3, height: 3 },
     "dna-fixer": { width: 3, height: 3 }
 };
 const ROOM_TYPES = Object.freeze(Object.keys(ROOM_FOOTPRINTS));
@@ -3145,7 +3146,7 @@ export class DeterministicSimulation {
                 activeAssignments.push(assignment);
                 continue;
             }
-            if (!this.isAssignmentOperational(assignment, "nurse", "treatment") && !this.isSpecialistTreatmentAssignmentOperational(assignment)) {
+            if (!this.isTreatmentAssignmentOperational(assignment)) {
                 activeAssignments.push(assignment);
                 continue;
             }
@@ -3543,17 +3544,12 @@ export class DeterministicSimulation {
     availableTreatmentStaffIds(roomId, assignments, patient = null) {
         const room = this.getRoomById(roomId);
         const busyStaffIds = new Set(assignments.map((assignment) => assignment.staffId));
-        const requiredSpecialty = room?.roomType === "specialist"
-            ? "surgeon"
-            : room?.roomType === "dna-fixer"
-                ? "researcher"
-                : null;
+        const requirement = this.treatmentStaffRequirement(room, patient);
         return this.staff
             .filter((staff) => staff.status === "active" && !busyStaffIds.has(staff.id) &&
-            (requiredSpecialty
-                ? staff.role === "diagnostician" && staff.specialties?.includes(requiredSpecialty)
-                : staff.role === "nurse"))
-            .filter((staff) => room?.roomType !== "dna-fixer" || patient?.diseaseId === "alien-dna")
+            staff.role === requirement.role &&
+            (requirement.specialty === null || staff.specialties?.includes(requirement.specialty)) &&
+            (!requirement.diseaseId || patient?.diseaseId === requirement.diseaseId))
             .map((staff) => staff.id)
             .sort((left, right) => {
             const leftStaff = this.getStaffById(left);
@@ -3651,7 +3647,7 @@ export class DeterministicSimulation {
             this.treatmentAssignments.filter((assignment) => assignment.roomId === roomId).length;
     }
     noStaffPenaltyForRoom(roomType) {
-        const role = roomType === "diagnosis" || roomType === "dna-fixer" ? "diagnostician" : "nurse";
+        const role = roomType === "diagnosis" ? "diagnostician" : this.treatmentStaffRequirement({ roomType }).role;
         return this.staff.some((member) => member.role === role && member.status === "active") ? 0 : 1;
     }
     hasActiveReceptionist() {
@@ -3667,16 +3663,27 @@ export class DeterministicSimulation {
         const roomMatchesStage = roomType === "treatment" ? isTreatmentRoomType(room?.roomType) : room?.roomType === roomType;
         return Boolean(staff && room && staff.role === staffRole && staff.status === "active" && roomMatchesStage && room.status === "open");
     }
-    isSpecialistTreatmentAssignmentOperational(assignment) {
+    isTreatmentAssignmentOperational(assignment) {
         const staff = this.getStaffById(assignment.staffId);
         const room = this.getRoomById(assignment.roomId);
         const patient = this.getPatientById(assignment.patientId);
-        const requiredSpecialty = room?.roomType === "specialist"
-            ? "surgeon"
-            : room?.roomType === "dna-fixer" && patient?.diseaseId === "alien-dna"
-                ? "researcher"
-                : null;
-        return Boolean(requiredSpecialty && staff && room && staff.role === "diagnostician" && staff.status === "active" && staff.specialties?.includes(requiredSpecialty) && room.status === "open");
+        const requirement = this.treatmentStaffRequirement(room, patient);
+        return Boolean(staff && room && patient &&
+            staff.role === requirement.role &&
+            staff.status === "active" &&
+            (requirement.specialty === null || staff.specialties?.includes(requirement.specialty)) &&
+            (!requirement.diseaseId || patient.diseaseId === requirement.diseaseId) &&
+            isTreatmentRoomType(room.roomType) &&
+            room.status === "open");
+    }
+    treatmentStaffRequirement(room, patient = null) {
+        if (room?.roomType === "specialist") {
+            return { role: "diagnostician", specialty: "surgeon", diseaseId: null };
+        }
+        if (room?.roomType === "dna-fixer") {
+            return { role: "diagnostician", specialty: "researcher", diseaseId: "alien-dna" };
+        }
+        return { role: requiredStaffRoleForRoom(room?.roomType) ?? "nurse", specialty: null, diseaseId: null };
     }
     removeAssignmentsForPatient(patientId) {
         removeFromQueue(this.receptionQueue, patientId);

@@ -177,7 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "fracture-clinic", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "fracture-clinic", "hair-restoration", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -193,7 +193,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "fractured-bones": "fracture-clinic",
     "corrugated-ankles": "specialist",
     "transparency": "specialist",
-    "baldness": "specialist",
+    "baldness": "hair-restoration",
     "broken-wind": "pharmacy",
     "golf-stones": "specialist",
     "infectious-laughter": "treatment",
@@ -224,6 +224,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     pharmacy: "nurse",
     specialist: "nurse",
     "fracture-clinic": "nurse",
+    "hair-restoration": "diagnostician",
     "dna-fixer": "diagnostician"
 };
 const STAFF_SPECIALTY_BY_ROOM_TYPE = {
@@ -242,6 +243,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     pharmacy: 4,
     specialist: 5,
     "fracture-clinic": 5,
+    "hair-restoration": 5,
     "dna-fixer": 6
 };
 const STAFF_HIRE_COST_BY_ROLE = {
@@ -256,6 +258,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     pharmacy: 1200,
     specialist: 1600,
     "fracture-clinic": 1500,
+    "hair-restoration": 1600,
     "dna-fixer": 1800
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
@@ -264,6 +267,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     pharmacy: 170,
     specialist: 220,
     "fracture-clinic": 220,
+    "hair-restoration": 220,
     "dna-fixer": 240
 };
 const STAFF_BURNOUT_TICKS_BY_ROLE = {
@@ -284,6 +288,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     pharmacy: 8,
     specialist: 8,
     "fracture-clinic": 8,
+    "hair-restoration": 8,
     "dna-fixer": 8
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
@@ -292,6 +297,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     pharmacy: 2,
     specialist: 3,
     "fracture-clinic": 3,
+    "hair-restoration": 3,
     "dna-fixer": 3
 };
 const MAINTENANCE_STAFF_REPAIR_BONUS_TICKS = 1;

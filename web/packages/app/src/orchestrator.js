@@ -22,7 +22,7 @@ const SCENARIO_MONTH_TICKS = 64;
 const SCENARIO_YEAR_TICKS = SCENARIO_MONTH_TICKS * 12;
 const DEFAULT_RESEARCH_PROJECT_TICKS = 6;
 const BASE_AVAILABLE_ROOM_TYPES = ["diagnosis", "treatment"];
-const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "fracture-clinic", "dna-fixer"];
+const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "fracture-clinic", "hair-restoration", "dna-fixer"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman", "receptionist"];
 const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
     ["admissions-toggle", ["admissions.blocked"]],
@@ -2327,6 +2327,7 @@ export class AppOrchestrator {
         const openPharmacyRooms = state.entities.rooms.filter((room) => room.roomType === "pharmacy" && room.status === "open").length;
         const openSpecialistRooms = state.entities.rooms.filter((room) => room.roomType === "specialist" && room.status === "open").length;
         const openFractureClinicRooms = state.entities.rooms.filter((room) => room.roomType === "fracture-clinic" && room.status === "open").length;
+        const openHairRestorationRooms = state.entities.rooms.filter((room) => room.roomType === "hair-restoration" && room.status === "open").length;
         const openDnaFixerRooms = state.entities.rooms.filter((room) => room.roomType === "dna-fixer" && room.status === "open").length;
         const scenarioObjectAvailability = this.scenarioObjectAvailabilityForTick(state.tick);
         const scenarioAvailableDiseases = this.scenarioAvailableDiseases(state);
@@ -2601,8 +2602,9 @@ export class AppOrchestrator {
             openPharmacyRooms,
             openSpecialistRooms,
             openFractureClinicRooms,
+            openHairRestorationRooms,
             openDnaFixerRooms,
-            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openFractureClinicRooms + openDnaFixerRooms,
+            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openFractureClinicRooms + openHairRestorationRooms + openDnaFixerRooms,
             awaitingSpecializedTreatmentPatients,
             cash: state.cash,
             reputation: state.reputation,

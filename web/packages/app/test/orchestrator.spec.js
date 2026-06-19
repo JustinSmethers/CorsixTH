@@ -4382,7 +4382,7 @@ describe("app orchestrator", () => {
         ]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
-    it("uses imported equipment availability to avoid unlocking unrelated specialist diseases", () => {
+    it("uses imported equipment availability to avoid unlocking unrelated room-gated diseases", () => {
         const orchestrator = new AppOrchestrator({
             seed: 90284,
             tickRateHz: 4,
@@ -4391,7 +4391,7 @@ describe("app orchestrator", () => {
             roomAvailability: [],
             roomAvailabilitySchedule: [
                 { index: 24, roomType: "fracture-clinic", startAvailable: true, whenAvailable: 0, availableForLevel: true },
-                { index: 25, roomType: "specialist", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+                { index: 25, roomType: "hair-restoration", startAvailable: false, whenAvailable: 1, availableForLevel: true }
             ],
             diseasePool: [
                 { source: "non_visuals", token: "I_BALDNESS", diseaseId: "baldness", severity: 2, weight: 9 },
@@ -4408,7 +4408,7 @@ describe("app orchestrator", () => {
             .map((command) => command.diseaseId);
         expect(earlyDiseaseIds.length).toBeGreaterThan(0);
         expect(earlyDiseaseIds).toEqual(earlyDiseaseIds.map(() => "fractured-bones"));
-        for (let index = 0; index < 36; index += 1) {
+        for (let index = 0; index < 96; index += 1) {
             orchestrator.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
         }
         expect(orchestrator.createPersistenceSnapshot().commandLog
