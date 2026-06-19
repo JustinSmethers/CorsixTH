@@ -16,7 +16,8 @@ const ROOM_FOOTPRINTS = {
     diagnosis: { width: 3, height: 3 },
     treatment: { width: 3, height: 3 },
     pharmacy: { width: 3, height: 3 },
-    specialist: { width: 3, height: 3 }
+    specialist: { width: 3, height: 3 },
+    "dna-fixer": { width: 3, height: 3 }
 };
 const ROOM_TYPES = Object.freeze(Object.keys(ROOM_FOOTPRINTS));
 const STAFF_ROLES = Object.freeze(["diagnostician", "nurse", "handyman", "receptionist"]);
@@ -2921,8 +2922,7 @@ export class DeterministicSimulation {
     }
     startTreatmentAssignments() {
         while (true) {
-            const availableRoomIds = this.availableTreatmentRoomIds(this.treatmentAssignments)
-                .filter((roomId) => this.availableTreatmentStaffIds(roomId, this.treatmentAssignments).length > 0);
+            const availableRoomIds = this.availableTreatmentRoomIds(this.treatmentAssignments);
             if (availableRoomIds.length === 0) {
                 return;
             }
@@ -2930,7 +2930,7 @@ export class DeterministicSimulation {
             if (!matched) {
                 return;
             }
-            const availableStaffIds = this.availableTreatmentStaffIds(matched.roomId, this.treatmentAssignments);
+            const availableStaffIds = this.availableTreatmentStaffIds(matched.roomId, this.treatmentAssignments, matched.patient);
             if (availableStaffIds.length === 0) {
                 this.treatmentQueue.unshift(matched.patient.id);
                 return;
@@ -2996,7 +2996,8 @@ export class DeterministicSimulation {
         const room = this.getRoomById(roomId);
         const roomReduction = room ? treatmentRoomDurationReductionForDisease(room.roomType, patient.diseaseId) : 0;
         const surgeonReduction = room?.roomType === "specialist" && staff?.specialties?.includes("surgeon") ? 1 : 0;
-        return Math.max(1, treatmentTicksForSeverity(patient.severity) - staffSkillDurationReductionForLevel(staff?.skillLevel ?? 0) - roomReduction - surgeonReduction);
+        const researcherReduction = room?.roomType === "dna-fixer" && staff?.specialties?.includes("researcher") ? 1 : 0;
+        return Math.max(1, treatmentTicksForSeverity(patient.severity) - staffSkillDurationReductionForLevel(staff?.skillLevel ?? 0) - roomReduction - surgeonReduction - researcherReduction);
     }
     createPatientMovement(start, destination, stage, destinationRoom = null) {
         const routeAccess = this.createRoomRouteAccess(start, destinationRoom);
@@ -3143,7 +3144,7 @@ export class DeterministicSimulation {
                 activeAssignments.push(assignment);
                 continue;
             }
-            if (!this.isAssignmentOperational(assignment, "nurse", "treatment") && !this.isSurgeonTreatmentAssignmentOperational(assignment)) {
+            if (!this.isAssignmentOperational(assignment, "nurse", "treatment") && !this.isSpecialistTreatmentAssignmentOperational(assignment)) {
                 activeAssignments.push(assignment);
                 continue;
             }
@@ -3538,15 +3539,20 @@ export class DeterministicSimulation {
             .map((staff) => staff.id)
             .sort((left, right) => left - right);
     }
-    availableTreatmentStaffIds(roomId, assignments) {
+    availableTreatmentStaffIds(roomId, assignments, patient = null) {
         const room = this.getRoomById(roomId);
         const busyStaffIds = new Set(assignments.map((assignment) => assignment.staffId));
-        const requiresSurgeon = room?.roomType === "specialist";
+        const requiredSpecialty = room?.roomType === "specialist"
+            ? "surgeon"
+            : room?.roomType === "dna-fixer"
+                ? "researcher"
+                : null;
         return this.staff
             .filter((staff) => staff.status === "active" && !busyStaffIds.has(staff.id) &&
-            (requiresSurgeon
-                ? staff.role === "diagnostician" && staff.specialties?.includes("surgeon")
+            (requiredSpecialty
+                ? staff.role === "diagnostician" && staff.specialties?.includes(requiredSpecialty)
                 : staff.role === "nurse"))
+            .filter((staff) => room?.roomType !== "dna-fixer" || patient?.diseaseId === "alien-dna")
             .map((staff) => staff.id)
             .sort((left, right) => {
             const leftStaff = this.getStaffById(left);
@@ -3579,7 +3585,8 @@ export class DeterministicSimulation {
                 index -= 1;
                 continue;
             }
-            const roomId = this.selectTreatmentRoomIdForPatient(patient, availableRoomIds);
+            const staffedRoomIds = availableRoomIds.filter((roomId) => this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length > 0);
+            const roomId = this.selectTreatmentRoomIdForPatient(patient, staffedRoomIds);
             if (roomId === null) {
                 continue;
             }
@@ -3643,7 +3650,7 @@ export class DeterministicSimulation {
             this.treatmentAssignments.filter((assignment) => assignment.roomId === roomId).length;
     }
     noStaffPenaltyForRoom(roomType) {
-        const role = roomType === "diagnosis" ? "diagnostician" : "nurse";
+        const role = roomType === "diagnosis" || roomType === "dna-fixer" ? "diagnostician" : "nurse";
         return this.staff.some((member) => member.role === role && member.status === "active") ? 0 : 1;
     }
     hasActiveReceptionist() {
@@ -3659,10 +3666,16 @@ export class DeterministicSimulation {
         const roomMatchesStage = roomType === "treatment" ? isTreatmentRoomType(room?.roomType) : room?.roomType === roomType;
         return Boolean(staff && room && staff.role === staffRole && staff.status === "active" && roomMatchesStage && room.status === "open");
     }
-    isSurgeonTreatmentAssignmentOperational(assignment) {
+    isSpecialistTreatmentAssignmentOperational(assignment) {
         const staff = this.getStaffById(assignment.staffId);
         const room = this.getRoomById(assignment.roomId);
-        return Boolean(staff && room && staff.role === "diagnostician" && staff.status === "active" && staff.specialties?.includes("surgeon") && room.roomType === "specialist" && room.status === "open");
+        const patient = this.getPatientById(assignment.patientId);
+        const requiredSpecialty = room?.roomType === "specialist"
+            ? "surgeon"
+            : room?.roomType === "dna-fixer" && patient?.diseaseId === "alien-dna"
+                ? "researcher"
+                : null;
+        return Boolean(requiredSpecialty && staff && room && staff.role === "diagnostician" && staff.status === "active" && staff.specialties?.includes(requiredSpecialty) && room.status === "open");
     }
     removeAssignmentsForPatient(patientId) {
         removeFromQueue(this.receptionQueue, patientId);

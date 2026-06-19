@@ -177,7 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -206,7 +206,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "discrete-itching": "treatment",
     "broken-heart": "treatment",
     "sideburns": "specialist",
-    "alien-dna": "specialist",
+    "alien-dna": "dna-fixer",
     "chronic-nosehair": "pharmacy",
     "fake-blood": "specialist",
     "iron-lungs": "treatment",
@@ -222,7 +222,12 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     diagnosis: "diagnostician",
     treatment: "nurse",
     pharmacy: "nurse",
-    specialist: "nurse"
+    specialist: "nurse",
+    "dna-fixer": "diagnostician"
+};
+const STAFF_SPECIALTY_BY_ROOM_TYPE = {
+    specialist: "surgeon",
+    "dna-fixer": "researcher"
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
     diagnostician: 5,
@@ -234,7 +239,8 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     diagnosis: 2,
     treatment: 3,
     pharmacy: 4,
-    specialist: 5
+    specialist: 5,
+    "dna-fixer": 6
 };
 const STAFF_HIRE_COST_BY_ROLE = {
     diagnostician: 300,
@@ -246,13 +252,15 @@ const ROOM_BUILD_COST_BY_TYPE = {
     diagnosis: 800,
     treatment: 1000,
     pharmacy: 1200,
-    specialist: 1600
+    specialist: 1600,
+    "dna-fixer": 1800
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
     diagnosis: 120,
     treatment: 150,
     pharmacy: 170,
-    specialist: 220
+    specialist: 220,
+    "dna-fixer": 240
 };
 const STAFF_BURNOUT_TICKS_BY_ROLE = {
     diagnostician: 8,
@@ -270,13 +278,15 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     diagnosis: 8,
     treatment: 8,
     pharmacy: 8,
-    specialist: 8
+    specialist: 8,
+    "dna-fixer": 8
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     diagnosis: 2,
     treatment: 2,
     pharmacy: 2,
-    specialist: 3
+    specialist: 3,
+    "dna-fixer": 3
 };
 const MAINTENANCE_STAFF_REPAIR_BONUS_TICKS = 1;
 const PROGRESSION_INCOME_BONUS_BY_UNLOCK = {
@@ -394,6 +404,9 @@ export function treatmentSucceedsForPatient(patient, researchLevel = 0, treatmen
 }
 export function requiredStaffRoleForRoom(roomType) {
     return STAFF_ROLE_BY_ROOM_TYPE[roomType];
+}
+export function requiredStaffSpecialtyForRoom(roomType) {
+    return STAFF_SPECIALTY_BY_ROOM_TYPE[roomType] ?? null;
 }
 export function staffWageCostPerTick(role) {
     return STAFF_WAGE_COST_PER_TICK_BY_ROLE[role];

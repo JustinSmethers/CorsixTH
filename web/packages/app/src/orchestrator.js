@@ -22,7 +22,7 @@ const SCENARIO_MONTH_TICKS = 64;
 const SCENARIO_YEAR_TICKS = SCENARIO_MONTH_TICKS * 12;
 const DEFAULT_RESEARCH_PROJECT_TICKS = 6;
 const BASE_AVAILABLE_ROOM_TYPES = ["diagnosis", "treatment"];
-const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist"];
+const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "dna-fixer"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman", "receptionist"];
 const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
     ["admissions-toggle", ["admissions.blocked"]],

@@ -64,7 +64,7 @@ function isStaffRestType(value) {
     return value === "standing" || value === "sofa" || value === "game" || value === "snooker";
 }
 function isRoomType(value) {
-    return value === "diagnosis" || value === "treatment" || value === "pharmacy" || value === "specialist";
+    return value === "diagnosis" || value === "treatment" || value === "pharmacy" || value === "specialist" || value === "dna-fixer";
 }
 function isRoomOperationalStatus(value) {
     return value === "open" || value === "closed";

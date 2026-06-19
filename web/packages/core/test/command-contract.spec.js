@@ -29,6 +29,7 @@ describe("command contract", () => {
         expect(isGameCommand({ type: "open-room", roomType: "treatment", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "pharmacy", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "specialist", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "dna-fixer", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "place-object", objectIndex: 2, name: "Bench", cost: 50, strength: 12, orientation: "east", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "remove-object", objectId: 3 })).toBe(true);
         expect(isGameCommand({ type: "remove-room", roomId: 3 })).toBe(true);

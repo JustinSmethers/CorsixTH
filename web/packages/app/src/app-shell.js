@@ -43,7 +43,8 @@ const ROOM_TYPE_COLORS = {
     diagnosis: "#5fb3c8",
     treatment: "#79c66a",
     pharmacy: "#b894f6",
-    specialist: "#f08e67"
+    specialist: "#f08e67",
+    "dna-fixer": "#c59bf7"
 };
 const STAFF_ROLE_COLORS = {
     diagnostician: "#d8b55a",

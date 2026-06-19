@@ -465,6 +465,52 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(specializedDischargeTick).toBeGreaterThan(0);
         expect(specialized.getState().hospitalLoop.dischargedPatients).toBe(1);
     });
+    it("requires researcher-qualified doctors and DNA Fixer rooms for Alien DNA treatment", () => {
+        const researcherTreatment = new DeterministicSimulation(72095, { bounds: { width: 12, height: 12 } });
+        researcherTreatment.execute({ type: "open-room", roomType: "dna-fixer", position: { x: 1, y: 7 } });
+        researcherTreatment.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 8, y: 4 } });
+        researcherTreatment.execute({ type: "admit-patient", severity: 3, diseaseId: "alien-dna", position: { x: 2, y: 4 } });
+        let researcherDischargeTick = null;
+        for (let tick = 1; tick <= 16; tick += 1) {
+            researcherTreatment.execute({ type: "tick", count: 1 });
+            if (researcherDischargeTick === null && researcherTreatment.getState().hospitalLoop.dischargedPatients === 1) {
+                researcherDischargeTick = tick;
+            }
+        }
+        const dnaFixer = researcherTreatment.getState().entities.rooms.find((room) => room.roomType === "dna-fixer");
+        expect(dnaFixer).toBeTruthy();
+        expect(researcherDischargeTick).toBeGreaterThan(0);
+        expect(researcherTreatment.getState().hospitalLoop.dischargedPatients).toBe(1);
+        const surgeonOnly = new DeterministicSimulation(72096, { bounds: { width: 12, height: 12 } });
+        surgeonOnly.execute({ type: "open-room", roomType: "dna-fixer", position: { x: 1, y: 7 } });
+        surgeonOnly.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
+        surgeonOnly.execute({ type: "admit-patient", severity: 3, diseaseId: "alien-dna", position: { x: 2, y: 4 } });
+        surgeonOnly.execute({ type: "tick", count: 8 });
+        expect(surgeonOnly.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "alien-dna",
+            preferredTreatmentRoomType: "dna-fixer",
+            status: "awaiting-treatment"
+        });
+        const nurseOnly = new DeterministicSimulation(72097, { bounds: { width: 12, height: 12 } });
+        nurseOnly.execute({ type: "open-room", roomType: "dna-fixer", position: { x: 1, y: 7 } });
+        nurseOnly.execute({ type: "admit-patient", severity: 3, diseaseId: "alien-dna", position: { x: 2, y: 4 } });
+        nurseOnly.execute({ type: "tick", count: 8 });
+        expect(nurseOnly.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "alien-dna",
+            preferredTreatmentRoomType: "dna-fixer",
+            status: "awaiting-treatment"
+        });
+        const researcherOnlySpecialist = new DeterministicSimulation(72098, { bounds: { width: 12, height: 12 } });
+        researcherOnlySpecialist.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        researcherOnlySpecialist.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 8, y: 4 } });
+        researcherOnlySpecialist.execute({ type: "admit-patient", severity: 3, diseaseId: "cranial-pressure", position: { x: 2, y: 4 } });
+        researcherOnlySpecialist.execute({ type: "tick", count: 8 });
+        expect(researcherOnlySpecialist.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "cranial-pressure",
+            preferredTreatmentRoomType: "specialist",
+            status: "awaiting-treatment"
+        });
+    });
     it("requires disease-specific treatment rooms for pharmacy and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
