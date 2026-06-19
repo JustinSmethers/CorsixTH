@@ -446,8 +446,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         blocked.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         specialized.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         specialized.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
-        blocked.execute({ type: "admit-patient", severity: 2, diseaseId: "slack-tongue", position: { x: 2, y: 4 } });
-        specialized.execute({ type: "admit-patient", severity: 2, diseaseId: "slack-tongue", position: { x: 2, y: 4 } });
+        blocked.execute({ type: "admit-patient", severity: 3, diseaseId: "acute-sneezes", position: { x: 2, y: 4 } });
+        specialized.execute({ type: "admit-patient", severity: 3, diseaseId: "acute-sneezes", position: { x: 2, y: 4 } });
         let specializedDischargeTick = null;
         for (let tick = 1; tick <= 16; tick += 1) {
             blocked.execute({ type: "tick", count: 1 });
@@ -457,7 +457,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             }
         }
         expect(blocked.getState().entities.waitingPatients[0]).toMatchObject({
-            diseaseId: "slack-tongue",
+            diseaseId: "acute-sneezes",
             preferredTreatmentRoomType: "specialist",
             status: "awaiting-treatment"
         });
@@ -503,15 +503,15 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         const researcherOnlySpecialist = new DeterministicSimulation(72098, { bounds: { width: 12, height: 12 } });
         researcherOnlySpecialist.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         researcherOnlySpecialist.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 8, y: 4 } });
-        researcherOnlySpecialist.execute({ type: "admit-patient", severity: 2, diseaseId: "slack-tongue", position: { x: 2, y: 4 } });
+        researcherOnlySpecialist.execute({ type: "admit-patient", severity: 3, diseaseId: "acute-sneezes", position: { x: 2, y: 4 } });
         researcherOnlySpecialist.execute({ type: "tick", count: 8 });
         expect(researcherOnlySpecialist.getState().entities.waitingPatients[0]).toMatchObject({
-            diseaseId: "slack-tongue",
+            diseaseId: "acute-sneezes",
             preferredTreatmentRoomType: "specialist",
             status: "awaiting-treatment"
         });
     });
-    it("requires disease-specific treatment rooms for pharmacy, inflation, fracture, hair, and specialist diseases", () => {
+    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -576,6 +576,28 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         expect(missingInflation.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
+        const slack = new DeterministicSimulation(72134, { bounds: { width: 12, height: 12 } });
+        slack.execute({ type: "open-room", roomType: "slack-tongue-clinic", position: { x: 1, y: 7 } });
+        slack.execute({ type: "hire-staff", role: "diagnostician", position: { x: 8, y: 4 } });
+        const slackTongueClinic = slack.getState().entities.rooms.find((room) => room.roomType === "slack-tongue-clinic");
+        expect(slackTongueClinic).toBeTruthy();
+        slack.execute({ type: "admit-patient", severity: 2, diseaseId: "slack-tongue", position: { x: 2, y: 4 } });
+        slack.execute({ type: "tick", count: 4 });
+        expect(slack.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "slack-tongue",
+            preferredTreatmentRoomType: "slack-tongue-clinic",
+            status: "walking-to-treatment",
+            assignedRoomId: slackTongueClinic.id
+        });
+        const missingSlack = new DeterministicSimulation(72135, { bounds: { width: 12, height: 12 } });
+        missingSlack.execute({ type: "admit-patient", severity: 2, diseaseId: "slack-tongue", position: { x: 2, y: 4 } });
+        missingSlack.execute({ type: "tick", count: 5 });
+        expect(missingSlack.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "slack-tongue",
+            preferredTreatmentRoomType: "slack-tongue-clinic",
+            status: "awaiting-treatment"
+        });
+        expect(missingSlack.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
         const hair = new DeterministicSimulation(72131, { bounds: { width: 12, height: 12 } });
         hair.execute({ type: "open-room", roomType: "hair-restoration", position: { x: 1, y: 7 } });
         const hairRestoration = hair.getState().entities.rooms.find((room) => room.roomType === "hair-restoration");
@@ -612,10 +634,10 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
     it("does not let unstaffed specialist cases block staffed general treatment rooms", () => {
         const simulation = new DeterministicSimulation(7215, { bounds: { width: 12, height: 12 } });
         simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
-        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "slack-tongue", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 3, diseaseId: "acute-sneezes", position: { x: 2, y: 4 } });
         simulation.execute({ type: "admit-patient", severity: 1, diseaseId: "mild-cold", position: { x: 3, y: 4 } });
         simulation.execute({ type: "tick", count: 8 });
-        const specialistPatient = simulation.getState().entities.waitingPatients.find((patient) => patient.diseaseId === "slack-tongue");
+        const specialistPatient = simulation.getState().entities.waitingPatients.find((patient) => patient.diseaseId === "acute-sneezes");
         const generalPatient = simulation.getState().entities.waitingPatients.find((patient) => patient.diseaseId === "mild-cold");
         expect(specialistPatient).toMatchObject({
             preferredTreatmentRoomType: "specialist",

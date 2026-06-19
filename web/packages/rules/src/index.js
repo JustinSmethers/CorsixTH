@@ -177,13 +177,13 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "fracture-clinic", "hair-restoration", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
     "gastric-grumble": "pharmacy",
     "sleepy-bones": "pharmacy",
-    "slack-tongue": "specialist",
+    "slack-tongue": "slack-tongue-clinic",
     "cranial-pressure": "inflation-room",
     "acute-sneezes": "specialist",
     "gut-rot": "pharmacy",
@@ -224,6 +224,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     pharmacy: "nurse",
     specialist: "nurse",
     "inflation-room": "diagnostician",
+    "slack-tongue-clinic": "diagnostician",
     "fracture-clinic": "nurse",
     "hair-restoration": "diagnostician",
     "dna-fixer": "diagnostician"
@@ -244,6 +245,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     pharmacy: 4,
     specialist: 5,
     "inflation-room": 5,
+    "slack-tongue-clinic": 5,
     "fracture-clinic": 5,
     "hair-restoration": 5,
     "dna-fixer": 6
@@ -260,6 +262,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     pharmacy: 1200,
     specialist: 1600,
     "inflation-room": 1600,
+    "slack-tongue-clinic": 1600,
     "fracture-clinic": 1500,
     "hair-restoration": 1600,
     "dna-fixer": 1800
@@ -270,6 +273,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     pharmacy: 170,
     specialist: 220,
     "inflation-room": 220,
+    "slack-tongue-clinic": 220,
     "fracture-clinic": 220,
     "hair-restoration": 220,
     "dna-fixer": 240
@@ -292,6 +296,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     pharmacy: 8,
     specialist: 8,
     "inflation-room": 8,
+    "slack-tongue-clinic": 8,
     "fracture-clinic": 8,
     "hair-restoration": 8,
     "dna-fixer": 8
@@ -302,6 +307,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     pharmacy: 2,
     specialist: 3,
     "inflation-room": 3,
+    "slack-tongue-clinic": 3,
     "fracture-clinic": 3,
     "hair-restoration": 3,
     "dna-fixer": 3

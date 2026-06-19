@@ -18,6 +18,7 @@ const ROOM_FOOTPRINTS = {
     pharmacy: { width: 3, height: 3 },
     specialist: { width: 3, height: 3 },
     "inflation-room": { width: 3, height: 3 },
+    "slack-tongue-clinic": { width: 3, height: 3 },
     "fracture-clinic": { width: 3, height: 3 },
     "hair-restoration": { width: 3, height: 3 },
     "dna-fixer": { width: 3, height: 3 }

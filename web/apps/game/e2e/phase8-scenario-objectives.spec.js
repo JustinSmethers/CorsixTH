@@ -2146,7 +2146,7 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Inflation Room 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 1");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Inflation Room 0, Slack Tongue Clinic 0, Fracture Clinic 0, Hair Restoration 0, DNA Fixer 1");
 
     await page.getByTestId("hire-diagnostician").click();
     await canvas.click({ position: { x: 432, y: 176 } });
