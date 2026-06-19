@@ -37,6 +37,7 @@ const visualHoldFixtureDirectory = phase8FixtureDirectory("phase8-scenario-visua
 const visualHoldPeepCountFixtureDirectory = phase8FixtureDirectory("phase8-scenario-visual-hold-peep-count");
 const visualsAvailableFixtureDirectory = phase8FixtureDirectory("phase8-scenario-visuals-available");
 const objectDiseaseGateFixtureDirectory = phase8FixtureDirectory("phase8-scenario-object-disease-gate");
+const dnaFixerFixtureDirectory = phase8FixtureDirectory("phase8-scenario-dna-fixer");
 const contagiousReducerFixtureDirectory = phase8FixtureDirectory("phase8-scenario-contagious-reducer");
 const contagiousRateFixtureDirectory = phase8FixtureDirectory("phase8-scenario-contagious-rate");
 const allocationDelayFixtureDirectory = phase8FixtureDirectory("phase8-scenario-allocation-delay");
@@ -2090,6 +2091,34 @@ test("phase 8 scenario import: locked object availability gates automatic diseas
     await expect(page.getByTestId("tick")).toHaveText("Tick: 77");
     await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Inflation Room");
     expect(await savedAdmissionDiseaseIds(page, "object-disease-gate-late")).toContain("baldness");
+});
+
+test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients", async ({ page }) => {
+    await importScenarioFixture(page, dnaFixerFixtureDirectory);
+    await page.getByTestId("pause-toggle").click();
+    await expect(page.getByTestId("room-availability")).toContainText("DNA Fixer");
+    await expect(page.getByTestId("object-availability")).toContainText("available: DNA Fixer");
+    await expect(page.getByTestId("build-dna-fixer-room")).toHaveText("Build DNA Fixer (1800)");
+
+    const canvas = page.getByTestId("hospital-map-canvas");
+    await page.getByTestId("build-dna-fixer-room").click();
+    await canvas.hover({ position: { x: 384, y: 160 } });
+    await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
+    await canvas.click({ position: { x: 384, y: 160 } });
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, DNA Fixer 1");
+
+    await page.getByTestId("hire-receptionist").click();
+    await canvas.click({ position: { x: 416, y: 176 } });
+    await page.getByTestId("admissions-toggle").click();
+
+    for (let index = 0; index < 40; index += 1) {
+        await page.getByTestId("step").click();
+    }
+
+    const diseaseIds = await savedAdmissionDiseaseIds(page, "dna-fixer-alien-dna");
+    expect(diseaseIds.length).toBeGreaterThan(0);
+    expect(diseaseIds).toEqual(diseaseIds.map(() => "alien-dna"));
 });
 
 test("phase 8 scenario import: contagious reducers gate automatic disease admissions", async ({ page }) => {

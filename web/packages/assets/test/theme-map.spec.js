@@ -182,6 +182,7 @@ Level One
 #rooms[17].Cost 1500 INFLATOR
 #rooms[19].Cost 500 HAIR_RESTORE
 #rooms[21].Cost 500 FRACTURE
+#rooms[23].Cost 1800 DNA_FIXER
 #staff[0].MinSalary 45 Nurse
 #staff[1].MinSalary 60 Doctor
 #staff[2].MinSalary 20 Handyman
@@ -224,6 +225,7 @@ Level One
 #non_visuals[17] 5 I_GUT_ROT
 #objects[9].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 2500 1 0 12 1 9 Inflator Machine
 #objects[13].StartCost.StartAvail.WhenAvail.AvailableForLevel 1000 0 0 1 13 Cardiogram
+#objects[23].StartCost.StartAvail.WhenAvail.AvailableForLevel 1800 1 0 1 23 DNA Fixer
 #objects[24].StartCost.StartAvail.WhenAvail.AvailableForLevel 2000 1 0 1 24 Cast Remover
 #objects[27].StartCost.StartAvail.WhenAvail.AvailableForLevel 4000 0 0 1 27 X-Ray
 #staff_levels[0].Month.Nurses.Doctors.Handymen.Receptionists.Seed.ShrkRate.SurgRate.RschRate.ConsRate.JrRate 0 8 7 3 5 4953 3 0 1 2 10
@@ -399,7 +401,8 @@ Emergency Mappings
             { index: 12, cost: 470, roomType: "diagnosis", name: "CARDIO" },
             { index: 17, cost: 1500, roomType: "specialist", name: "INFLATOR" },
             { index: 19, cost: 500, roomType: "specialist", name: "HAIR_RESTORE" },
-            { index: 21, cost: 500, roomType: "treatment", name: "FRACTURE" }
+            { index: 21, cost: 500, roomType: "treatment", name: "FRACTURE" },
+            { index: 23, cost: 1800, roomType: "dna-fixer", name: "DNA_FIXER" }
         ]);
         expect(scenario.staffSalaries).toEqual([
             { index: 0, minimumSalary: 45, role: "nurse", name: "Nurse" },
@@ -506,6 +509,15 @@ Network Level
                 name: "Cardiogram"
             },
             {
+                index: 23,
+                startCost: 1800,
+                startAvailable: true,
+                whenAvailable: 0,
+                availableForLevel: true,
+                roomType: "dna-fixer",
+                name: "DNA Fixer"
+            },
+            {
                 index: 24,
                 startCost: 2000,
                 startAvailable: true,
@@ -533,7 +545,7 @@ Network Level
             { path: "LEVELS/LEVEL.L1", bytes: syntheticMapBytes() },
             {
                 path: "LEVELS/FULL00.SAM",
-                bytes: new TextEncoder().encode("#towns[0].StartCash.IllRate.InterestRate 0 0 100 Level 0\n#towns[1].StartCash.IllRate.InterestRate 40000 2 100 Level 1\n#rooms[7].Cost 2280 GP_OFFICE\n#rooms[9].Cost 1700 WARD\n#rooms[11].Cost 500 PHARMACY\n#rooms[12].Cost 470 CARDIO\n#rooms[17].Cost 1500 INFLATOR\n#rooms[19].Cost 500 HAIR_RESTORE\n#rooms[21].Cost 500 FRACTURE\n#staff[0].MinSalary 45 Nurse\n#staff[1].MinSalary 60 Doctor\n#staff[2].MinSalary 20 Handyman\n#staff[3].MinSalary 15 Receptionist\n#objects[9].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 2500 0 0 8 0 9 Inflator Machine\n#objects[13].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 1000 0 2 13 1 13 Cardiogram\n#gbv.StartRating 100\n#gbv.MinDrugCost 50\n#gbv.MaxObjectStrength 20\n#gbv.ResearchIncrement 2\n#gbv.RschImproveCostPercent 10\n#gbv.RschImproveIncrementPercent 10\n#gbv.DrugImproveRate 5\n#gbv.TrainingRate 30\n#gbv.PromoDoc 6\n#gbv.PromoCon 12\n#gbv.AbilityThreshold[0] 75 SURGEON\n#gbv.AbilityThreshold[1] 60 PSYCHO\n#gbv.AbilityThreshold[2] 45 RESEARCHER\n#gbv.TrainingValue[0] 10 Projector\n#gbv.TrainingValue[1] 15 Skeleton\n#gbv.DoctorThreshold 250\n#gbv.ConsultantThreshold 750\n#gbv.HowContagious 25\n#gbv.ContagiousSpreadFactor 25\n#gbv.ReduceContMonths 6\n#gbv.ReduceContPeepCount 10\n#gbv.ReduceContRate 0\n#gbv.EpidemicFine 2000\n#gbv.EpidemicCompLo 1000\n#gbv.EpidemicCompHi 15000\n#gbv.ScoreMaxInc 300\n#gbv.VacCost 50\n#gbv.RemoveRatHoleChance 3000\n#gbv.MinimumAbductTime 4\n#gbv.AbductionsPerYear 2\n#gbv.AutopsyRschPercent 33\n#gbv.AutopsyRepHitPercent 20\n#gbv.MayorLaunch 1\n#gbv.DisasterLaunch 200\n#gbv.LandCostPerTile 25\n#gbv.QPoints 15\n#gbv.DistPoints 1\n#gbv.NoStaffPoints 20\n#gbv.RestStanding 3\n#gbv.RestSofa 8\n#gbv.RestGame 60\n#gbv.RestSnooker 30\n#gbv.WorkLight 1\n#gbv.ModifyFreq 16\n#gbv.CrackUpTired 800\n#gbv.RecoveryMinimum 3\n#gbv.LitterDrop 25\n#gbv.LeaveMax 150\n#gbv.ResignMax 150\n#gbv.Happy 75\n#gbv.Unhappy 50\n#gbv.VeryUnhappy 25\n#gbv.BowelFull 50\n#gbv.BowelOverflows 75\n#gbv.VomitLimit 50\n#gbv.LitterRandom 60\n#gbv.SalaryAdd[3] -30 Junior\n#gbv.SalaryAdd[4] 30 Doctor\n#gbv.SalaryAdd[7] 100 Consultant\n#gbv.SalaryAbilityDivisor 10\n#gbv.SalaryTooLow -10\n#gbv.SalaryTooHigh 20\n#gbv.AllocRand 4\n#gbv.AllocTotalRep 1\n#gbv.AllocIndRep 2\n#gbv.AllocDelay 3\n#awards_trophies.CuresAward 50\n#awards_trophies.DeathsPoor 25\n")
+                bytes: new TextEncoder().encode("#towns[0].StartCash.IllRate.InterestRate 0 0 100 Level 0\n#towns[1].StartCash.IllRate.InterestRate 40000 2 100 Level 1\n#rooms[7].Cost 2280 GP_OFFICE\n#rooms[9].Cost 1700 WARD\n#rooms[11].Cost 500 PHARMACY\n#rooms[12].Cost 470 CARDIO\n#rooms[17].Cost 1500 INFLATOR\n#rooms[19].Cost 500 HAIR_RESTORE\n#rooms[21].Cost 500 FRACTURE\n#rooms[23].Cost 1800 DNA_FIXER\n#staff[0].MinSalary 45 Nurse\n#staff[1].MinSalary 60 Doctor\n#staff[2].MinSalary 20 Handyman\n#staff[3].MinSalary 15 Receptionist\n#objects[9].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 2500 0 0 8 0 9 Inflator Machine\n#objects[13].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 1000 0 2 13 1 13 Cardiogram\n#objects[23].StartCost.StartAvail.WhenAvail.AvailableForLevel 1800 1 0 1 23 DNA Fixer\n#gbv.StartRating 100\n#gbv.MinDrugCost 50\n#gbv.MaxObjectStrength 20\n#gbv.ResearchIncrement 2\n#gbv.RschImproveCostPercent 10\n#gbv.RschImproveIncrementPercent 10\n#gbv.DrugImproveRate 5\n#gbv.TrainingRate 30\n#gbv.PromoDoc 6\n#gbv.PromoCon 12\n#gbv.AbilityThreshold[0] 75 SURGEON\n#gbv.AbilityThreshold[1] 60 PSYCHO\n#gbv.AbilityThreshold[2] 45 RESEARCHER\n#gbv.TrainingValue[0] 10 Projector\n#gbv.TrainingValue[1] 15 Skeleton\n#gbv.DoctorThreshold 250\n#gbv.ConsultantThreshold 750\n#gbv.HowContagious 25\n#gbv.ContagiousSpreadFactor 25\n#gbv.ReduceContMonths 6\n#gbv.ReduceContPeepCount 10\n#gbv.ReduceContRate 0\n#gbv.EpidemicFine 2000\n#gbv.EpidemicCompLo 1000\n#gbv.EpidemicCompHi 15000\n#gbv.ScoreMaxInc 300\n#gbv.VacCost 50\n#gbv.RemoveRatHoleChance 3000\n#gbv.MinimumAbductTime 4\n#gbv.AbductionsPerYear 2\n#gbv.AutopsyRschPercent 33\n#gbv.AutopsyRepHitPercent 20\n#gbv.MayorLaunch 1\n#gbv.DisasterLaunch 200\n#gbv.LandCostPerTile 25\n#gbv.QPoints 15\n#gbv.DistPoints 1\n#gbv.NoStaffPoints 20\n#gbv.RestStanding 3\n#gbv.RestSofa 8\n#gbv.RestGame 60\n#gbv.RestSnooker 30\n#gbv.WorkLight 1\n#gbv.ModifyFreq 16\n#gbv.CrackUpTired 800\n#gbv.RecoveryMinimum 3\n#gbv.LitterDrop 25\n#gbv.LeaveMax 150\n#gbv.ResignMax 150\n#gbv.Happy 75\n#gbv.Unhappy 50\n#gbv.VeryUnhappy 25\n#gbv.BowelFull 50\n#gbv.BowelOverflows 75\n#gbv.VomitLimit 50\n#gbv.LitterRandom 60\n#gbv.SalaryAdd[3] -30 Junior\n#gbv.SalaryAdd[4] 30 Doctor\n#gbv.SalaryAdd[7] 100 Consultant\n#gbv.SalaryAbilityDivisor 10\n#gbv.SalaryTooLow -10\n#gbv.SalaryTooHigh 20\n#gbv.AllocRand 4\n#gbv.AllocTotalRep 1\n#gbv.AllocIndRep 2\n#gbv.AllocDelay 3\n#awards_trophies.CuresAward 50\n#awards_trophies.DeathsPoor 25\n")
             },
             {
                 path: "LEVELS/FULL01.SAM",
@@ -556,11 +568,12 @@ Network Level
             diseasePool: [{ source: "visuals", index: 0, weight: 5, token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3 }],
             staffLevels: [{ month: 0, nurses: 8, doctors: 7, handymen: 3, receptionists: 5 }],
             financialSettings: { index: 1, startCash: 40000, illnessRate: 2, interestRate: 100, name: "Level 1" },
-            roomCostOverrides: { diagnosis: 1470, treatment: 500, pharmacy: 500, specialist: 3000 },
+            roomCostOverrides: { diagnosis: 1470, treatment: 500, pharmacy: 500, specialist: 3000, "dna-fixer": 3600 },
             staffWageOverrides: { nurse: 5, diagnostician: 6, handyman: 2, receptionist: 2 },
             objectAvailability: [
                 { index: 9, startCost: 2500, startAvailable: true, roomType: "specialist" },
-                { index: 13, startCost: 1000, startAvailable: false, whenAvailable: 2, roomType: "diagnosis" }
+                { index: 13, startCost: 1000, startAvailable: false, whenAvailable: 2, roomType: "diagnosis" },
+                { index: 23, startCost: 1800, startAvailable: true, roomType: "dna-fixer" }
             ],
             admissionRules: { holdVisualPeepCount: 2 },
             researchSettings: { startRating: 100, researchPointsDivisor: 4, startCost: 100, minDrugCost: 50, drugImproveRate: 5, maxObjectStrength: 20, researchIncrement: 2, researchImproveCostPercent: 10, researchImproveIncrementPercent: 10 },

@@ -76,8 +76,10 @@ function syntheticLanguageBytes() {
   entries[3] = "Receptionist";
   entries[9] = "Inflator Machine";
   entries[13] = "Cardiogram";
+  entries[23] = "DNA Fixer";
   entries[24] = "Cast Remover";
   entries[101] = "Bloaty Head";
+  entries[107] = "Alien DNA";
   entries[104] = "Itchy Feet";
   entries[112] = "Sleeping Illness";
   entries[115] = "Uncommon Cold";
@@ -141,6 +143,7 @@ writeScenarioVisualHoldFixtureSet();
 writeScenarioVisualHoldPeepCountFixtureSet();
 writeScenarioVisualsAvailableFixtureSet();
 writeScenarioObjectDiseaseGateFixtureSet();
+writeScenarioDnaFixerFixtureSet();
 writeScenarioContagiousReducerFixtureSet();
 writeScenarioContagiousRateFixtureSet();
 writeScenarioAllocationDelayFixtureSet();
@@ -1770,6 +1773,51 @@ function writeScenarioObjectDiseaseGateFixtureSet() {
   }));
   writeFileSync(join(base, "LEVELS", "FULL02.SAM"), scenarioBytes({
     title: "Scenario Object Disease Gate Two",
+    reputation: 450,
+    balance: 2500,
+    treatedPercentage: 50,
+    cures: 12,
+    hospitalValue: 70000,
+    bankruptcy: -25000,
+    reputationFailure: 300,
+    deaths: 40,
+    expandedDiseases: true,
+    ...options,
+  }));
+}
+
+function writeScenarioDnaFixerFixtureSet() {
+  writeFixtureSet("phase8-scenario-dna-fixer", true);
+  const base = join(fixtureRoot.pathname, "phase8-scenario-dna-fixer");
+  writeFileSync(join(base, "LEVELS", "LEVEL.L1"), syntheticMapBytes());
+  writeFileSync(join(base, "LEVELS", "LEVEL.L2"), syntheticMapBytes({
+    camera: { x: 79, y: 81 },
+    heliport: { x: 72, y: 86 },
+  }));
+  const options = {
+    allocationDelay: 0,
+    diseaseLines: ["#visuals[0] 8 I_ALIEN"],
+    objectLines: ["#objects[23].StartAvail.WhenAvail.AvailableForLevel 1 0 1 23 DNA Fixer"],
+    expertiseLines: [
+      "#expertise[5].Known.RschReqd.MaxDiagDiff 1 10000 1 INVIS",
+      "#expertise[28].Known.RschReqd.MaxDiagDiff 1 10000 100 ALIEN",
+    ],
+    disasterLaunch: 999,
+  };
+  writeFileSync(join(base, "LEVELS", "FULL01.SAM"), scenarioBytes({
+    title: "Scenario DNA Fixer",
+    reputation: 300,
+    balance: 1000,
+    treatedPercentage: 40,
+    cures: 10,
+    hospitalValue: 55000,
+    bankruptcy: -20000,
+    reputationFailure: 200,
+    deaths: 50,
+    ...options,
+  }));
+  writeFileSync(join(base, "LEVELS", "FULL02.SAM"), scenarioBytes({
+    title: "Scenario DNA Fixer Two",
     reputation: 450,
     balance: 2500,
     treatedPercentage: 50,
