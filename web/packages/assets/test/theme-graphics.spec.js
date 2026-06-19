@@ -189,6 +189,69 @@ describe("Theme Hospital graphics decoder", () => {
         expect(scene.stats.floorSpriteCount).toBe(1);
         expect(scene.stats.wallSpriteCount).toBe(1);
     });
+    it("draws floors, walls, tile objects, then animation overlays in the map scene", () => {
+        const paletteBytes = fixturePaletteBytes();
+        paletteBytes[3 * 3 + 2] = 63;
+        paletteBytes[4 * 3] = 63;
+        paletteBytes[4 * 3 + 1] = 63;
+        const palette = decodeThemeHospitalPalette(paletteBytes);
+        const singlePixelSprite = (paletteIndex) => ({
+            width: 1,
+            height: 1,
+            indices: new Uint8Array([paletteIndex])
+        });
+        const blockSheet = {
+            sprites: [
+                singlePixelSprite(255),
+                singlePixelSprite(1),
+                singlePixelSprite(2)
+            ]
+        };
+        const spriteSheet = {
+            sprites: [
+                singlePixelSprite(3),
+                singlePixelSprite(4)
+            ]
+        };
+        const animationSet = decodeThemeHospitalAnimationSet(
+            new Uint8Array([0, 0, 0, 0]),
+            new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+            new Uint8Array([0, 0, 0xff, 0xff]),
+            new Uint8Array([0, 0, 141, 186, 0, 0])
+        );
+        const map = {
+            ...decodedMapFixture(),
+            width: 1,
+            height: 1,
+            tileCount: 1,
+            tiles: [
+                { x: 0, y: 0, ground: 1, northWall: 2, westWall: 0, objectType: 1 }
+            ]
+        };
+        const scene = renderThemeHospitalMapScene({
+            map,
+            blockSheet,
+            spriteSheet,
+            animationSet,
+            palette,
+            viewportWidth: 80,
+            viewportHeight: 60,
+            originX: 40,
+            originY: -15,
+            tileColumns: 1,
+            tileRows: 1
+        });
+        const sharedPixel = ((0 * scene.width) + 40) * 4;
+        expect([...scene.pixels.slice(sharedPixel, sharedPixel + 4)]).toEqual([255, 255, 0, 255]);
+        expect(scene.stats.floorSpriteCount).toBe(1);
+        expect(scene.stats.wallSpriteCount).toBe(1);
+        expect(scene.stats.objectSpriteCount).toBe(1);
+        expect(scene.stats.animation).toEqual({
+            animationIndex: 0,
+            frameIndex: 0,
+            elementCount: 1
+        });
+    });
     it("uses the scene animation frame step for imported map animation overlays", () => {
         const palette = decodeThemeHospitalPalette(fixturePaletteBytes());
         const blockSheet = decodeThemeHospitalSpriteSheet(new Uint8Array([
