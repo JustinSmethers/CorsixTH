@@ -1089,7 +1089,8 @@ function summarizeThemeHospitalLanguage(filesByPath) {
             specialist: entries[465] ?? "Operating Theatre",
             "inflation-room": entries[463] ?? "Inflation Room",
             "slack-tongue-clinic": entries[466] ?? "Slack Tongue Clinic",
-            "jelly-vat": entries[469] ?? "Jelly Vat"
+            "jelly-vat": entries[469] ?? "Jelly Vat",
+            decontamination: entries[476] ?? "Decontamination"
         },
         patientStatusNames: {
             queued: entries[2488] ?? "Queuing for %s",
@@ -1944,7 +1945,7 @@ const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [23, "dna-fixer"],
     [24, "jelly-vat"],
     [27, "diagnosis"],
-    [30, "specialist"]
+    [30, "decontamination"]
 ]);
 function parseScenarioRoomCostLine(line) {
     const match = /^#rooms\[(\d+)\]\.Cost\s+(-?\d+)\s+(.+)$/u.exec(line.trim());
@@ -1992,7 +1993,7 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [39, "pharmacy"],
     [46, "specialist"],
     [47, "jelly-vat"],
-    [54, "specialist"]
+    [54, "decontamination"]
 ]);
 function parseScenarioObjectLine(line) {
     const match = /^#objects\[(\d+)\]\.([^\s]+)\s+(.+)$/u.exec(line.trim());

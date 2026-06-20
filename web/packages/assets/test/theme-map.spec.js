@@ -184,6 +184,7 @@ Level One
 #rooms[21].Cost 500 FRACTURE
 #rooms[23].Cost 1800 DNA_FIXER
 #rooms[24].Cost 4500 JELLY_VAT
+#rooms[30].Cost 5500 DECON_SHOWER
 #staff[0].MinSalary 45 Nurse
 #staff[1].MinSalary 60 Doctor
 #staff[2].MinSalary 20 Handyman
@@ -230,6 +231,7 @@ Level One
 #objects[24].StartCost.StartAvail.WhenAvail.AvailableForLevel 2000 1 0 1 24 Cast Remover
 #objects[47].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 7 1 47 Jellyitus Moulding Machine
 #objects[27].StartCost.StartAvail.WhenAvail.AvailableForLevel 4000 0 0 1 27 X-Ray
+#objects[54].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 10 1 54 Decontamination Shower
 #staff_levels[0].Month.Nurses.Doctors.Handymen.Receptionists.Seed.ShrkRate.SurgRate.RschRate.ConsRate.JrRate 0 8 7 3 5 4953 3 0 1 2 10
 `));
         expect(scenario.title).toBe("Level One");
@@ -405,7 +407,8 @@ Emergency Mappings
             { index: 19, cost: 500, roomType: "hair-restoration", name: "HAIR_RESTORE" },
             { index: 21, cost: 500, roomType: "fracture-clinic", name: "FRACTURE" },
             { index: 23, cost: 1800, roomType: "dna-fixer", name: "DNA_FIXER" },
-            { index: 24, cost: 4500, roomType: "jelly-vat", name: "JELLY_VAT" }
+            { index: 24, cost: 4500, roomType: "jelly-vat", name: "JELLY_VAT" },
+            { index: 30, cost: 5500, roomType: "decontamination", name: "DECON_SHOWER" }
         ]);
         expect(scenario.staffSalaries).toEqual([
             { index: 0, minimumSalary: 45, role: "nurse", name: "Nurse" },
@@ -547,6 +550,16 @@ Network Level
                 availableForLevel: true,
                 roomType: "diagnosis",
                 name: "X-Ray"
+            },
+            {
+                index: 54,
+                startCost: 6500,
+                startAvailable: true,
+                whenAvailable: 0,
+                startStrength: 10,
+                availableForLevel: true,
+                roomType: "decontamination",
+                name: "Decontamination Shower"
             }
         ]);
     });

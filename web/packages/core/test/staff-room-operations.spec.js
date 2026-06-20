@@ -511,7 +511,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
     });
-    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, jelly, and specialist diseases", () => {
+    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, jelly, decontamination, and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -641,6 +641,28 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         expect(missingJelly.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
+        const decontamination = new DeterministicSimulation(72138, { bounds: { width: 14, height: 14 } });
+        decontamination.execute({ type: "open-room", roomType: "decontamination", position: { x: 1, y: 8 } });
+        decontamination.execute({ type: "hire-staff", role: "diagnostician", position: { x: 9, y: 4 } });
+        const decontaminationRoom = decontamination.getState().entities.rooms.find((room) => room.roomType === "decontamination");
+        expect(decontaminationRoom).toBeTruthy();
+        decontamination.execute({ type: "admit-patient", severity: 3, diseaseId: "radiation", position: { x: 2, y: 4 } });
+        decontamination.execute({ type: "tick", count: 8 });
+        expect(decontamination.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "radiation",
+            preferredTreatmentRoomType: "decontamination",
+            status: "walking-to-treatment",
+            assignedRoomId: decontaminationRoom.id
+        });
+        const missingDecontamination = new DeterministicSimulation(72139, { bounds: { width: 14, height: 14 } });
+        missingDecontamination.execute({ type: "admit-patient", severity: 3, diseaseId: "radiation", position: { x: 2, y: 4 } });
+        missingDecontamination.execute({ type: "tick", count: 5 });
+        expect(missingDecontamination.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "radiation",
+            preferredTreatmentRoomType: "decontamination",
+            status: "awaiting-treatment"
+        });
+        expect(missingDecontamination.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
     });
     it("keeps generic treatment rooms available for diseases that prefer treatment", () => {
         const simulation = new DeterministicSimulation(7214, { bounds: { width: 12, height: 12 } });
