@@ -22,7 +22,7 @@ const SCENARIO_MONTH_TICKS = 64;
 const SCENARIO_YEAR_TICKS = SCENARIO_MONTH_TICKS * 12;
 const DEFAULT_RESEARCH_PROJECT_TICKS = 6;
 const BASE_AVAILABLE_ROOM_TYPES = ["diagnosis", "treatment"];
-const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
+const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman", "receptionist"];
 const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
     ["admissions-toggle", ["admissions.blocked"]],
@@ -2326,6 +2326,7 @@ export class AppOrchestrator {
         const openGeneralTreatmentRooms = state.entities.rooms.filter((room) => room.roomType === "treatment" && room.status === "open").length;
         const openPharmacyRooms = state.entities.rooms.filter((room) => room.roomType === "pharmacy" && room.status === "open").length;
         const openSpecialistRooms = state.entities.rooms.filter((room) => room.roomType === "specialist" && room.status === "open").length;
+        const openPsychiatryRooms = state.entities.rooms.filter((room) => room.roomType === "psychiatry" && room.status === "open").length;
         const openInflationRooms = state.entities.rooms.filter((room) => room.roomType === "inflation-room" && room.status === "open").length;
         const openSlackTongueClinicRooms = state.entities.rooms.filter((room) => room.roomType === "slack-tongue-clinic" && room.status === "open").length;
         const openFractureClinicRooms = state.entities.rooms.filter((room) => room.roomType === "fracture-clinic" && room.status === "open").length;
@@ -2606,6 +2607,7 @@ export class AppOrchestrator {
             openGeneralTreatmentRooms,
             openPharmacyRooms,
             openSpecialistRooms,
+            openPsychiatryRooms,
             openInflationRooms,
             openSlackTongueClinicRooms,
             openFractureClinicRooms,
@@ -2614,7 +2616,7 @@ export class AppOrchestrator {
             openDecontaminationRooms,
             openElectrolysisRooms,
             openDnaFixerRooms,
-            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openInflationRooms + openSlackTongueClinicRooms + openFractureClinicRooms + openHairRestorationRooms + openJellyVatRooms + openDecontaminationRooms + openElectrolysisRooms + openDnaFixerRooms,
+            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openPsychiatryRooms + openInflationRooms + openSlackTongueClinicRooms + openFractureClinicRooms + openHairRestorationRooms + openJellyVatRooms + openDecontaminationRooms + openElectrolysisRooms + openDnaFixerRooms,
             awaitingSpecializedTreatmentPatients,
             cash: state.cash,
             reputation: state.reputation,

@@ -2146,7 +2146,7 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 384, y: 160 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
-    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Inflation Room 0, Slack Tongue Clinic 0, Fracture Clinic 0, Hair Restoration 0, Jelly Vat 0, Decontamination 0, Electrolysis 0, DNA Fixer 1");
+    await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, specialist 0, Psychiatry 0, Inflation Room 0, Slack Tongue Clinic 0, Fracture Clinic 0, Hair Restoration 0, Jelly Vat 0, Decontamination 0, Electrolysis 0, DNA Fixer 1");
 
     await page.getByTestId("hire-diagnostician").click();
     await canvas.click({ position: { x: 432, y: 176 } });
@@ -2193,10 +2193,11 @@ test("phase 8 scenario import: contagious reducers gate automatic disease admiss
     }
 
     await expect(page.getByTestId("tick")).toHaveText("Tick: 77");
-    expect(await savedAdmissionDiseaseIds(page, "contagious-reducer-late")).toContain("infectious-laughter");
+    expect(await savedAdmissionDiseaseIds(page, "contagious-reducer-late")).toEqual(expect.arrayContaining(["mild-cold"]));
+    expect(await savedAdmissionDiseaseIds(page, "contagious-reducer-late")).not.toContain("infectious-laughter");
 });
 
-test("phase 8 scenario import: contagious rate zero keeps automatic admissions available", async ({ page }) => {
+test("phase 8 scenario import: contagious rate zero still respects treatment-room gating", async ({ page }) => {
     await importScenarioFixture(page, contagiousRateFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("epidemic-reward")).toContainText("scenario contagious 25/25, reduce 1m/2/0");
@@ -2211,6 +2212,5 @@ test("phase 8 scenario import: contagious rate zero keeps automatic admissions a
     }
 
     const diseaseIds = await savedAdmissionDiseaseIds(page, "contagious-rate-zero");
-    expect(diseaseIds.length).toBeGreaterThan(0);
-    expect(diseaseIds).toEqual(diseaseIds.map(() => "infectious-laughter"));
+    expect(diseaseIds).toEqual([]);
 });

@@ -105,6 +105,7 @@ describe("assets scaffold", () => {
         languageEntries[101] = "Bloaty Head";
         languageEntries[115] = "Uncommon Cold";
         languageEntries[453] = "GP's Office";
+        languageEntries[454] = "Psychiatry";
         languageEntries[455] = "Ward";
         languageEntries[457] = "Pharmacy";
         languageEntries[463] = "Inflation Room";
@@ -144,6 +145,7 @@ describe("assets scaffold", () => {
                 treatment: "Ward",
                 pharmacy: "Pharmacy",
                 specialist: "Operating Theatre",
+                psychiatry: "Psychiatry",
                 "inflation-room": "Inflation Room",
                 "slack-tongue-clinic": "Slack Tongue Clinic",
                 electrolysis: "Electrolysis",

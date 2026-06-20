@@ -38,27 +38,31 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(diseaseForSeverity(3, 2)).toMatchObject({ id: "cranial-pressure", name: "Cranial Pressure", severity: 3 });
     });
     it("locks deterministic disease-to-treatment-room mapping and specialty bonuses", () => {
-        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"]);
+        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"]);
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
-        expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("pharmacy");
+        expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("gut-rot")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("slack-tongue")).toBe("slack-tongue-clinic");
         expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("inflation-room");
-        expect(treatmentRoomTypeForDisease("king-complex")).toBe("specialist");
+        expect(treatmentRoomTypeForDisease("king-complex")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("spare-ribs")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("fractured-bones")).toBe("fracture-clinic");
         expect(treatmentRoomTypeForDisease("corrugated-ankles")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("baldness")).toBe("hair-restoration");
         expect(treatmentRoomTypeForDisease("broken-wind")).toBe("pharmacy");
+        expect(treatmentRoomTypeForDisease("infectious-laughter")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("radiation")).toBe("decontamination");
+        expect(treatmentRoomTypeForDisease("sweaty-palms")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("hairyitis")).toBe("electrolysis");
         expect(treatmentRoomTypeForDisease("jellyitis")).toBe("jelly-vat");
         expect(treatmentRoomTypeForDisease("discrete-itching")).toBe("treatment");
+        expect(treatmentRoomTypeForDisease("sideburns")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("alien-dna")).toBe("dna-fixer");
         expect(treatmentRoomTypeForDisease("chronic-nosehair")).toBe("pharmacy");
+        expect(treatmentRoomTypeForDisease("fake-blood")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("iron-lungs")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("ruptured-nodules")).toBe("treatment");
-        expect(treatmentRoomSuccessBonusForDisease("pharmacy", "gastric-grumble")).toBe(15);
+        expect(treatmentRoomSuccessBonusForDisease("psychiatry", "gastric-grumble")).toBe(15);
         expect(treatmentRoomSuccessBonusForDisease("treatment", "gastric-grumble")).toBe(0);
         expect(treatmentRoomDurationReductionForDisease("inflation-room", "cranial-pressure")).toBe(1);
         expect(treatmentRoomSuccessBonusForDisease("dna-fixer", "alien-dna")).toBe(15);
@@ -169,6 +173,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(requiredStaffRoleForRoom("treatment")).toBe("nurse");
         expect(requiredStaffRoleForRoom("pharmacy")).toBe("nurse");
         expect(requiredStaffRoleForRoom("specialist")).toBe("nurse");
+        expect(requiredStaffRoleForRoom("psychiatry")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("slack-tongue-clinic")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("fracture-clinic")).toBe("nurse");
         expect(requiredStaffRoleForRoom("hair-restoration")).toBe("diagnostician");
@@ -176,6 +181,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(requiredStaffRoleForRoom("decontamination")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("electrolysis")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("dna-fixer")).toBe("diagnostician");
+        expect(requiredStaffSpecialtyForRoom("psychiatry")).toBe("psychiatrist");
         expect(requiredStaffSpecialtyForRoom("specialist")).toBe("surgeon");
         expect(requiredStaffSpecialtyForRoom("dna-fixer")).toBe("researcher");
         expect(requiredStaffSpecialtyForRoom("slack-tongue-clinic")).toBeNull();
@@ -199,6 +205,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomUpkeepCostPerTick("treatment")).toBe(3);
         expect(roomUpkeepCostPerTick("pharmacy")).toBe(4);
         expect(roomUpkeepCostPerTick("specialist")).toBe(5);
+        expect(roomUpkeepCostPerTick("psychiatry")).toBe(5);
         expect(roomUpkeepCostPerTick("inflation-room")).toBe(5);
         expect(roomUpkeepCostPerTick("slack-tongue-clinic")).toBe(5);
         expect(roomUpkeepCostPerTick("jelly-vat")).toBe(6);
@@ -212,6 +219,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomBuildCost("treatment")).toBe(1000);
         expect(roomBuildCost("pharmacy")).toBe(1200);
         expect(roomBuildCost("specialist")).toBe(1600);
+        expect(roomBuildCost("psychiatry")).toBe(2500);
         expect(roomBuildCost("inflation-room")).toBe(1600);
         expect(roomBuildCost("slack-tongue-clinic")).toBe(1600);
         expect(roomBuildCost("jelly-vat")).toBe(4500);
@@ -222,6 +230,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomSellRefund("treatment")).toBe(500);
         expect(roomSellRefund("pharmacy")).toBe(600);
         expect(roomSellRefund("specialist")).toBe(800);
+        expect(roomSellRefund("psychiatry")).toBe(1250);
         expect(roomSellRefund("inflation-room")).toBe(800);
         expect(roomSellRefund("slack-tongue-clinic")).toBe(800);
         expect(roomSellRefund("jelly-vat")).toBe(2250);
@@ -232,6 +241,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomRepairCost("treatment")).toBe(150);
         expect(roomRepairCost("pharmacy")).toBe(170);
         expect(roomRepairCost("specialist")).toBe(220);
+        expect(roomRepairCost("psychiatry")).toBe(220);
         expect(roomRepairCost("slack-tongue-clinic")).toBe(220);
         expect(roomRepairCost("inflation-room")).toBe(220);
         expect(roomRepairCost("jelly-vat")).toBe(280);
@@ -321,11 +331,13 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomMaintenanceWearThreshold("treatment")).toBe(8);
         expect(roomMaintenanceWearThreshold("pharmacy")).toBe(8);
         expect(roomMaintenanceWearThreshold("specialist")).toBe(8);
+        expect(roomMaintenanceWearThreshold("psychiatry")).toBe(8);
         expect(roomMaintenanceWearThreshold("dna-fixer")).toBe(8);
         expect(roomMaintenanceTicks("diagnosis")).toBe(2);
         expect(roomMaintenanceTicks("treatment")).toBe(2);
         expect(roomMaintenanceTicks("pharmacy")).toBe(2);
         expect(roomMaintenanceTicks("specialist")).toBe(3);
+        expect(roomMaintenanceTicks("psychiatry")).toBe(3);
         expect(roomMaintenanceTicks("dna-fixer")).toBe(3);
         expect(maintenanceStaffRepairBonusTicks()).toBe(1);
     });

@@ -104,7 +104,7 @@ describe("app orchestrator", () => {
     it("routes selected-patient treatment through command history and restore", () => {
         const orchestrator = new AppOrchestrator({ seed: 57, pointerTileSize: 8 });
         orchestrator.dispatch({ device: "ui", action: "admit-patient", severity: 1, source: "ui:admit" });
-        orchestrator.dispatch({ device: "ui", action: "admit-patient", severity: 2, source: "ui:admit" });
+        orchestrator.dispatch({ device: "ui", action: "admit-patient", severity: 2, diseaseId: "sleepy-bones", source: "ui:admit" });
         const selectedPatientId = orchestrator.getState().entities.waitingPatients[1].id;
         expect(orchestrator.dispatch({
             device: "ui",
@@ -2801,7 +2801,7 @@ describe("app orchestrator", () => {
             seed: 9026,
             tickRateHz: 4,
             pointerTileSize: 8,
-            bounds: { width: 12, height: 12 }
+            bounds: { width: 20, height: 20 }
         });
         expect(orchestrator.evaluatePlacement({
             device: "ui",
@@ -2833,32 +2833,37 @@ describe("app orchestrator", () => {
         expect(orchestrator.dispatch({
             device: "ui",
             action: "build-room",
+            roomType: "psychiatry",
+            source: "ui:build-psychiatry-room",
+            pointer: { x: 96, y: 96 }
+        })).toEqual(["room.built"]);
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "build-room",
             roomType: "dna-fixer",
             source: "ui:build-dna-fixer-room",
             pointer: { x: 32, y: 56 }
         })).toEqual(["room.built"]);
         expect(orchestrator.telemetry()).toMatchObject({
-            openTreatmentRooms: 4,
+            openTreatmentRooms: 5,
             openGeneralTreatmentRooms: 1,
             openPharmacyRooms: 1,
             openSpecialistRooms: 1,
+            openPsychiatryRooms: 1,
             openDnaFixerRooms: 1,
-            specializedTreatmentRooms: 3
+            specializedTreatmentRooms: 4
         });
         orchestrator.dispatch({ device: "ui", action: "pause-toggle", source: "ui:pause-toggle" });
         orchestrator.dispatch({ device: "ui", action: "admit-patient", severity: 2, source: "ui:admit" });
         for (let index = 0; index < 4; index += 1) {
             orchestrator.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
         }
-        const pharmacy = orchestrator.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
-        for (let index = 0; index < 8 && orchestrator.getState().entities.waitingPatients[0]?.assignedRoomId !== pharmacy.id; index += 1) {
-            orchestrator.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
-        }
         expect(orchestrator.getState().entities.waitingPatients[0]).toMatchObject({
-            preferredTreatmentRoomType: "pharmacy",
-            assignedRoomId: pharmacy.id
+            preferredTreatmentRoomType: "psychiatry",
+            assignedRoomId: null,
+            status: "awaiting-treatment"
         });
-        expect(orchestrator.telemetry().awaitingSpecializedTreatmentPatients).toBe(0);
+        expect(orchestrator.telemetry().awaitingSpecializedTreatmentPatients).toBe(1);
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.commandLog.some((command) => command.type === "open-room" && command.roomType === "pharmacy")).toBe(true);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());

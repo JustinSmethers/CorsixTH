@@ -44,6 +44,7 @@ const ROOM_TYPE_COLORS = {
     treatment: "#79c66a",
     pharmacy: "#b894f6",
     specialist: "#f08e67",
+    psychiatry: "#a9a35f",
     "inflation-room": "#e0bd4f",
     "slack-tongue-clinic": "#e07a8a",
     "fracture-clinic": "#d0a15d",
@@ -586,6 +587,7 @@ export function formatOriginalUiStripControlLabel(control) {
         "build-treatment-room": "Build Ward",
         "build-pharmacy-room": "Build Pharmacy",
         "build-specialist-room": "Build Specialist",
+        "build-psychiatry-room": "Build Psych",
         "build-inflation-room": "Build Inflation",
         "build-slack-tongue-clinic": "Build Tongue",
         "build-fracture-clinic-room": "Build Fracture",
@@ -1001,6 +1003,9 @@ function roomTypeDisplayName(roomType, languageSummary) {
     }
     if (roomType === "inflation-room") {
         return languageSummary?.roomNames?.[roomType] ?? "Inflation Room";
+    }
+    if (roomType === "psychiatry") {
+        return languageSummary?.roomNames?.[roomType] ?? "Psychiatry";
     }
     if (roomType === "slack-tongue-clinic") {
         return languageSummary?.roomNames?.[roomType] ?? "Slack Tongue Clinic";
@@ -1620,7 +1625,7 @@ export function formatOpenTreatmentRoomsStatus(telemetry) {
     return `Open treatment rooms: ${telemetry.openTreatmentRooms}`;
 }
 export function formatSpecializedTreatmentRoomsStatus(telemetry) {
-    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}, Inflation Room ${telemetry.openInflationRooms ?? 0}, Slack Tongue Clinic ${telemetry.openSlackTongueClinicRooms ?? 0}, Fracture Clinic ${telemetry.openFractureClinicRooms ?? 0}, Hair Restoration ${telemetry.openHairRestorationRooms ?? 0}, Jelly Vat ${telemetry.openJellyVatRooms ?? 0}, Decontamination ${telemetry.openDecontaminationRooms ?? 0}, Electrolysis ${telemetry.openElectrolysisRooms ?? 0}, DNA Fixer ${telemetry.openDnaFixerRooms ?? 0}`;
+    return `Specialized rooms: pharmacy ${telemetry.openPharmacyRooms}, specialist ${telemetry.openSpecialistRooms}, Psychiatry ${telemetry.openPsychiatryRooms ?? 0}, Inflation Room ${telemetry.openInflationRooms ?? 0}, Slack Tongue Clinic ${telemetry.openSlackTongueClinicRooms ?? 0}, Fracture Clinic ${telemetry.openFractureClinicRooms ?? 0}, Hair Restoration ${telemetry.openHairRestorationRooms ?? 0}, Jelly Vat ${telemetry.openJellyVatRooms ?? 0}, Decontamination ${telemetry.openDecontaminationRooms ?? 0}, Electrolysis ${telemetry.openElectrolysisRooms ?? 0}, DNA Fixer ${telemetry.openDnaFixerRooms ?? 0}`;
 }
 export function formatSpecializedTreatmentQueueStatus(telemetry) {
     return `Specialty queue: ${telemetry.awaitingSpecializedTreatmentPatients}`;
@@ -1881,6 +1886,7 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "build-treatment-room", label: formatOriginalUiStripControlLabel("build-treatment-room") },
     { id: "build-pharmacy-room", label: formatOriginalUiStripControlLabel("build-pharmacy-room") },
     { id: "build-specialist-room", label: formatOriginalUiStripControlLabel("build-specialist-room") },
+    { id: "build-psychiatry-room", label: formatOriginalUiStripControlLabel("build-psychiatry-room") },
     { id: "build-inflation-room", label: formatOriginalUiStripControlLabel("build-inflation-room") },
     { id: "build-slack-tongue-clinic", label: formatOriginalUiStripControlLabel("build-slack-tongue-clinic") },
     { id: "build-fracture-clinic-room", label: formatOriginalUiStripControlLabel("build-fracture-clinic-room") },
@@ -3147,6 +3153,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="build-treatment-room">${formatBuildRoomButtonLabel("treatment")}</button>
           <button type="button" data-testid="build-pharmacy-room">${formatBuildRoomButtonLabel("pharmacy")}</button>
           <button type="button" data-testid="build-specialist-room">${formatBuildRoomButtonLabel("specialist")}</button>
+          <button type="button" data-testid="build-psychiatry-room">${formatBuildRoomButtonLabel("psychiatry")}</button>
           <button type="button" data-testid="build-inflation-room">${formatBuildRoomButtonLabel("inflation-room")}</button>
           <button type="button" data-testid="build-slack-tongue-clinic">${formatBuildRoomButtonLabel("slack-tongue-clinic")}</button>
           <button type="button" data-testid="build-fracture-clinic-room">${formatBuildRoomButtonLabel("fracture-clinic")}</button>
@@ -3750,6 +3757,7 @@ export function mountAppShell(options) {
     const buildTreatmentRoomButton = requiredElement(options.root, "[data-testid='build-treatment-room']");
     const buildPharmacyRoomButton = requiredElement(options.root, "[data-testid='build-pharmacy-room']");
     const buildSpecialistRoomButton = requiredElement(options.root, "[data-testid='build-specialist-room']");
+    const buildPsychiatryRoomButton = requiredElement(options.root, "[data-testid='build-psychiatry-room']");
     const buildInflationRoomButton = requiredElement(options.root, "[data-testid='build-inflation-room']");
     const buildSlackTongueClinicButton = requiredElement(options.root, "[data-testid='build-slack-tongue-clinic']");
     const buildFractureClinicRoomButton = requiredElement(options.root, "[data-testid='build-fracture-clinic-room']");
@@ -4076,6 +4084,7 @@ export function mountAppShell(options) {
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
         buildSpecialistRoomButton.textContent = formatBuildRoomButtonLabel("specialist", telemetry, hospitalView?.languageSummary ?? null);
+        buildPsychiatryRoomButton.textContent = formatBuildRoomButtonLabel("psychiatry", telemetry, hospitalView?.languageSummary ?? null);
         buildInflationRoomButton.textContent = formatBuildRoomButtonLabel("inflation-room", telemetry, hospitalView?.languageSummary ?? null);
         buildSlackTongueClinicButton.textContent = formatBuildRoomButtonLabel("slack-tongue-clinic", telemetry, hospitalView?.languageSummary ?? null);
         buildFractureClinicRoomButton.textContent = formatBuildRoomButtonLabel("fracture-clinic", telemetry, hospitalView?.languageSummary ?? null);
@@ -4094,6 +4103,7 @@ export function mountAppShell(options) {
         buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
         buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
         buildSpecialistRoomButton.disabled = !canBuildRoomFromTelemetry("specialist", telemetry);
+        buildPsychiatryRoomButton.disabled = !canBuildRoomFromTelemetry("psychiatry", telemetry);
         buildInflationRoomButton.disabled = !canBuildRoomFromTelemetry("inflation-room", telemetry);
         buildSlackTongueClinicButton.disabled = !canBuildRoomFromTelemetry("slack-tongue-clinic", telemetry);
         buildFractureClinicRoomButton.disabled = !canBuildRoomFromTelemetry("fracture-clinic", telemetry);
@@ -4930,6 +4940,24 @@ export function mountAppShell(options) {
             orientation: "north",
             source: "ui:build-specialist-room",
             label: `build ${roomTypeDisplayName("specialist", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildPsychiatryRoom = () => {
+        if (!canBuildRoomFromTelemetry("psychiatry", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
+        placementAction = {
+            action: "build-room",
+            roomType: "psychiatry",
+            orientation: "north",
+            source: "ui:build-psychiatry-room",
+            label: `build ${roomTypeDisplayName("psychiatry", hospitalView?.languageSummary ?? null)}`
         };
         placementPreview = null;
         selectedEntity = null;
@@ -6262,6 +6290,7 @@ export function mountAppShell(options) {
         ["build-treatment-room", onBuildTreatmentRoom],
         ["build-pharmacy-room", onBuildPharmacyRoom],
         ["build-specialist-room", onBuildSpecialistRoom],
+        ["build-psychiatry-room", onBuildPsychiatryRoom],
         ["build-inflation-room", onBuildInflationRoom],
         ["build-slack-tongue-clinic", onBuildSlackTongueClinic],
         ["build-fracture-clinic-room", onBuildFractureClinicRoom],
@@ -6367,6 +6396,7 @@ export function mountAppShell(options) {
     buildTreatmentRoomButton.addEventListener("click", onBuildTreatmentRoom);
     buildPharmacyRoomButton.addEventListener("click", onBuildPharmacyRoom);
     buildSpecialistRoomButton.addEventListener("click", onBuildSpecialistRoom);
+    buildPsychiatryRoomButton.addEventListener("click", onBuildPsychiatryRoom);
     buildInflationRoomButton.addEventListener("click", onBuildInflationRoom);
     buildSlackTongueClinicButton.addEventListener("click", onBuildSlackTongueClinic);
     buildFractureClinicRoomButton.addEventListener("click", onBuildFractureClinicRoom);
@@ -6496,6 +6526,7 @@ export function mountAppShell(options) {
             buildTreatmentRoomButton.removeEventListener("click", onBuildTreatmentRoom);
             buildPharmacyRoomButton.removeEventListener("click", onBuildPharmacyRoom);
             buildSpecialistRoomButton.removeEventListener("click", onBuildSpecialistRoom);
+            buildPsychiatryRoomButton.removeEventListener("click", onBuildPsychiatryRoom);
             buildInflationRoomButton.removeEventListener("click", onBuildInflationRoom);
             buildSlackTongueClinicButton.removeEventListener("click", onBuildSlackTongueClinic);
             buildFractureClinicRoomButton.removeEventListener("click", onBuildFractureClinicRoom);

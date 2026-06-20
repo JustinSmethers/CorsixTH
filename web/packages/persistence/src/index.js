@@ -9,7 +9,7 @@ const DEFAULT_SPEED_MULTIPLIER = 1;
 const ALLOWED_SPEED_MULTIPLIERS = [0.5, 1, 2, 4];
 const DEFAULT_ADMISSION_POLICY = "standard";
 const ALLOWED_ADMISSION_POLICIES = ["conservative", "standard", "aggressive"];
-const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
+const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman"];
 class IndexedDbPersistenceAdapterImpl {
     indexedDbFactory;

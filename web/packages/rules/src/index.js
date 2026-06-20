@@ -177,17 +177,17 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
-    "gastric-grumble": "pharmacy",
+    "gastric-grumble": "psychiatry",
     "sleepy-bones": "pharmacy",
     "slack-tongue": "slack-tongue-clinic",
     "cranial-pressure": "inflation-room",
     "acute-sneezes": "specialist",
     "gut-rot": "pharmacy",
-    "king-complex": "specialist",
+    "king-complex": "psychiatry",
     "spare-ribs": "specialist",
     "kidney-beans": "specialist",
     "fractured-bones": "fracture-clinic",
@@ -196,19 +196,19 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "baldness": "hair-restoration",
     "broken-wind": "pharmacy",
     "golf-stones": "specialist",
-    "infectious-laughter": "treatment",
+    "infectious-laughter": "psychiatry",
     "radiation": "decontamination",
-    "sweaty-palms": "treatment",
+    "sweaty-palms": "psychiatry",
     "unexpected-swelling": "specialist",
     "hairyitis": "electrolysis",
     "jellyitis": "jelly-vat",
     "gastric-ejections": "pharmacy",
     "discrete-itching": "treatment",
     "broken-heart": "treatment",
-    "sideburns": "specialist",
+    "sideburns": "psychiatry",
     "alien-dna": "dna-fixer",
     "chronic-nosehair": "pharmacy",
-    "fake-blood": "specialist",
+    "fake-blood": "psychiatry",
     "iron-lungs": "treatment",
     "pregnancy": "treatment",
     "ruptured-nodules": "treatment"
@@ -223,6 +223,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     treatment: "nurse",
     pharmacy: "nurse",
     specialist: "nurse",
+    psychiatry: "diagnostician",
     "inflation-room": "diagnostician",
     "slack-tongue-clinic": "diagnostician",
     "fracture-clinic": "nurse",
@@ -233,6 +234,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     "dna-fixer": "diagnostician"
 };
 const STAFF_SPECIALTY_BY_ROOM_TYPE = {
+    psychiatry: "psychiatrist",
     specialist: "surgeon",
     "dna-fixer": "researcher"
 };
@@ -247,6 +249,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     treatment: 3,
     pharmacy: 4,
     specialist: 5,
+    psychiatry: 5,
     "inflation-room": 5,
     "slack-tongue-clinic": 5,
     "fracture-clinic": 5,
@@ -267,6 +270,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     treatment: 1000,
     pharmacy: 1200,
     specialist: 1600,
+    psychiatry: 2500,
     "inflation-room": 1600,
     "slack-tongue-clinic": 1600,
     "fracture-clinic": 1500,
@@ -281,6 +285,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     treatment: 150,
     pharmacy: 170,
     specialist: 220,
+    psychiatry: 220,
     "inflation-room": 220,
     "slack-tongue-clinic": 220,
     "fracture-clinic": 220,
@@ -307,6 +312,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     treatment: 8,
     pharmacy: 8,
     specialist: 8,
+    psychiatry: 8,
     "inflation-room": 8,
     "slack-tongue-clinic": 8,
     "fracture-clinic": 8,
@@ -321,6 +327,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     treatment: 2,
     pharmacy: 2,
     specialist: 3,
+    psychiatry: 3,
     "inflation-room": 3,
     "slack-tongue-clinic": 3,
     "fracture-clinic": 3,

@@ -17,6 +17,7 @@ const ROOM_FOOTPRINTS = {
     treatment: { width: 3, height: 3 },
     pharmacy: { width: 3, height: 3 },
     specialist: { width: 3, height: 3 },
+    psychiatry: { width: 5, height: 5 },
     "inflation-room": { width: 3, height: 3 },
     "slack-tongue-clinic": { width: 3, height: 3 },
     "fracture-clinic": { width: 3, height: 3 },
@@ -3684,6 +3685,9 @@ export class DeterministicSimulation {
     treatmentStaffRequirement(room, patient = null) {
         if (room?.roomType === "specialist") {
             return { role: "diagnostician", specialty: "surgeon", diseaseId: null };
+        }
+        if (room?.roomType === "psychiatry") {
+            return { role: "diagnostician", specialty: "psychiatrist", diseaseId: null };
         }
         if (room?.roomType === "dna-fixer") {
             return { role: "diagnostician", specialty: "researcher", diseaseId: "alien-dna" };

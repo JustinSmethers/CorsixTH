@@ -1087,6 +1087,7 @@ function summarizeThemeHospitalLanguage(filesByPath) {
             treatment: entries[455] ?? "Ward",
             pharmacy: entries[457] ?? "Pharmacy",
             specialist: entries[465] ?? "Operating Theatre",
+            psychiatry: entries[454] ?? "Psychiatry",
             "inflation-room": entries[463] ?? "Inflation Room",
             "slack-tongue-clinic": entries[466] ?? "Slack Tongue Clinic",
             electrolysis: entries[468] ?? "Electrolysis",
@@ -1929,7 +1930,7 @@ function parseScenarioTownLine(line) {
 }
 const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [7, "diagnosis"],
-    [8, "specialist"],
+    [8, "psychiatry"],
     [9, "treatment"],
     [10, "specialist"],
     [11, "pharmacy"],
@@ -1996,6 +1997,8 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [9, "inflation-room"],
     [13, "diagnosis"],
     [14, "diagnosis"],
+    [16, "psychiatry"],
+    [18, "psychiatry"],
     [22, "diagnosis"],
     [23, "dna-fixer"],
     [24, "fracture-clinic"],
@@ -2006,7 +2009,9 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [39, "pharmacy"],
     [46, "electrolysis"],
     [47, "jelly-vat"],
-    [54, "decontamination"]
+    [54, "decontamination"],
+    [56, "psychiatry"],
+    [61, "psychiatry"]
 ]);
 function parseScenarioObjectLine(line) {
     const match = /^#objects\[(\d+)\]\.([^\s]+)\s+(.+)$/u.exec(line.trim());
