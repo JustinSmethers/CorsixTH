@@ -63,7 +63,6 @@ const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
 const SCENARIO_DISEASE_REQUIRED_OBJECTS = new Map([
     ["cranial-pressure", [9]],
     ["alien-dna", [23]],
-    ["transparency", [22]],
     ["fractured-bones", [24]],
     ["baldness", [25]],
     ["slack-tongue", [26]],

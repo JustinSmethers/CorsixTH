@@ -44,10 +44,12 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("gut-rot")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("slack-tongue")).toBe("slack-tongue-clinic");
         expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("inflation-room");
+        expect(treatmentRoomTypeForDisease("acute-sneezes")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("king-complex")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("spare-ribs")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("fractured-bones")).toBe("fracture-clinic");
-        expect(treatmentRoomTypeForDisease("corrugated-ankles")).toBe("specialist");
+        expect(treatmentRoomTypeForDisease("corrugated-ankles")).toBe("pharmacy");
+        expect(treatmentRoomTypeForDisease("transparency")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("baldness")).toBe("hair-restoration");
         expect(treatmentRoomTypeForDisease("broken-wind")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("infectious-laughter")).toBe("psychiatry");
@@ -55,7 +57,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("sweaty-palms")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("hairyitis")).toBe("electrolysis");
         expect(treatmentRoomTypeForDisease("jellyitis")).toBe("jelly-vat");
-        expect(treatmentRoomTypeForDisease("discrete-itching")).toBe("treatment");
+        expect(treatmentRoomTypeForDisease("discrete-itching")).toBe("pharmacy");
         expect(treatmentRoomTypeForDisease("sideburns")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("alien-dna")).toBe("dna-fixer");
         expect(treatmentRoomTypeForDisease("chronic-nosehair")).toBe("pharmacy");

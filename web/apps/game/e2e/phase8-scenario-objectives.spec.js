@@ -2072,7 +2072,7 @@ test("phase 8 scenario import: visual hold peep count gates browser admissions",
     expect(await savedAdmissionDiseaseIds(page, "visual-hold-count-late")).toContain("cranial-pressure");
 });
 
-test("phase 8 scenario import: visuals-available months gate automatic admissions", async ({ page }) => {
+test("phase 8 scenario import: visuals-available diseases still require treatment-room availability", async ({ page }) => {
     await importScenarioFixture(page, visualsAvailableFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("admission-rules")).toHaveText("Scenario holds: visual 0 months/2 patients");
@@ -2094,7 +2094,7 @@ test("phase 8 scenario import: visuals-available months gate automatic admission
     }
 
     await expect(page.getByTestId("tick")).toHaveText("Tick: 77");
-    expect(await savedAdmissionDiseaseIds(page, "visuals-available-late")).toContain("transparency");
+    expect(await savedAdmissionDiseaseIds(page, "visuals-available-late")).not.toContain("transparency");
 });
 
 test("phase 8 scenario import: locked object availability gates automatic disease admissions", async ({ page }) => {
