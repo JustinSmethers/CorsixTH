@@ -177,7 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -200,7 +200,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "radiation": "decontamination",
     "sweaty-palms": "treatment",
     "unexpected-swelling": "specialist",
-    "hairyitis": "specialist",
+    "hairyitis": "electrolysis",
     "jellyitis": "jelly-vat",
     "gastric-ejections": "pharmacy",
     "discrete-itching": "treatment",
@@ -229,6 +229,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     "hair-restoration": "diagnostician",
     "jelly-vat": "diagnostician",
     decontamination: "diagnostician",
+    electrolysis: "diagnostician",
     "dna-fixer": "diagnostician"
 };
 const STAFF_SPECIALTY_BY_ROOM_TYPE = {
@@ -252,6 +253,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     "hair-restoration": 5,
     "jelly-vat": 6,
     decontamination: 6,
+    electrolysis: 6,
     "dna-fixer": 6
 };
 const STAFF_HIRE_COST_BY_ROLE = {
@@ -271,6 +273,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     "hair-restoration": 1600,
     "jelly-vat": 4500,
     decontamination: 5500,
+    electrolysis: 500,
     "dna-fixer": 1800
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
@@ -284,6 +287,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     "hair-restoration": 220,
     "jelly-vat": 280,
     decontamination: 300,
+    electrolysis: 260,
     "dna-fixer": 240
 };
 const STAFF_BURNOUT_TICKS_BY_ROLE = {
@@ -309,6 +313,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     "hair-restoration": 8,
     "jelly-vat": 9,
     decontamination: 10,
+    electrolysis: 9,
     "dna-fixer": 8
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
@@ -322,6 +327,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     "hair-restoration": 3,
     "jelly-vat": 3,
     decontamination: 4,
+    electrolysis: 3,
     "dna-fixer": 3
 };
 const MAINTENANCE_STAFF_REPAIR_BONUS_TICKS = 1;

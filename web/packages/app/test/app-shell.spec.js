@@ -84,7 +84,7 @@ describe("app shell campaign objectives", () => {
             { label: "Pause" },
             { label: "Step" }
         ])).toBe("Original UI: DATA/PANEL02V 11 sprites, showing 4; controls Pause, Step");
-        expect(["pause-toggle", "build-diagnosis-room", "build-inflation-room", "build-slack-tongue-clinic", "build-hair-restoration-room", "build-jelly-vat-room", "build-decontamination-room", "build-dna-fixer-room", "open-research", "save-game", "refresh-save-slots", "quit-level", "hospital-camera-west"].map(formatOriginalUiStripControlLabel)).toEqual([
+        expect(["pause-toggle", "build-diagnosis-room", "build-inflation-room", "build-slack-tongue-clinic", "build-hair-restoration-room", "build-jelly-vat-room", "build-decontamination-room", "build-electrolysis-room", "build-dna-fixer-room", "open-research", "save-game", "refresh-save-slots", "quit-level", "hospital-camera-west"].map(formatOriginalUiStripControlLabel)).toEqual([
             "Pause",
             "Build GP",
             "Build Inflation",
@@ -92,6 +92,7 @@ describe("app shell campaign objectives", () => {
             "Build Hair",
             "Build Jelly",
             "Build Decon",
+            "Build Electro",
             "Build DNA Fixer",
             "Research Panel",
             "Save",
@@ -224,8 +225,8 @@ describe("app shell campaign objectives", () => {
             "build-hair-restoration-room",
             "build-jelly-vat-room",
             "build-decontamination-room",
+            "build-electrolysis-room",
             "build-dna-fixer-room",
-            "hire-diagnostician",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -244,9 +245,9 @@ describe("app shell campaign objectives", () => {
             "build-hair-restoration-room",
             "build-jelly-vat-room",
             "build-decontamination-room",
+            "build-electrolysis-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
-            "hire-nurse",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -265,6 +266,7 @@ describe("app shell campaign objectives", () => {
             "build-hair-restoration-room",
             "build-jelly-vat-room",
             "build-decontamination-room",
+            "build-electrolysis-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
@@ -277,7 +279,6 @@ describe("app shell campaign objectives", () => {
             "open-jukebox",
             "open-furnish-corridor",
             "open-edit-room",
-            "open-first-message",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -296,6 +297,7 @@ describe("app shell campaign objectives", () => {
             "build-hair-restoration-room",
             "build-jelly-vat-room",
             "build-decontamination-room",
+            "build-electrolysis-room",
             "build-dna-fixer-room",
             "hire-diagnostician",
             "hire-nurse",
@@ -317,21 +319,20 @@ describe("app shell campaign objectives", () => {
             "open-machine-menu",
             "take-loan",
             "repay-loan",
-            "start-research",
-            "run-finance-audit"
+            "start-research"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
                 sprites: Array.from({ length: 46 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
         }, 740, 40).map((zone) => zone.id).slice(39)).toEqual([
+            "start-emergency-wave",
             "start-epidemic-outbreak",
             "start-vip-inspection",
             "save-game",
             "load-game",
             "refresh-save-slots",
-            "delete-save-slot",
-            "restart-level"
+            "delete-save-slot"
         ]);
     });
     it("uses imported original language names in the patient casebook", () => {
@@ -545,7 +546,7 @@ describe("app shell campaign objectives", () => {
         })).toBe("Room availability: unrestricted");
     });
     it("uses imported room names and scenario costs in build labels", () => {
-        expect(["diagnosis", "treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
+        expect(["diagnosis", "treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
             "Build Diagnosis",
             "Build Treatment",
             "Build Pharmacy",
@@ -556,6 +557,7 @@ describe("app shell campaign objectives", () => {
             "Build Hair Restoration",
             "Build Jelly Vat",
             "Build Decontamination",
+            "Build Electrolysis",
             "Build DNA Fixer"
         ]);
         expect(formatBuildRoomButtonLabel("diagnosis", {
@@ -1744,8 +1746,9 @@ describe("app shell campaign objectives", () => {
             openHairRestorationRooms: 1,
             openJellyVatRooms: 1,
             openDecontaminationRooms: 1,
+            openElectrolysisRooms: 1,
             openDnaFixerRooms: 3
-        })).toBe("Specialized rooms: pharmacy 1, specialist 2, Inflation Room 1, Slack Tongue Clinic 1, Fracture Clinic 1, Hair Restoration 1, Jelly Vat 1, Decontamination 1, DNA Fixer 3");
+        })).toBe("Specialized rooms: pharmacy 1, specialist 2, Inflation Room 1, Slack Tongue Clinic 1, Fracture Clinic 1, Hair Restoration 1, Jelly Vat 1, Decontamination 1, Electrolysis 1, DNA Fixer 3");
         expect(formatSpecializedTreatmentQueueStatus({
             awaitingSpecializedTreatmentPatients: 3
         })).toBe("Specialty queue: 3");

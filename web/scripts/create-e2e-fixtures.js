@@ -88,6 +88,7 @@ function syntheticLanguageBytes() {
   entries[457] = "Pharmacy";
   entries[463] = "Inflation Room";
   entries[466] = "Slack Tongue Clinic";
+  entries[468] = "Electrolysis";
   entries[469] = "Jelly Vat";
   entries[476] = "Decontamination";
   entries[2487] = "Awaiting your decision";

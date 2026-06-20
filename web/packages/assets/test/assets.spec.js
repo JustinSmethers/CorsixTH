@@ -110,6 +110,7 @@ describe("assets scaffold", () => {
         languageEntries[463] = "Inflation Room";
         languageEntries[465] = "Operating Theatre";
         languageEntries[466] = "Slack Tongue Clinic";
+        languageEntries[468] = "Electrolysis";
         languageEntries[469] = "Jelly Vat";
         languageEntries[476] = "Decontamination";
         languageEntries[2488] = "Queuing for %s";
@@ -145,6 +146,7 @@ describe("assets scaffold", () => {
                 specialist: "Operating Theatre",
                 "inflation-room": "Inflation Room",
                 "slack-tongue-clinic": "Slack Tongue Clinic",
+                electrolysis: "Electrolysis",
                 "jelly-vat": "Jelly Vat",
                 decontamination: "Decontamination"
             },

@@ -511,7 +511,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
     });
-    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, jelly, decontamination, and specialist diseases", () => {
+    it("requires disease-specific treatment rooms for pharmacy, inflation, slack tongue, fracture, hair, jelly, decontamination, electrolysis, and specialist diseases", () => {
         const specialized = new DeterministicSimulation(7210, { bounds: { width: 12, height: 12 } });
         specialized.execute({ type: "open-room", roomType: "pharmacy", position: { x: 1, y: 7 } });
         const pharmacy = specialized.getState().entities.rooms.find((room) => room.roomType === "pharmacy");
@@ -663,6 +663,28 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         expect(missingDecontamination.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
+        const electrolysis = new DeterministicSimulation(72140, { bounds: { width: 14, height: 14 } });
+        electrolysis.execute({ type: "open-room", roomType: "electrolysis", position: { x: 1, y: 8 } });
+        electrolysis.execute({ type: "hire-staff", role: "diagnostician", position: { x: 9, y: 4 } });
+        const electrolysisRoom = electrolysis.getState().entities.rooms.find((room) => room.roomType === "electrolysis");
+        expect(electrolysisRoom).toBeTruthy();
+        electrolysis.execute({ type: "admit-patient", severity: 2, diseaseId: "hairyitis", position: { x: 2, y: 4 } });
+        electrolysis.execute({ type: "tick", count: 8 });
+        expect(electrolysis.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "hairyitis",
+            preferredTreatmentRoomType: "electrolysis",
+            status: "walking-to-treatment",
+            assignedRoomId: electrolysisRoom.id
+        });
+        const missingElectrolysis = new DeterministicSimulation(72141, { bounds: { width: 14, height: 14 } });
+        missingElectrolysis.execute({ type: "admit-patient", severity: 2, diseaseId: "hairyitis", position: { x: 2, y: 4 } });
+        missingElectrolysis.execute({ type: "tick", count: 5 });
+        expect(missingElectrolysis.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "hairyitis",
+            preferredTreatmentRoomType: "electrolysis",
+            status: "awaiting-treatment"
+        });
+        expect(missingElectrolysis.getState().entities.waitingPatients[0]?.assignedRoomId).toBeNull();
     });
     it("keeps generic treatment rooms available for diseases that prefer treatment", () => {
         const simulation = new DeterministicSimulation(7214, { bounds: { width: 12, height: 12 } });

@@ -23,6 +23,7 @@ const ROOM_FOOTPRINTS = {
     "hair-restoration": { width: 3, height: 3 },
     "jelly-vat": { width: 4, height: 4 },
     decontamination: { width: 5, height: 5 },
+    electrolysis: { width: 5, height: 5 },
     "dna-fixer": { width: 3, height: 3 }
 };
 const ROOM_TYPES = Object.freeze(Object.keys(ROOM_FOOTPRINTS));

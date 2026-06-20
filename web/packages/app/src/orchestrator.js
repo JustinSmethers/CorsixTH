@@ -22,7 +22,7 @@ const SCENARIO_MONTH_TICKS = 64;
 const SCENARIO_YEAR_TICKS = SCENARIO_MONTH_TICKS * 12;
 const DEFAULT_RESEARCH_PROJECT_TICKS = 6;
 const BASE_AVAILABLE_ROOM_TYPES = ["diagnosis", "treatment"];
-const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "dna-fixer"];
+const ALLOWED_ROOM_TYPES = ["diagnosis", "treatment", "pharmacy", "specialist", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const ALLOWED_STAFF_ROLES = ["diagnostician", "nurse", "handyman", "receptionist"];
 const LOST_LEVEL_DISPATCH_BLOCK_EVENTS = new Map([
     ["admissions-toggle", ["admissions.blocked"]],
@@ -2332,6 +2332,7 @@ export class AppOrchestrator {
         const openHairRestorationRooms = state.entities.rooms.filter((room) => room.roomType === "hair-restoration" && room.status === "open").length;
         const openJellyVatRooms = state.entities.rooms.filter((room) => room.roomType === "jelly-vat" && room.status === "open").length;
         const openDecontaminationRooms = state.entities.rooms.filter((room) => room.roomType === "decontamination" && room.status === "open").length;
+        const openElectrolysisRooms = state.entities.rooms.filter((room) => room.roomType === "electrolysis" && room.status === "open").length;
         const openDnaFixerRooms = state.entities.rooms.filter((room) => room.roomType === "dna-fixer" && room.status === "open").length;
         const scenarioObjectAvailability = this.scenarioObjectAvailabilityForTick(state.tick);
         const scenarioAvailableDiseases = this.scenarioAvailableDiseases(state);
@@ -2611,8 +2612,9 @@ export class AppOrchestrator {
             openHairRestorationRooms,
             openJellyVatRooms,
             openDecontaminationRooms,
+            openElectrolysisRooms,
             openDnaFixerRooms,
-            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openInflationRooms + openSlackTongueClinicRooms + openFractureClinicRooms + openHairRestorationRooms + openJellyVatRooms + openDecontaminationRooms + openDnaFixerRooms,
+            specializedTreatmentRooms: openPharmacyRooms + openSpecialistRooms + openInflationRooms + openSlackTongueClinicRooms + openFractureClinicRooms + openHairRestorationRooms + openJellyVatRooms + openDecontaminationRooms + openElectrolysisRooms + openDnaFixerRooms,
             awaitingSpecializedTreatmentPatients,
             cash: state.cash,
             reputation: state.reputation,

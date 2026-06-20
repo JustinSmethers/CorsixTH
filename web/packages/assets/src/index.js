@@ -1089,6 +1089,7 @@ function summarizeThemeHospitalLanguage(filesByPath) {
             specialist: entries[465] ?? "Operating Theatre",
             "inflation-room": entries[463] ?? "Inflation Room",
             "slack-tongue-clinic": entries[466] ?? "Slack Tongue Clinic",
+            electrolysis: entries[468] ?? "Electrolysis",
             "jelly-vat": entries[469] ?? "Jelly Vat",
             decontamination: entries[476] ?? "Decontamination"
         },
@@ -1947,17 +1948,29 @@ const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [27, "diagnosis"],
     [30, "decontamination"]
 ]);
+function scenarioRoomTypeForRoomCost(roomId, name) {
+    const normalizedName = name.toUpperCase();
+    if (roomId === 23 && normalizedName.includes("ELECTRO")) {
+        return "electrolysis";
+    }
+    if (roomId === 23 && normalizedName.includes("DNA")) {
+        return "dna-fixer";
+    }
+    return SCENARIO_ROOM_TYPE_BY_ROOM_ID.get(roomId);
+}
 function parseScenarioRoomCostLine(line) {
     const match = /^#rooms\[(\d+)\]\.Cost\s+(-?\d+)\s+(.+)$/u.exec(line.trim());
     if (!match) {
         return null;
     }
     const roomId = Number(match[1]);
+    const name = match[3].trim();
+    const roomType = scenarioRoomTypeForRoomCost(roomId, name);
     return {
         index: roomId,
         cost: Math.max(0, Number(match[2])),
-        ...(SCENARIO_ROOM_TYPE_BY_ROOM_ID.has(roomId) ? { roomType: SCENARIO_ROOM_TYPE_BY_ROOM_ID.get(roomId) } : {}),
-        name: match[3].trim()
+        ...(roomType ? { roomType } : {}),
+        name
     };
 }
 const SCENARIO_STAFF_ROLE_BY_STAFF_ID = new Map([
@@ -1991,7 +2004,7 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [27, "diagnosis"],
     [30, "specialist"],
     [39, "pharmacy"],
-    [46, "specialist"],
+    [46, "electrolysis"],
     [47, "jelly-vat"],
     [54, "decontamination"]
 ]);

@@ -183,6 +183,7 @@ Level One
 #rooms[19].Cost 500 HAIR_RESTORE
 #rooms[21].Cost 500 FRACTURE
 #rooms[23].Cost 1800 DNA_FIXER
+#rooms[23].Cost 500 ELECTRO
 #rooms[24].Cost 4500 JELLY_VAT
 #rooms[30].Cost 5500 DECON_SHOWER
 #staff[0].MinSalary 45 Nurse
@@ -229,6 +230,7 @@ Level One
 #objects[13].StartCost.StartAvail.WhenAvail.AvailableForLevel 1000 0 0 1 13 Cardiogram
 #objects[23].StartCost.StartAvail.WhenAvail.AvailableForLevel 1800 1 0 1 23 DNA Fixer
 #objects[24].StartCost.StartAvail.WhenAvail.AvailableForLevel 2000 1 0 1 24 Cast Remover
+#objects[46].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 3500 1 0 10 1 46 Electrolysis Machine
 #objects[47].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 7 1 47 Jellyitus Moulding Machine
 #objects[27].StartCost.StartAvail.WhenAvail.AvailableForLevel 4000 0 0 1 27 X-Ray
 #objects[54].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 10 1 54 Decontamination Shower
@@ -407,6 +409,7 @@ Emergency Mappings
             { index: 19, cost: 500, roomType: "hair-restoration", name: "HAIR_RESTORE" },
             { index: 21, cost: 500, roomType: "fracture-clinic", name: "FRACTURE" },
             { index: 23, cost: 1800, roomType: "dna-fixer", name: "DNA_FIXER" },
+            { index: 23, cost: 500, roomType: "electrolysis", name: "ELECTRO" },
             { index: 24, cost: 4500, roomType: "jelly-vat", name: "JELLY_VAT" },
             { index: 30, cost: 5500, roomType: "decontamination", name: "DECON_SHOWER" }
         ]);
@@ -531,6 +534,16 @@ Network Level
                 availableForLevel: true,
                 roomType: "fracture-clinic",
                 name: "Cast Remover"
+            },
+            {
+                index: 46,
+                startCost: 3500,
+                startAvailable: true,
+                whenAvailable: 0,
+                startStrength: 10,
+                availableForLevel: true,
+                roomType: "electrolysis",
+                name: "Electrolysis Machine"
             },
             {
                 index: 47,
