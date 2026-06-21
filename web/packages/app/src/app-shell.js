@@ -1221,7 +1221,7 @@ export function canRestStaffFromTelemetry(staff = null, telemetry = null) {
     if (isTerminalLevelTelemetry(telemetry)) {
         return false;
     }
-    return Boolean(staff && staff.status === "on-break" && staff.trainingRemainingTicks === 0 && staff.stress > 0);
+    return Boolean(staff && staff.status === "on-break" && staff.trainingRemainingTicks === 0 && staff.stress > 0 && telemetry?.openStaffRooms > 0);
 }
 export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
     if (!staff || !telemetry) {

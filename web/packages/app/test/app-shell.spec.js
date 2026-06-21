@@ -870,22 +870,36 @@ describe("app shell campaign objectives", () => {
             status: "on-break",
             trainingRemainingTicks: 0,
             stress: 4
+        }, {
+            openStaffRooms: 1
         })).toBe(true);
+        expect(canRestStaffFromTelemetry({
+            status: "on-break",
+            trainingRemainingTicks: 0,
+            stress: 4
+        }, {
+            openStaffRooms: 0
+        })).toBe(false);
         expect(canRestStaffFromTelemetry({
             status: "active",
             trainingRemainingTicks: 0,
             stress: 4
+        }, {
+            openStaffRooms: 1
         })).toBe(false);
         expect(canRestStaffFromTelemetry({
             status: "on-break",
             trainingRemainingTicks: 1,
             stress: 4
+        }, {
+            openStaffRooms: 1
         })).toBe(false);
         expect(canRestStaffFromTelemetry({
             status: "on-break",
             trainingRemainingTicks: 0,
             stress: 4
         }, {
+            openStaffRooms: 1,
             levelObjectiveStatus: "lost"
         })).toBe(false);
         expect(canTrainStaffFromTelemetry({

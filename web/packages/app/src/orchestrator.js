@@ -2609,6 +2609,7 @@ export class AppOrchestrator {
             maintenanceStaffRepairBonusTicks: state.maintenanceStaff.repairBonusTicks,
             maintenanceStaffRepairEvents: state.maintenanceStaff.totalRepairEvents,
             openDiagnosisRooms: state.roomOperations.openDiagnosisRooms,
+            openStaffRooms: state.entities.rooms.filter((room) => room.roomType === "staff-room" && room.status === "open").length,
             openTreatmentRooms: state.roomOperations.openTreatmentRooms,
             openGeneralTreatmentRooms,
             openPharmacyRooms,

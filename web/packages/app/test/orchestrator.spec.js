@@ -5117,10 +5117,13 @@ describe("app orchestrator", () => {
         }
         const before = orchestrator.getState().entities.staff.find((staff) => staff.id === 1).stress;
         orchestrator.dispatch({ device: "ui", action: "staff-break-toggle", staffId: 1, source: "ui:break" });
+        expect(orchestrator.dispatch({ device: "ui", action: "rest-staff", staffId: 1, restType: "snooker", source: "ui:rest" })).toEqual(["staff.rest-blocked"]);
+        expect(orchestrator.dispatch({ device: "ui", action: "build-room", roomType: "staff-room", source: "ui:build-staff-room", pointer: { x: 96, y: 96 } })).toEqual(["room.built"]);
         expect(orchestrator.dispatch({ device: "ui", action: "rest-staff", staffId: 1, restType: "snooker", source: "ui:rest" })).toEqual(["staff.rested"]);
         const after = orchestrator.getState().entities.staff.find((staff) => staff.id === 1).stress;
         expect(after).toBe(Math.max(0, before - 12));
         expect(orchestrator.telemetry()).toMatchObject({
+            openStaffRooms: 1,
             scenarioStaffRestStanding: 1,
             scenarioStaffRestSofa: 4,
             scenarioStaffRestGame: 8,

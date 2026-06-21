@@ -600,7 +600,7 @@ test("phase 8 scenario import: promotion months drive browser training targets",
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 2 started, 2 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 1/4, thresholds 250/750");
 });
 
-test("phase 8 scenario import: selected staff rest uses imported staff room values", async ({ page }) => {
+test("phase 8 scenario import: selected staff rest requires available Staff Room", async ({ page }) => {
     await importScenarioFixture(page);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("very-tired-staff")).toHaveText("Very tired staff: 0; scenario rest 3/8/60/30, recovery 450/3");
@@ -616,15 +616,11 @@ test("phase 8 scenario import: selected staff rest uses imported staff room valu
     await expect(page.getByTestId("rest-selected-staff")).toBeDisabled();
     await page.getByTestId("staff-break-toggle").click();
     await expect(page.getByTestId("selection-status")).toContainText("on-break");
-    await expect(page.getByTestId("rest-selected-staff")).toBeEnabled();
-    await page.getByTestId("rest-selected-staff").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: staff rested");
-    await expect(page.getByTestId("last-event")).toHaveText("Last event: staff-rested");
-    await expect(page.getByTestId("staff-recovery-events")).toHaveText("Staff recovery events: 1");
     await expect(page.getByTestId("rest-selected-staff")).toBeDisabled();
+    await expect(page.getByTestId("staff-recovery-events")).toHaveText("Staff recovery events: 0");
 });
 
-test("phase 8 scenario import: manual staff room rest uses imported low recovery values", async ({ page }) => {
+test("phase 8 scenario import: manual staff room rest blocks when Staff Room is unavailable", async ({ page }) => {
     await importScenarioFixture(page, staffRoomRestFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("very-tired-staff")).toHaveText("Very tired staff: 0; scenario rest 1/2/3/4, recovery 450/3");
@@ -639,12 +635,8 @@ test("phase 8 scenario import: manual staff room rest uses imported low recovery
     await selectVisibleStaff(page, "Selection: Doctor #1");
     await page.getByTestId("staff-break-toggle").click();
     await expect(page.getByTestId("selection-status")).toContainText("on-break");
-    await expect(page.getByTestId("rest-selected-staff")).toBeEnabled();
-    await page.getByTestId("rest-selected-staff").click();
-    await expect(page.getByTestId("staff-recovery-events")).toHaveText("Staff recovery events: 1");
-    await expect(page.getByTestId("rest-selected-staff")).toBeEnabled();
-    await page.getByTestId("rest-selected-staff").click();
-    await expect(page.getByTestId("staff-recovery-events")).toHaveText("Staff recovery events: 2");
+    await expect(page.getByTestId("rest-selected-staff")).toBeDisabled();
+    await expect(page.getByTestId("staff-recovery-events")).toHaveText("Staff recovery events: 0");
 });
 
 test("phase 8 scenario import: staff modify frequency delays browser burnout", async ({ page }) => {

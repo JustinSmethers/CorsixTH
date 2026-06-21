@@ -2168,6 +2168,9 @@ export class DeterministicSimulation {
         if (!staff || staff.status !== "on-break" || staff.trainingRemainingTicks > 0 || staff.stress <= 0) {
             return false;
         }
+        if (restType !== "standing" && !this.hasOpenRoomType("staff-room")) {
+            return false;
+        }
         const recoveryTicks = this.staffFatigueConfig.restRecoveryTicksByType[restType] ?? this.staffFatigueConfig.idleRecoveryTicks;
         const previousStress = staff.stress;
         staff.stress = Math.max(0, staff.stress - recoveryTicks);

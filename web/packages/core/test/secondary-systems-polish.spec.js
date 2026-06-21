@@ -201,6 +201,11 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
         sofaRest.execute({ type: "tick", count: 3 });
         standingRest.execute({ type: "set-staff-status", staffId: 1, status: "on-break" });
         sofaRest.execute({ type: "set-staff-status", staffId: 1, status: "on-break" });
+        const blockedSofaStress = sofaRest.getState().entities.staff.find((staff) => staff.id === 1).stress;
+        sofaRest.execute({ type: "rest-staff", staffId: 1, restType: "sofa" });
+        expect(sofaRest.getState().entities.staff.find((staff) => staff.id === 1).stress).toBe(blockedSofaStress);
+        expect(sofaRest.getState().events.recent.map((event) => event.type)).not.toContain("staff-rested");
+        sofaRest.execute({ type: "open-room", roomType: "staff-room", position: { x: 1, y: 4 } });
         standingRest.execute({ type: "rest-staff", staffId: 1, restType: "standing" });
         sofaRest.execute({ type: "rest-staff", staffId: 1, restType: "sofa" });
         const standingStress = standingRest.getState().entities.staff.find((staff) => staff.id === 1).stress;
