@@ -111,6 +111,19 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(patient?.movement?.path).not.toContainEqual({ x: 1, y: 4 });
         expect(patient?.movement?.path).toContainEqual({ x: 0, y: 4 });
     });
+    it("uses Blood Machine rooms as doctor-staffed diagnosis capacity", () => {
+        const simulation = new DeterministicSimulation(72071, { bounds: { width: 12, height: 12 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", position: { x: 8, y: 4 } });
+        simulation.execute({ type: "open-room", roomType: "blood-machine", position: { x: 5, y: 7 } });
+        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "gut-rot", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "gut-rot", position: { x: 3, y: 4 } });
+        simulation.execute({ type: "tick", count: 1 });
+        expect(simulation.getState().roomOperations.openDiagnosisRooms).toBe(2);
+        expect(simulation.getState().hospitalLoop.walkingToDiagnosisPatients).toBe(2);
+        expect(simulation.getState().entities.rooms.find((room) => room.roomType === "blood-machine")).toMatchObject({
+            footprint: { width: 4, height: 4 }
+        });
+    });
     it("blocks object placement on staff and patient positions", () => {
         const simulation = new DeterministicSimulation(7208, { bounds: { width: 12, height: 12 } });
         simulation.execute({ type: "hire-staff", role: "handyman", position: { x: 6, y: 6 } });

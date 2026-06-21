@@ -41,6 +41,7 @@ const PATIENT_STATUS_COLORS = {
 };
 const ROOM_TYPE_COLORS = {
     diagnosis: "#5fb3c8",
+    "blood-machine": "#c95d5d",
     treatment: "#79c66a",
     pharmacy: "#b894f6",
     specialist: "#f08e67",
@@ -584,6 +585,7 @@ export function formatOriginalUiStripControlLabel(control) {
         "pause-toggle": "Pause",
         step: formatGameplayActionButtonLabel("step"),
         "build-diagnosis-room": "Build GP",
+        "build-blood-machine-room": "Build Blood",
         "build-treatment-room": "Build Ward",
         "build-pharmacy-room": "Build Pharmacy",
         "build-specialist-room": "Build Specialist",
@@ -997,6 +999,9 @@ function staffRoleDisplayName(role, languageSummary) {
 function roomTypeDisplayName(roomType, languageSummary) {
     if (roomType === "dna-fixer") {
         return languageSummary?.roomNames?.[roomType] ?? "DNA Fixer";
+    }
+    if (roomType === "blood-machine") {
+        return languageSummary?.roomNames?.[roomType] ?? "Blood Machine";
     }
     if (roomType === "fracture-clinic") {
         return languageSummary?.roomNames?.[roomType] ?? "Fracture Clinic";
@@ -1895,6 +1900,7 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "build-decontamination-room", label: formatOriginalUiStripControlLabel("build-decontamination-room") },
     { id: "build-electrolysis-room", label: formatOriginalUiStripControlLabel("build-electrolysis-room") },
     { id: "build-dna-fixer-room", label: formatOriginalUiStripControlLabel("build-dna-fixer-room") },
+    { id: "build-blood-machine-room", label: formatOriginalUiStripControlLabel("build-blood-machine-room") },
     { id: "hire-diagnostician", label: formatOriginalUiStripControlLabel("hire-diagnostician") },
     { id: "hire-nurse", label: formatOriginalUiStripControlLabel("hire-nurse") },
     { id: "hire-handyman", label: formatOriginalUiStripControlLabel("hire-handyman") },
@@ -3162,6 +3168,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="build-decontamination-room">${formatBuildRoomButtonLabel("decontamination")}</button>
           <button type="button" data-testid="build-electrolysis-room">${formatBuildRoomButtonLabel("electrolysis")}</button>
           <button type="button" data-testid="build-dna-fixer-room">${formatBuildRoomButtonLabel("dna-fixer")}</button>
+          <button type="button" data-testid="build-blood-machine-room">${formatBuildRoomButtonLabel("blood-machine")}</button>
           <button type="button" data-testid="hire-diagnostician">${formatHireStaffButtonLabel("diagnostician")}</button>
           <button type="button" data-testid="hire-nurse">${formatHireStaffButtonLabel("nurse")}</button>
           <button type="button" data-testid="hire-handyman">${formatHireStaffButtonLabel("handyman")}</button>
@@ -3766,6 +3773,7 @@ export function mountAppShell(options) {
     const buildDecontaminationRoomButton = requiredElement(options.root, "[data-testid='build-decontamination-room']");
     const buildElectrolysisRoomButton = requiredElement(options.root, "[data-testid='build-electrolysis-room']");
     const buildDnaFixerRoomButton = requiredElement(options.root, "[data-testid='build-dna-fixer-room']");
+    const buildBloodMachineRoomButton = requiredElement(options.root, "[data-testid='build-blood-machine-room']");
     const hireDiagnosticianButton = requiredElement(options.root, "[data-testid='hire-diagnostician']");
     const hireNurseButton = requiredElement(options.root, "[data-testid='hire-nurse']");
     const hireHandymanButton = requiredElement(options.root, "[data-testid='hire-handyman']");
@@ -4093,6 +4101,7 @@ export function mountAppShell(options) {
         buildDecontaminationRoomButton.textContent = formatBuildRoomButtonLabel("decontamination", telemetry, hospitalView?.languageSummary ?? null);
         buildElectrolysisRoomButton.textContent = formatBuildRoomButtonLabel("electrolysis", telemetry, hospitalView?.languageSummary ?? null);
         buildDnaFixerRoomButton.textContent = formatBuildRoomButtonLabel("dna-fixer", telemetry, hospitalView?.languageSummary ?? null);
+        buildBloodMachineRoomButton.textContent = formatBuildRoomButtonLabel("blood-machine", telemetry, hospitalView?.languageSummary ?? null);
         hireDiagnosticianButton.textContent = formatHireStaffButtonLabel("diagnostician", telemetry, hospitalView?.languageSummary ?? null);
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
         hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
@@ -4112,6 +4121,7 @@ export function mountAppShell(options) {
         buildDecontaminationRoomButton.disabled = !canBuildRoomFromTelemetry("decontamination", telemetry);
         buildElectrolysisRoomButton.disabled = !canBuildRoomFromTelemetry("electrolysis", telemetry);
         buildDnaFixerRoomButton.disabled = !canBuildRoomFromTelemetry("dna-fixer", telemetry);
+        buildBloodMachineRoomButton.disabled = !canBuildRoomFromTelemetry("blood-machine", telemetry);
         hireDiagnosticianButton.disabled = !canHireStaffFromTelemetry("diagnostician", telemetry);
         hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
         hireHandymanButton.disabled = !canHireStaffFromTelemetry("handyman", telemetry);
@@ -5102,6 +5112,24 @@ export function mountAppShell(options) {
             orientation: "north",
             source: "ui:build-dna-fixer-room",
             label: `build ${roomTypeDisplayName("dna-fixer", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildBloodMachineRoom = () => {
+        if (!canBuildRoomFromTelemetry("blood-machine", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
+        placementAction = {
+            action: "build-room",
+            roomType: "blood-machine",
+            orientation: "north",
+            source: "ui:build-blood-machine-room",
+            label: `build ${roomTypeDisplayName("blood-machine", hospitalView?.languageSummary ?? null)}`
         };
         placementPreview = null;
         selectedEntity = null;
@@ -6299,6 +6327,7 @@ export function mountAppShell(options) {
         ["build-decontamination-room", onBuildDecontaminationRoom],
         ["build-electrolysis-room", onBuildElectrolysisRoom],
         ["build-dna-fixer-room", onBuildDnaFixerRoom],
+        ["build-blood-machine-room", onBuildBloodMachineRoom],
         ["hire-diagnostician", onHireDiagnostician],
         ["hire-nurse", onHireNurse],
         ["hire-handyman", onHireHandyman],

@@ -177,6 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
+export const DIAGNOSIS_ROOM_TYPES = ["diagnosis", "blood-machine"];
 export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
@@ -220,6 +221,7 @@ const DEFAULT_DISEASE_IDS_BY_SEVERITY = {
 };
 const STAFF_ROLE_BY_ROOM_TYPE = {
     diagnosis: "diagnostician",
+    "blood-machine": "diagnostician",
     treatment: "nurse",
     pharmacy: "nurse",
     specialist: "diagnostician",
@@ -249,6 +251,7 @@ const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
 };
 const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     diagnosis: 2,
+    "blood-machine": 4,
     treatment: 3,
     pharmacy: 4,
     specialist: 5,
@@ -270,6 +273,7 @@ const STAFF_HIRE_COST_BY_ROLE = {
 };
 const ROOM_BUILD_COST_BY_TYPE = {
     diagnosis: 800,
+    "blood-machine": 3000,
     treatment: 1000,
     pharmacy: 1200,
     specialist: 1600,
@@ -285,6 +289,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
     diagnosis: 120,
+    "blood-machine": 220,
     treatment: 150,
     pharmacy: 170,
     specialist: 220,
@@ -312,6 +317,7 @@ const STAFF_AUTO_BREAK_TICKS_BY_ROLE = {
 };
 const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     diagnosis: 8,
+    "blood-machine": 8,
     treatment: 8,
     pharmacy: 8,
     specialist: 8,
@@ -327,6 +333,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     diagnosis: 2,
+    "blood-machine": 3,
     treatment: 2,
     pharmacy: 2,
     specialist: 3,
@@ -427,8 +434,14 @@ export function diseaseForId(diseaseId) {
 export function treatmentRoomTypes() {
     return [...TREATMENT_ROOM_TYPES];
 }
+export function diagnosisRoomTypes() {
+    return [...DIAGNOSIS_ROOM_TYPES];
+}
 export function isTreatmentRoomType(roomType) {
     return TREATMENT_ROOM_TYPES.includes(roomType);
+}
+export function isDiagnosisRoomType(roomType) {
+    return DIAGNOSIS_ROOM_TYPES.includes(roomType);
 }
 export function treatmentRoomTypeForDisease(diseaseId) {
     return TREATMENT_ROOM_TYPE_BY_DISEASE_ID[diseaseId] ?? "treatment";

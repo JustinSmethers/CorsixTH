@@ -180,6 +180,7 @@ Level One
 #rooms[9].Cost 1700 WARD
 #rooms[11].Cost 500 PHARMACY
 #rooms[12].Cost 470 CARDIO
+#rooms[15].Cost 3200 BLOOD_MACHINE
 #rooms[17].Cost 1500 INFLATOR
 #rooms[19].Cost 500 HAIR_RESTORE
 #rooms[21].Cost 500 FRACTURE
@@ -231,6 +232,7 @@ Level One
 #objects[13].StartCost.StartAvail.WhenAvail.AvailableForLevel 1000 0 0 1 13 Cardiogram
 #objects[23].StartCost.StartAvail.WhenAvail.AvailableForLevel 1800 1 0 1 23 DNA Fixer
 #objects[24].StartCost.StartAvail.WhenAvail.AvailableForLevel 2000 1 0 1 24 Cast Remover
+#objects[42].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 3000 0 4 12 1 42 Blood Machine
 #objects[46].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 3500 1 0 10 1 46 Electrolysis Machine
 #objects[47].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 7 1 47 Jellyitus Moulding Machine
 #objects[27].StartCost.StartAvail.WhenAvail.AvailableForLevel 4000 0 0 1 27 X-Ray
@@ -407,6 +409,7 @@ Emergency Mappings
             { index: 9, cost: 1700, roomType: "treatment", name: "WARD" },
             { index: 11, cost: 500, roomType: "pharmacy", name: "PHARMACY" },
             { index: 12, cost: 470, roomType: "diagnosis", name: "CARDIO" },
+            { index: 15, cost: 3200, roomType: "blood-machine", name: "BLOOD_MACHINE" },
             { index: 17, cost: 1500, roomType: "inflation-room", name: "INFLATOR" },
             { index: 19, cost: 500, roomType: "hair-restoration", name: "HAIR_RESTORE" },
             { index: 21, cost: 500, roomType: "fracture-clinic", name: "FRACTURE" },
@@ -536,6 +539,16 @@ Network Level
                 availableForLevel: true,
                 roomType: "fracture-clinic",
                 name: "Cast Remover"
+            },
+            {
+                index: 42,
+                startCost: 3000,
+                startAvailable: false,
+                whenAvailable: 4,
+                startStrength: 12,
+                availableForLevel: true,
+                roomType: "blood-machine",
+                name: "Blood Machine"
             },
             {
                 index: 46,
