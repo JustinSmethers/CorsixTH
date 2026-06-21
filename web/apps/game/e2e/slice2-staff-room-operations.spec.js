@@ -157,6 +157,20 @@ test("phase 7 slice 2 player journey: Training Room can be built from browser co
     await expect(page.getByTestId("specialized-treatment-rooms")).toHaveText("Specialized rooms: pharmacy 0, Operating Theatre 0, specialist 0, Psychiatry 0, Training Room 1, Inflation Room 0, Slack Tongue Clinic 0, Fracture Clinic 0, Hair Restoration 0, Jelly Vat 0, Decontamination 0, Electrolysis 0, DNA Fixer 0");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("rooms 3");
 });
+test("phase 7 slice 2 player journey: facility rooms can be built from browser controls", async ({ page }) => {
+    await importAssetsAndEnterPlayableShell(page);
+    await page.getByTestId("pause-toggle").click();
+    await expect(page.getByTestId("build-staff-room")).toContainText("Build Staff Room");
+    await expect(page.getByTestId("build-research-room")).toContainText("Build Research");
+    await expect(page.getByTestId("build-toilets")).toContainText("Build Toilets");
+    await placeRoomOnFirstValidTile(page, "build-staff-room");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await placeRoomOnFirstValidTile(page, "build-toilets");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await expect(page.getByTestId("hospital-canvas-summary")).toContainText("rooms 5");
+});
 test("phase 7 slice 2 player journey: Slack Tongue Clinic can be built from browser controls", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();

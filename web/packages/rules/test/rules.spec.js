@@ -39,7 +39,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
     });
     it("locks deterministic disease-to-treatment-room mapping and specialty bonuses", () => {
         expect(diagnosisRoomTypes()).toEqual(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"]);
-        expect(facilityRoomTypes()).toEqual(["training-room"]);
+        expect(facilityRoomTypes()).toEqual(["staff-room", "research", "toilets", "training-room"]);
         expect(treatmentRoomTypes()).toEqual(["treatment", "ward", "pharmacy", "operating-theatre", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"]);
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("psychiatry");
@@ -678,6 +678,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomUpkeepCostPerTick("operating-theatre")).toBe(5);
         expect(roomUpkeepCostPerTick("specialist")).toBe(5);
         expect(roomUpkeepCostPerTick("psychiatry")).toBe(5);
+        expect(roomUpkeepCostPerTick("staff-room")).toBe(2);
+        expect(roomUpkeepCostPerTick("research")).toBe(4);
+        expect(roomUpkeepCostPerTick("toilets")).toBe(2);
         expect(roomUpkeepCostPerTick("training-room")).toBe(3);
         expect(roomUpkeepCostPerTick("inflation-room")).toBe(5);
         expect(roomUpkeepCostPerTick("slack-tongue-clinic")).toBe(5);
@@ -701,6 +704,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomBuildCost("operating-theatre")).toBe(1600);
         expect(roomBuildCost("specialist")).toBe(1600);
         expect(roomBuildCost("psychiatry")).toBe(2500);
+        expect(roomBuildCost("staff-room")).toBe(1500);
+        expect(roomBuildCost("research")).toBe(4000);
+        expect(roomBuildCost("toilets")).toBe(800);
         expect(roomBuildCost("training-room")).toBe(2000);
         expect(roomBuildCost("inflation-room")).toBe(1600);
         expect(roomBuildCost("slack-tongue-clinic")).toBe(1600);
@@ -714,6 +720,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomSellRefund("operating-theatre")).toBe(800);
         expect(roomSellRefund("specialist")).toBe(800);
         expect(roomSellRefund("psychiatry")).toBe(1250);
+        expect(roomSellRefund("staff-room")).toBe(750);
+        expect(roomSellRefund("research")).toBe(2000);
+        expect(roomSellRefund("toilets")).toBe(400);
         expect(roomSellRefund("inflation-room")).toBe(800);
         expect(roomSellRefund("slack-tongue-clinic")).toBe(800);
         expect(roomSellRefund("jelly-vat")).toBe(2250);
@@ -726,6 +735,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomRepairCost("operating-theatre")).toBe(220);
         expect(roomRepairCost("specialist")).toBe(220);
         expect(roomRepairCost("psychiatry")).toBe(220);
+        expect(roomRepairCost("staff-room")).toBe(140);
+        expect(roomRepairCost("research")).toBe(220);
+        expect(roomRepairCost("toilets")).toBe(120);
         expect(roomRepairCost("training-room")).toBe(160);
         expect(roomRepairCost("slack-tongue-clinic")).toBe(220);
         expect(roomRepairCost("inflation-room")).toBe(220);
@@ -818,6 +830,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomMaintenanceWearThreshold("operating-theatre")).toBe(8);
         expect(roomMaintenanceWearThreshold("specialist")).toBe(8);
         expect(roomMaintenanceWearThreshold("psychiatry")).toBe(8);
+        expect(roomMaintenanceWearThreshold("staff-room")).toBe(8);
+        expect(roomMaintenanceWearThreshold("research")).toBe(8);
+        expect(roomMaintenanceWearThreshold("toilets")).toBe(8);
         expect(roomMaintenanceWearThreshold("training-room")).toBe(8);
         expect(roomMaintenanceWearThreshold("dna-fixer")).toBe(8);
         expect(roomMaintenanceTicks("diagnosis")).toBe(2);
@@ -826,6 +841,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomMaintenanceTicks("operating-theatre")).toBe(3);
         expect(roomMaintenanceTicks("specialist")).toBe(3);
         expect(roomMaintenanceTicks("psychiatry")).toBe(3);
+        expect(roomMaintenanceTicks("staff-room")).toBe(2);
+        expect(roomMaintenanceTicks("research")).toBe(3);
+        expect(roomMaintenanceTicks("toilets")).toBe(2);
         expect(roomMaintenanceTicks("training-room")).toBe(2);
         expect(roomMaintenanceTicks("dna-fixer")).toBe(3);
         expect(maintenanceStaffRepairBonusTicks()).toBe(1);

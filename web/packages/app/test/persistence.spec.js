@@ -91,12 +91,15 @@ describe("app persistence integration", () => {
             staffMarketSchedule: [
                 { index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 5, shrinkRate: 3, surgeonRate: 0, researcherRate: 1, consultantRate: 2, juniorRate: 10 }
             ],
-            roomAvailability: ["operating-theatre"],
+            roomAvailability: ["operating-theatre", "staff-room", "research", "toilets"],
             roomAvailabilitySchedule: [
-                { index: 24, roomType: "operating-theatre", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+                { index: 24, roomType: "operating-theatre", startAvailable: false, whenAvailable: 1, availableForLevel: true },
+                { index: 25, roomType: "staff-room", startAvailable: true, whenAvailable: 0, availableForLevel: true },
+                { index: 26, roomType: "research", startAvailable: false, whenAvailable: 2, availableForLevel: true },
+                { index: 27, roomType: "toilets", startAvailable: true, whenAvailable: 0, availableForLevel: true }
             ],
-            roomCostOverrides: { diagnosis: 2_280, treatment: 1_700, pharmacy: 500, "operating-theatre": 1_500 },
-            roomWearThresholdOverrides: { diagnosis: 12, "operating-theatre": 8 },
+            roomCostOverrides: { diagnosis: 2_280, treatment: 1_700, pharmacy: 500, "operating-theatre": 1_500, "staff-room": 1_500, research: 4_000, toilets: 800 },
+            roomWearThresholdOverrides: { diagnosis: 12, "operating-theatre": 8, "staff-room": 8, research: 9, toilets: 7 },
             staffWageOverrides: { diagnostician: 6, nurse: 5, handyman: 2 },
             admissionRules: { holdVisualMonths: 1, holdVisualPeepCount: 2 },
             researchSettings: { startRating: 95, researchPointsDivisor: 4, startCost: 100, minDrugCost: 50, drugImproveRate: 5, maxObjectStrength: 20, researchIncrement: 2, researchImproveCostPercent: 10, researchImproveIncrementPercent: 10 },
@@ -201,12 +204,15 @@ describe("app persistence integration", () => {
         expect(envelope.payload.staffMarketSchedule).toEqual([
             { index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 5, shrinkRate: 3, surgeonRate: 0, researcherRate: 1, consultantRate: 2, juniorRate: 10 }
         ]);
-        expect(envelope.payload.roomAvailability).toEqual(["diagnosis", "treatment", "operating-theatre"]);
+        expect(envelope.payload.roomAvailability).toEqual(["diagnosis", "treatment", "operating-theatre", "staff-room", "research", "toilets"]);
         expect(envelope.payload.roomAvailabilitySchedule).toEqual([
-            { index: 24, roomType: "operating-theatre", startAvailable: false, whenAvailable: 1, availableForLevel: true }
+            { index: 25, roomType: "staff-room", startAvailable: true, whenAvailable: 0, availableForLevel: true },
+            { index: 27, roomType: "toilets", startAvailable: true, whenAvailable: 0, availableForLevel: true },
+            { index: 24, roomType: "operating-theatre", startAvailable: false, whenAvailable: 1, availableForLevel: true },
+            { index: 26, roomType: "research", startAvailable: false, whenAvailable: 2, availableForLevel: true }
         ]);
-        expect(envelope.payload.roomCostOverrides).toEqual({ diagnosis: 2_280, treatment: 1_700, pharmacy: 500, "operating-theatre": 1_500 });
-        expect(envelope.payload.roomWearThresholdOverrides).toEqual({ diagnosis: 12, "operating-theatre": 8 });
+        expect(envelope.payload.roomCostOverrides).toEqual({ diagnosis: 2_280, treatment: 1_700, pharmacy: 500, "operating-theatre": 1_500, "staff-room": 1_500, research: 4_000, toilets: 800 });
+        expect(envelope.payload.roomWearThresholdOverrides).toEqual({ diagnosis: 12, "operating-theatre": 8, "staff-room": 8, research: 9, toilets: 7 });
         expect(envelope.payload.staffWageOverrides).toEqual({ diagnostician: 6, nurse: 5, handyman: 2 });
         expect(envelope.payload.admissionRules).toEqual({ holdVisualMonths: 1, holdVisualPeepCount: 2 });
         expect(envelope.payload.researchSettings).toEqual({ startRating: 95, researchPointsDivisor: 4, startCost: 100, minDrugCost: 50, drugImproveRate: 5, maxObjectStrength: 20, researchIncrement: 2, researchImproveCostPercent: 10, researchImproveIncrementPercent: 10 });

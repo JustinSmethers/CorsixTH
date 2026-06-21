@@ -84,10 +84,13 @@ describe("app shell campaign objectives", () => {
             { label: "Pause" },
             { label: "Step" }
         ])).toBe("Original UI: DATA/PANEL02V 11 sprites, showing 4; controls Pause, Step");
-        expect(["pause-toggle", "build-diagnosis-room", "build-psychiatry-room", "build-inflation-room", "build-slack-tongue-clinic", "build-hair-restoration-room", "build-jelly-vat-room", "build-decontamination-room", "build-electrolysis-room", "build-dna-fixer-room", "open-research", "save-game", "refresh-save-slots", "quit-level", "hospital-camera-west"].map(formatOriginalUiStripControlLabel)).toEqual([
+        expect(["pause-toggle", "build-diagnosis-room", "build-psychiatry-room", "build-staff-room", "build-research-room", "build-toilets", "build-inflation-room", "build-slack-tongue-clinic", "build-hair-restoration-room", "build-jelly-vat-room", "build-decontamination-room", "build-electrolysis-room", "build-dna-fixer-room", "open-research", "save-game", "refresh-save-slots", "quit-level", "hospital-camera-west"].map(formatOriginalUiStripControlLabel)).toEqual([
             "Pause",
             "Build GP",
             "Build Psych",
+            "Build Staff Room",
+            "Build Research",
+            "Build Toilets",
             "Build Inflation",
             "Build Tongue",
             "Build Hair",
@@ -252,9 +255,9 @@ describe("app shell campaign objectives", () => {
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
-                sprites: Array.from({ length: 25 }, () => ({ width: 10, height: 10, indices: [1] }))
+                sprites: Array.from({ length: 28 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
-        }, 404, 40).map((zone) => zone.id)).toEqual([
+        }, 452, 40).map((zone) => zone.id)).toEqual([
             "pause-toggle",
             "step",
             "build-diagnosis-room",
@@ -270,6 +273,9 @@ describe("app shell campaign objectives", () => {
             "build-operating-theatre-room",
             "build-specialist-room",
             "build-psychiatry-room",
+            "build-staff-room",
+            "build-research-room",
+            "build-toilets",
             "build-training-room",
             "build-inflation-room",
             "build-slack-tongue-clinic",
@@ -283,9 +289,9 @@ describe("app shell campaign objectives", () => {
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
-                sprites: Array.from({ length: 35 }, () => ({ width: 10, height: 10, indices: [1] }))
+                sprites: Array.from({ length: 38 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
-        }, 564, 40).map((zone) => zone.id)).toEqual([
+        }, 612, 40).map((zone) => zone.id)).toEqual([
             "pause-toggle",
             "step",
             "build-diagnosis-room",
@@ -301,6 +307,9 @@ describe("app shell campaign objectives", () => {
             "build-operating-theatre-room",
             "build-specialist-room",
             "build-psychiatry-room",
+            "build-staff-room",
+            "build-research-room",
+            "build-toilets",
             "build-training-room",
             "build-inflation-room",
             "build-slack-tongue-clinic",
@@ -324,9 +333,9 @@ describe("app shell campaign objectives", () => {
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
-                sprites: Array.from({ length: 46 }, () => ({ width: 10, height: 10, indices: [1] }))
+                sprites: Array.from({ length: 49 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
-        }, 740, 40).map((zone) => zone.id).slice(40)).toEqual([
+        }, 788, 40).map((zone) => zone.id).slice(43)).toEqual([
             "open-policy",
             "open-machine-menu",
             "take-loan",
@@ -546,7 +555,7 @@ describe("app shell campaign objectives", () => {
         })).toBe("Room availability: unrestricted");
     });
     it("uses imported room names and scenario costs in build labels", () => {
-        expect(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis", "treatment", "ward", "pharmacy", "operating-theatre", "specialist", "psychiatry", "training-room", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
+        expect(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis", "treatment", "ward", "pharmacy", "operating-theatre", "specialist", "psychiatry", "staff-room", "research", "toilets", "training-room", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
             "Build Diagnosis",
             "Build Cardiogram",
             "Build Scanner",
@@ -560,6 +569,9 @@ describe("app shell campaign objectives", () => {
             "Build Operating Theatre",
             "Build Specialist",
             "Build Psychiatry",
+            "Build Staff Room",
+            "Build Research",
+            "Build Toilets",
             "Build Training Room",
             "Build Inflation Room",
             "Build Slack Tongue Clinic",

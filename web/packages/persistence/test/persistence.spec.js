@@ -117,6 +117,9 @@ function sampleCommandLog() {
     return [
         { type: "admit-patient", severity: 3, position: { x: 5, y: 7 } },
         { type: "open-room", roomType: "diagnosis", position: { x: 8, y: 9 } },
+        { type: "open-room", roomType: "staff-room", position: { x: 10, y: 9 } },
+        { type: "open-room", roomType: "research", position: { x: 14, y: 9 } },
+        { type: "open-room", roomType: "toilets", position: { x: 20, y: 9 } },
         { type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 8, y: 10 } },
         { type: "fire-staff", staffId: 3 },
         { type: "move-staff", staffId: 2, position: { x: 9, y: 11 } },
@@ -151,12 +154,16 @@ function sampleSnapshot() {
         mapView: { mapPath: "LEVELS/EXAMPLE.MAP", startX: 50, startY: 57 },
         diseasePool: [{ source: "visuals", token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3, weight: 5 }],
         staffMarketSchedule: [{ index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 5 }],
-        roomAvailability: ["diagnosis", "treatment", "operating-theatre"],
+        roomAvailability: ["diagnosis", "treatment", "operating-theatre", "staff-room", "research", "toilets"],
         objectAvailability: [
             { index: 5, name: "Plant", startCost: 100, startStrength: 7, startAvailable: true, whenAvailable: 0, availableForLevel: true },
-            { index: 13, name: "Cardiogram", roomType: "diagnosis", startCost: 1000, startStrength: 12, startAvailable: false, whenAvailable: 1, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
+            { index: 13, name: "Cardiogram", roomType: "diagnosis", startCost: 1000, startStrength: 12, startAvailable: false, whenAvailable: 1, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" },
+            { index: 49, name: "Sofa", roomType: "staff-room", startCost: 200, startStrength: 8, startAvailable: true, whenAvailable: 0, availableForLevel: true },
+            { index: 50, name: "Autopsy Machine", roomType: "research", startCost: 1200, startStrength: 10, startAvailable: true, whenAvailable: 0, availableForLevel: true },
+            { index: 51, name: "Toilet", roomType: "toilets", startCost: 150, startStrength: 8, startAvailable: true, whenAvailable: 0, availableForLevel: true }
         ],
-        roomWearThresholdOverrides: { diagnosis: 12, "operating-theatre": 8 },
+        roomCostOverrides: { "staff-room": 1500, research: 4000, toilets: 800 },
+        roomWearThresholdOverrides: { diagnosis: 12, "operating-theatre": 8, "staff-room": 8, research: 9, toilets: 7 },
         admissionRules: { holdVisualMonths: 1, holdVisualPeepCount: 2 },
         researchSettings: { startRating: 95, researchPointsDivisor: 4, drugImproveRate: 5 },
         trainingSettings: { trainingRate: 30, trainingValues: [{ index: 0, value: 10, name: "Projector" }] },
@@ -189,7 +196,10 @@ describe("persistence schema and migration", () => {
         expect(reloaded.envelope).toEqual(envelope);
         expect(envelope.payload.objectAvailability).toEqual([
             { index: 5, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 100, startStrength: 7, name: "Plant" },
-            { index: 13, startAvailable: false, whenAvailable: 1, availableForLevel: true, startCost: 1000, startStrength: 12, roomType: "diagnosis", name: "Cardiogram", researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
+            { index: 13, startAvailable: false, whenAvailable: 1, availableForLevel: true, startCost: 1000, startStrength: 12, roomType: "diagnosis", name: "Cardiogram", researchRequired: 40000, expertiseCategory: "DIAGNOSIS" },
+            { index: 49, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 200, startStrength: 8, roomType: "staff-room", name: "Sofa" },
+            { index: 50, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 1200, startStrength: 10, roomType: "research", name: "Autopsy Machine" },
+            { index: 51, startAvailable: true, whenAvailable: 0, availableForLevel: true, startCost: 150, startStrength: 8, roomType: "toilets", name: "Toilet" }
         ]);
     });
     it("accepts imported no-cures level objectives in save snapshots", () => {
