@@ -481,8 +481,18 @@ describe("phase 7 slice 3 economy/progression/events", () => {
         });
         expect(simulation.getState().entities.waitingPatients).toHaveLength(0);
     });
-    it("uses researcher-qualified doctors to accelerate treatment research", () => {
-        const simulation = new DeterministicSimulation(73092, { bounds: { width: 8, height: 8 } });
+    it("uses researcher-qualified doctors in open Research Rooms to accelerate treatment research", () => {
+        const noResearchRoom = new DeterministicSimulation(730921, { bounds: { width: 8, height: 8 } });
+        noResearchRoom.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 6, y: 4 } });
+        noResearchRoom.execute({ type: "start-research" });
+        expect(noResearchRoom.getState().research).toMatchObject({
+            active: true,
+            remainingTicks: 6,
+            activeResearchers: 0,
+            ticksPerTick: 1
+        });
+        const simulation = new DeterministicSimulation(73092, { bounds: { width: 14, height: 14 } });
+        simulation.execute({ type: "open-room", roomType: "research", position: { x: 8, y: 8 } });
         simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 6, y: 4 } });
         const researcher = simulation.getState().entities.staff.find((staff) => staff.specialties?.includes("researcher"));
         expect(researcher).toMatchObject({

@@ -3446,7 +3446,7 @@ export class DeterministicSimulation {
     sendPatientToilet(patientId) {
         const patient = this.getPatientById(patientId);
         const toiletHappy = this.patientBehavior.toiletHappy;
-        if (!patient || patient.usedToilet || patient.health <= 0 || (!patient.needsToilet && !Number.isInteger(toiletHappy))) {
+        if (!patient || patient.usedToilet || patient.health <= 0 || !this.hasOpenRoomType("toilets") || (!patient.needsToilet && !Number.isInteger(toiletHappy))) {
             return false;
         }
         if (Number.isInteger(toiletHappy) && toiletHappy > 0) {
@@ -4025,7 +4025,12 @@ export class DeterministicSimulation {
         this.emitEvent("research-completed", `treatment|level:${this.treatmentResearchLevel}`);
     }
     activeResearcherStaffCount() {
-        return this.staff.filter((staff) => staff.role === "diagnostician" && staff.status === "active" && staff.specialties?.includes("researcher")).length;
+        const openResearchRooms = this.openRoomCount("research");
+        if (openResearchRooms <= 0) {
+            return 0;
+        }
+        const activeResearchStaff = this.staff.filter((staff) => staff.role === "diagnostician" && staff.status === "active" && staff.specialties?.includes("researcher")).length;
+        return Math.min(activeResearchStaff, openResearchRooms);
     }
     treatmentResearchTicksPerTick() {
         return 1 + this.activeResearcherStaffCount();
@@ -4365,5 +4370,11 @@ export class DeterministicSimulation {
     }
     getRoomById(roomId) {
         return this.rooms.find((room) => room.id === roomId);
+    }
+    hasOpenRoomType(roomType) {
+        return this.openRoomCount(roomType) > 0;
+    }
+    openRoomCount(roomType) {
+        return this.rooms.filter((room) => room.roomType === roomType && room.status === "open").length;
     }
 }

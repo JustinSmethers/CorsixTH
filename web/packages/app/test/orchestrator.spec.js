@@ -3916,6 +3916,8 @@ describe("app orchestrator", () => {
             orchestrator.dispatch({ device: "ui", action: "step-tick", source: "ui:step" });
         }
         expect(orchestrator.dispatch({ device: "ui", action: "give-patient-drink", patientId, source: "ui:drink" })).toEqual(["patient.drink-given"]);
+        expect(orchestrator.dispatch({ device: "ui", action: "send-patient-toilet", patientId, source: "ui:toilet" })).toEqual(["patient.toilet-blocked"]);
+        expect(orchestrator.dispatch({ device: "ui", action: "build-room", roomType: "toilets", source: "ui:build-toilets", pointer: { x: 96, y: 96 } })).toEqual(["room.built"]);
         expect(orchestrator.dispatch({ device: "ui", action: "send-patient-toilet", patientId, source: "ui:toilet" })).toEqual(["patient.toilet-used"]);
         const patient = orchestrator.getState().entities.waitingPatients[0];
         expect(patient).toMatchObject({
@@ -4712,6 +4714,13 @@ describe("app orchestrator", () => {
         });
         expect(orchestrator.dispatch({
             device: "ui",
+            action: "build-room",
+            roomType: "research",
+            source: "ui:build-research-room",
+            pointer: { x: 128, y: 128 }
+        })).toEqual(["room.built"]);
+        expect(orchestrator.dispatch({
+            device: "ui",
             action: "start-research",
             source: "ui:start-research"
         })).toEqual(["research.started"]);
@@ -4766,6 +4775,13 @@ describe("app orchestrator", () => {
             role: "diagnostician",
             specialties: expect.arrayContaining(["researcher"])
         });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "build-room",
+            roomType: "research",
+            source: "ui:build-research-room",
+            pointer: { x: 128, y: 128 }
+        })).toEqual(["room.built"]);
         expect(orchestrator.createPersistenceSnapshot().commandLog).toContainEqual(expect.objectContaining({
             type: "hire-staff",
             role: "diagnostician",

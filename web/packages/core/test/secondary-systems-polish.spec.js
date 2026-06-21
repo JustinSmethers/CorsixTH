@@ -560,6 +560,18 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
             drank: true
         });
         simulation.execute({ type: "send-patient-toilet", patientId });
+        expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
+            needsToilet: true
+        });
+        simulation.execute({ type: "open-room", roomType: "toilets", position: { x: 4, y: 4 } });
+        const toiletRoom = simulation.getState().entities.rooms.find((room) => room.roomType === "toilets");
+        simulation.execute({ type: "set-room-status", roomId: toiletRoom.id, status: "closed" });
+        simulation.execute({ type: "send-patient-toilet", patientId });
+        expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
+            needsToilet: true
+        });
+        simulation.execute({ type: "set-room-status", roomId: toiletRoom.id, status: "open" });
+        simulation.execute({ type: "send-patient-toilet", patientId });
         const servedPatient = simulation.getState().entities.waitingPatients[0];
         expect(servedPatient).toMatchObject({ usedToilet: true });
         expect(servedPatient).not.toHaveProperty("needsToilet");

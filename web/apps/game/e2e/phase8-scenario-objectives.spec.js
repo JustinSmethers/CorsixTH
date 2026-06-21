@@ -780,7 +780,7 @@ test("phase 8 scenario import: browser hires use imported doctor ability thresho
     await canvas.click({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
     await expect(page.getByTestId("staff-market-status")).toContainText("doctors 6");
-    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
     await expect(page.getByTestId("hospital-canvas-summary")).toContainText("staff 3");
     await canvas.click({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: Doctor");
@@ -860,7 +860,7 @@ test("phase 8 scenario import: staff market researcher rate creates browser rese
     await canvas.click({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 1, nurses 7, handymen 3, receptionists 8, consultants 0, juniors 0, psych 0, surgeons 0, researchers 100, receptionists target 8; scenario staff month 0, seed 4953");
-    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 1500");
 
@@ -870,7 +870,7 @@ test("phase 8 scenario import: staff market researcher rate creates browser rese
     await page.getByTestId("save-slot-name").fill(saveSlot);
     await page.getByTestId("load-game").click();
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
-    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
 });
 
 test("phase 8 scenario import: skilled browser hires use imported salary bands", async ({ page }) => {
@@ -1900,13 +1900,13 @@ test("phase 8 scenario import: patient behavior settings drive browser care cont
     await expect(page.getByTestId("patient-drinks")).toContainText("Drinks served: 1");
     await expect(page.getByTestId("send-selected-patient-toilet")).toBeEnabled();
     await page.getByTestId("send-selected-patient-toilet").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: toilet used");
-    await expect(page.getByTestId("send-selected-patient-toilet")).toBeDisabled();
-    await expect(page.getByTestId("patients-needing-toilet")).toHaveText("Need toilet: 0, threshold 2");
+    await expect(page.getByTestId("action-status")).toHaveText("Action: toilet blocked");
+    await expect(page.getByTestId("send-selected-patient-toilet")).toBeEnabled();
+    await expect(page.getByTestId("patients-needing-toilet")).toHaveText("Need toilet: 1, threshold 2");
     for (let index = 0; index < 3; index += 1) {
         await page.getByTestId("step").click();
     }
-    await expect(page.getByTestId("patient-bowel-overflows")).toHaveText("Bowel overflows: 0, threshold 4");
+    await expect(page.getByTestId("patient-bowel-overflows")).toHaveText("Bowel overflows: 1, threshold 4");
     await expect(page.getByTestId("patient-litter")).toHaveText("Patient litter: 1, active 1, cleaned 0, cleanliness 100%");
     await expect(page.getByTestId("patient-vomits")).toHaveText("Patient vomits: 0, limit 62");
 });
@@ -2151,7 +2151,7 @@ test("phase 8 scenario import: DNA Fixer availability admits Alien DNA patients"
     await page.getByTestId("hire-diagnostician").click();
     await canvas.click({ position: { x: 432, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
-    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
     await page.getByTestId("hire-receptionist").click();
     await canvas.click({ position: { x: 416, y: 176 } });
     await page.getByTestId("admissions-toggle").click();
