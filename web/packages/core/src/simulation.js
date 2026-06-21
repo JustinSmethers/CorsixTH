@@ -16,7 +16,7 @@ const ROOM_FOOTPRINTS = {
     diagnosis: { width: 3, height: 3 },
     treatment: { width: 3, height: 3 },
     pharmacy: { width: 3, height: 3 },
-    specialist: { width: 3, height: 3 },
+    specialist: { width: 6, height: 6 },
     psychiatry: { width: 5, height: 5 },
     "inflation-room": { width: 3, height: 3 },
     "slack-tongue-clinic": { width: 3, height: 3 },

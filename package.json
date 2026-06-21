@@ -6,6 +6,7 @@
 		"web:serve": "npm --prefix web run serve",
 		"web:check": "npm --prefix web run check",
 		"web:test:e2e": "npm --prefix web run test:e2e",
+		"web:test:e2e:local": "CI=1 CORSIXTH_WEB_PORT=4223 npm --prefix web run test:e2e --",
 		"web:test:e2e:dev-smoke": "npm --prefix web run test:e2e:dev-smoke",
 		"web:test:e2e:preview": "npm --prefix web run test:e2e:preview",
 		"web:inspect:game-data": "npm --prefix web run inspect:game-data"

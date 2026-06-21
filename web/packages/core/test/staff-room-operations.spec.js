@@ -444,9 +444,9 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         const blocked = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
         const oneSurgeon = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
         const specialized = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
-        blocked.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
-        oneSurgeon.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
-        specialized.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        blocked.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 6 } });
+        oneSurgeon.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 6 } });
+        specialized.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 6 } });
         oneSurgeon.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
         specialized.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
         specialized.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 9, y: 4 } });
@@ -466,6 +466,9 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             diseaseId: "spare-ribs",
             preferredTreatmentRoomType: "specialist",
             status: "awaiting-treatment"
+        });
+        expect(blocked.getState().entities.rooms.find((room) => room.roomType === "specialist")).toMatchObject({
+            footprint: { width: 6, height: 6 }
         });
         expect(blocked.getState().hospitalLoop.dischargedPatients).toBe(0);
         expect(oneSurgeon.getState().entities.waitingPatients[0]).toMatchObject({
@@ -539,7 +542,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         const researcherOnlySpecialist = new DeterministicSimulation(72098, { bounds: { width: 12, height: 12 } });
-        researcherOnlySpecialist.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        researcherOnlySpecialist.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 6 } });
         researcherOnlySpecialist.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 8, y: 4 } });
         researcherOnlySpecialist.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         researcherOnlySpecialist.execute({ type: "tick", count: 8 });
@@ -736,8 +739,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         });
     });
     it("does not let unstaffed specialist cases block staffed general treatment rooms", () => {
-        const simulation = new DeterministicSimulation(7215, { bounds: { width: 12, height: 12 } });
-        simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        const simulation = new DeterministicSimulation(7215, { bounds: { width: 14, height: 14 } });
+        simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 8 } });
         simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         simulation.execute({ type: "admit-patient", severity: 1, diseaseId: "mild-cold", position: { x: 3, y: 4 } });
         simulation.execute({ type: "tick", count: 8 });

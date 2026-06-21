@@ -2835,7 +2835,7 @@ describe("app orchestrator", () => {
             action: "build-room",
             roomType: "psychiatry",
             source: "ui:build-psychiatry-room",
-            pointer: { x: 96, y: 96 }
+            pointer: { x: 112, y: 112 }
         })).toEqual(["room.built"]);
         expect(orchestrator.dispatch({
             device: "ui",
@@ -2899,7 +2899,7 @@ describe("app orchestrator", () => {
             action: "build-room",
             roomType: "specialist",
             source: "ui:build-specialist-room",
-            pointer: { x: 64, y: 56 }
+            pointer: { x: 48, y: 48 }
         })).toEqual(["room.built"]);
         const snapshot = orchestrator.createPersistenceSnapshot();
         expect(snapshot.roomAvailability).toEqual(["diagnosis", "treatment", "specialist"]);
