@@ -178,6 +178,7 @@ export const DISEASE_CATALOG = [
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
 export const DIAGNOSIS_ROOM_TYPES = ["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"];
+export const FACILITY_ROOM_TYPES = ["training-room"];
 export const TREATMENT_ROOM_TYPES = ["treatment", "ward", "pharmacy", "operating-theatre", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
@@ -279,7 +280,8 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     "jelly-vat": 6,
     decontamination: 6,
     electrolysis: 6,
-    "dna-fixer": 6
+    "dna-fixer": 6,
+    "training-room": 3
 };
 const STAFF_HIRE_COST_BY_ROLE = {
     diagnostician: 300,
@@ -308,7 +310,8 @@ const ROOM_BUILD_COST_BY_TYPE = {
     "jelly-vat": 4500,
     decontamination: 5500,
     electrolysis: 500,
-    "dna-fixer": 1800
+    "dna-fixer": 1800,
+    "training-room": 2000
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
     diagnosis: 120,
@@ -331,7 +334,8 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     "jelly-vat": 280,
     decontamination: 300,
     electrolysis: 260,
-    "dna-fixer": 240
+    "dna-fixer": 240,
+    "training-room": 160
 };
 const STAFF_BURNOUT_TICKS_BY_ROLE = {
     diagnostician: 8,
@@ -366,7 +370,8 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     "jelly-vat": 9,
     decontamination: 10,
     electrolysis: 9,
-    "dna-fixer": 8
+    "dna-fixer": 8,
+    "training-room": 8
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     diagnosis: 2,
@@ -389,7 +394,8 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     "jelly-vat": 3,
     decontamination: 4,
     electrolysis: 3,
-    "dna-fixer": 3
+    "dna-fixer": 3,
+    "training-room": 2
 };
 const MAINTENANCE_STAFF_REPAIR_BONUS_TICKS = 1;
 const PROGRESSION_INCOME_BONUS_BY_UNLOCK = {
@@ -480,6 +486,9 @@ export function treatmentRoomTypes() {
 }
 export function diagnosisRoomTypes() {
     return [...DIAGNOSIS_ROOM_TYPES];
+}
+export function facilityRoomTypes() {
+    return [...FACILITY_ROOM_TYPES];
 }
 export function isTreatmentRoomType(roomType) {
     return TREATMENT_ROOM_TYPES.includes(roomType);

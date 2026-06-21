@@ -38,6 +38,7 @@ describe("command contract", () => {
         expect(isGameCommand({ type: "open-room", roomType: "operating-theatre", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "specialist", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "psychiatry", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "training-room", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "inflation-room", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "slack-tongue-clinic", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "fracture-clinic", position: { x: 7, y: 8 } })).toBe(true);

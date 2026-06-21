@@ -26,6 +26,7 @@ const ROOM_FOOTPRINTS = {
     "operating-theatre": { width: 6, height: 6 },
     specialist: { width: 6, height: 6 },
     psychiatry: { width: 5, height: 5 },
+    "training-room": { width: 4, height: 4 },
     "inflation-room": { width: 3, height: 3 },
     "slack-tongue-clinic": { width: 3, height: 3 },
     "fracture-clinic": { width: 3, height: 3 },
