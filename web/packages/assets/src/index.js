@@ -2009,6 +2009,7 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [26, "slack-tongue-clinic"],
     [27, "x-ray"],
     [30, "operating-theatre"],
+    [36, "training-room"],
     [37, "training-room"],
     [39, "pharmacy"],
     [42, "blood-machine"],
@@ -2016,6 +2017,7 @@ const SCENARIO_OBJECT_ROOM_MAP = new Map([
     [47, "jelly-vat"],
     [54, "decontamination"],
     [56, "psychiatry"],
+    [60, "training-room"],
     [61, "psychiatry"]
 ]);
 function parseScenarioObjectLine(line) {

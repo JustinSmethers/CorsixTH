@@ -268,6 +268,7 @@ const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
             comfortable_chair: 1
         },
         objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "bookcase", "skeleton"],
+        buildPreviewAnimation: 924,
         minimumSize: 5,
         wallType: "white",
         floorTile: 18,
@@ -277,7 +278,52 @@ const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
         specialTreatmentStepsByDisease: {
             "king-complex": ["couch", "screen"]
         },
-        defaultTreatmentSteps: ["couch"]
+        defaultTreatmentSteps: ["couch"],
+        callSound: "reqd003.wav"
+    },
+    "training-room": {
+        nativeId: "training",
+        nativeClass: "TrainingRoom",
+        levelConfigId: 22,
+        categories: {
+            facilities: 4
+        },
+        objectsNeeded: {
+            lecture_chair: 1,
+            projector: 1
+        },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "lecture_chair", "bookcase", "skeleton"],
+        buildPreviewAnimation: 5086,
+        minimumSize: 4,
+        wallType: "green",
+        floorTile: 17,
+        requiredStaff: {},
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: [],
+        trainingFactorObjects: ["projector", "skeleton", "bookcase"],
+        hasNoQueueDialog: true
+    },
+    pharmacy: {
+        nativeId: "pharmacy",
+        nativeClass: "PharmacyRoom",
+        levelConfigId: 11,
+        categories: {
+            treatment: 4
+        },
+        objectsNeeded: {
+            pharmacy_cabinet: 1
+        },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 5088,
+        minimumSize: 4,
+        wallType: "white",
+        floorTile: 19,
+        requiredStaff: {
+            Nurse: 1
+        },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["pharmacy_cabinet"],
+        callSound: "reqd012.wav"
     }
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
@@ -564,7 +610,8 @@ function cloneNativeRoomDefinition(definition) {
         objectsAdditional: [...definition.objectsAdditional],
         requiredStaff: { ...definition.requiredStaff },
         specialTreatmentStepsByDisease: Object.fromEntries(Object.entries(definition.specialTreatmentStepsByDisease).map(([diseaseId, steps]) => [diseaseId, [...steps]])),
-        defaultTreatmentSteps: [...definition.defaultTreatmentSteps]
+        defaultTreatmentSteps: [...definition.defaultTreatmentSteps],
+        ...(definition.trainingFactorObjects ? { trainingFactorObjects: [...definition.trainingFactorObjects] } : {})
     };
 }
 export function nativeRoomDefinitionForType(roomType) {

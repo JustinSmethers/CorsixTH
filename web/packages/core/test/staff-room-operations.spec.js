@@ -88,6 +88,11 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         const afterValidBuild = simulation.getState();
         expect(afterValidBuild.entities.rooms).toHaveLength(beforeDuplicate + 1);
         expect(afterValidBuild.entities.rooms[afterValidBuild.entities.rooms.length - 1]?.tiles).toHaveLength(9);
+        const trainingRoom = new DeterministicSimulation(7206, { bounds: { width: 14, height: 14 } });
+        trainingRoom.execute({ type: "open-room", roomType: "training-room", position: { x: 8, y: 8 } });
+        expect(trainingRoom.getState().entities.rooms.find((room) => room.roomType === "training-room")).toMatchObject({
+            footprint: { width: 4, height: 4 }
+        });
     });
     it("routes patients around unrelated built room footprints", () => {
         const simulation = new DeterministicSimulation(7206, { bounds: { width: 10, height: 10 } });

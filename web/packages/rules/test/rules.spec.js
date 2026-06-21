@@ -214,7 +214,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(DEFAULT_STAFF_BLUEPRINT).toEqual(["diagnostician", "nurse"]);
         expect(DEFAULT_ROOM_BLUEPRINT).toEqual(["diagnosis", "treatment"]);
     });
-    it("exports native Psychiatry metadata for imported room parity", () => {
+    it("exports native room metadata for imported room parity", () => {
         expect(nativeRoomDefinitionForType("psychiatry")).toEqual({
             nativeId: "psych",
             nativeClass: "PsychRoom",
@@ -229,6 +229,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
                 comfortable_chair: 1
             },
             objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "bookcase", "skeleton"],
+            buildPreviewAnimation: 924,
             minimumSize: 5,
             wallType: "white",
             floorTile: 18,
@@ -238,15 +239,76 @@ describe("phase 7 slice 1 gameplay rules", () => {
             specialTreatmentStepsByDisease: {
                 "king-complex": ["couch", "screen"]
             },
-            defaultTreatmentSteps: ["couch"]
+            defaultTreatmentSteps: ["couch"],
+            callSound: "reqd003.wav"
         });
         expect(nativeRoomMinimumSize("psychiatry")).toBe(5);
+        expect(nativeRoomDefinitionForType("training-room")).toEqual({
+            nativeId: "training",
+            nativeClass: "TrainingRoom",
+            levelConfigId: 22,
+            categories: {
+                facilities: 4
+            },
+            objectsNeeded: {
+                lecture_chair: 1,
+                projector: 1
+            },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "lecture_chair", "bookcase", "skeleton"],
+            buildPreviewAnimation: 5086,
+            minimumSize: 4,
+            wallType: "green",
+            floorTile: 17,
+            requiredStaff: {},
+            specialTreatmentStepsByDisease: {},
+            defaultTreatmentSteps: [],
+            trainingFactorObjects: ["projector", "skeleton", "bookcase"],
+            hasNoQueueDialog: true
+        });
+        expect(nativeRoomMinimumSize("training-room")).toBe(4);
+        expect(nativeRoomDefinitionForType("pharmacy")).toEqual({
+            nativeId: "pharmacy",
+            nativeClass: "PharmacyRoom",
+            levelConfigId: 11,
+            categories: {
+                treatment: 4
+            },
+            objectsNeeded: {
+                pharmacy_cabinet: 1
+            },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+            buildPreviewAnimation: 5088,
+            minimumSize: 4,
+            wallType: "white",
+            floorTile: 19,
+            requiredStaff: {
+                Nurse: 1
+            },
+            specialTreatmentStepsByDisease: {},
+            defaultTreatmentSteps: ["pharmacy_cabinet"],
+            callSound: "reqd012.wav"
+        });
+        expect(nativeRoomMinimumSize("pharmacy")).toBe(4);
         const mutableDefinition = nativeRoomDefinitionForType("psychiatry");
+        const mutableTrainingDefinition = nativeRoomDefinitionForType("training-room");
+        const mutablePharmacyDefinition = nativeRoomDefinitionForType("pharmacy");
         mutableDefinition.objectsNeeded.screen = 0;
         mutableDefinition.specialTreatmentStepsByDisease["king-complex"].push("bookcase");
+        mutableTrainingDefinition.objectsNeeded.projector = 0;
+        mutableTrainingDefinition.trainingFactorObjects.push("radiator");
+        mutablePharmacyDefinition.objectsNeeded.pharmacy_cabinet = 0;
+        mutablePharmacyDefinition.defaultTreatmentSteps.push("bin");
         expect(nativeRoomDefinitionForType("psychiatry")).toMatchObject({
             objectsNeeded: { screen: 1 },
             specialTreatmentStepsByDisease: { "king-complex": ["couch", "screen"] }
+        });
+        expect(nativeRoomDefinitionForType("training-room")).toMatchObject({
+            objectsNeeded: { projector: 1 },
+            trainingFactorObjects: ["projector", "skeleton", "bookcase"]
+        });
+        expect(nativeRoomDefinitionForType("pharmacy")).toMatchObject({
+            objectsNeeded: { pharmacy_cabinet: 1 },
+            defaultTreatmentSteps: ["pharmacy_cabinet"]
         });
         expect(nativeRoomDefinitionForType("treatment")).toBeNull();
         expect(nativeRoomMinimumSize("treatment")).toBeNull();
