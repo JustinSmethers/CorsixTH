@@ -235,6 +235,8 @@ Level One
 #objects[9].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 2500 1 0 12 1 9 Inflator Machine
 #objects[13].StartCost.StartAvail.WhenAvail.AvailableForLevel 1000 0 0 1 13 Cardiogram
 #objects[14].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 4000 0 3 12 1 14 Scanner
+#objects[16].StartCost.StartAvail.WhenAvail.AvailableForLevel 500 1 0 1 16 Screen
+#objects[18].StartCost.StartAvail.WhenAvail.AvailableForLevel 800 1 0 1 18 Couch
 #objects[22].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 3000 0 2 12 1 22 Ultrascan
 #objects[23].StartCost.StartAvail.WhenAvail.AvailableForLevel 1800 1 0 1 23 DNA Fixer
 #objects[24].StartCost.StartAvail.WhenAvail.AvailableForLevel 2000 1 0 1 24 Cast Remover
@@ -243,6 +245,8 @@ Level One
 #objects[47].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 7 1 47 Jellyitus Moulding Machine
 #objects[27].StartCost.StartAvail.WhenAvail.AvailableForLevel 4000 0 0 1 27 X-Ray
 #objects[54].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 6500 1 0 10 1 54 Decontamination Shower
+#objects[56].StartCost.StartAvail.WhenAvail.AvailableForLevel 700 1 0 1 56 Bookcase
+#objects[61].StartCost.StartAvail.WhenAvail.AvailableForLevel 300 1 0 1 61 Comfortable Chair
 #staff_levels[0].Month.Nurses.Doctors.Handymen.Receptionists.Seed.ShrkRate.SurgRate.RschRate.ConsRate.JrRate 0 8 7 3 5 4953 3 0 1 2 10
 `));
         expect(scenario.title).toBe("Level One");
@@ -543,6 +547,24 @@ Network Level
                 name: "Scanner"
             },
             {
+                index: 16,
+                startCost: 500,
+                startAvailable: true,
+                whenAvailable: 0,
+                availableForLevel: true,
+                roomType: "psychiatry",
+                name: "Screen"
+            },
+            {
+                index: 18,
+                startCost: 800,
+                startAvailable: true,
+                whenAvailable: 0,
+                availableForLevel: true,
+                roomType: "psychiatry",
+                name: "Couch"
+            },
+            {
                 index: 22,
                 startCost: 3000,
                 startAvailable: false,
@@ -618,6 +640,24 @@ Network Level
                 availableForLevel: true,
                 roomType: "decontamination",
                 name: "Decontamination Shower"
+            },
+            {
+                index: 56,
+                startCost: 700,
+                startAvailable: true,
+                whenAvailable: 0,
+                availableForLevel: true,
+                roomType: "psychiatry",
+                name: "Bookcase"
+            },
+            {
+                index: 61,
+                startCost: 300,
+                startAvailable: true,
+                whenAvailable: 0,
+                availableForLevel: true,
+                roomType: "psychiatry",
+                name: "Comfortable Chair"
             }
         ]);
     });

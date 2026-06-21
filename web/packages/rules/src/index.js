@@ -253,6 +253,33 @@ const STAFF_COUNT_BY_ROOM_TYPE = {
     "operating-theatre": 2,
     specialist: 2
 };
+const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
+    psychiatry: {
+        nativeId: "psych",
+        nativeClass: "PsychRoom",
+        levelConfigId: 8,
+        categories: {
+            treatment: 1,
+            diagnosis: 8
+        },
+        objectsNeeded: {
+            screen: 1,
+            couch: 1,
+            comfortable_chair: 1
+        },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "bookcase", "skeleton"],
+        minimumSize: 5,
+        wallType: "white",
+        floorTile: 18,
+        requiredStaff: {
+            Psychiatrist: 1
+        },
+        specialTreatmentStepsByDisease: {
+            "king-complex": ["couch", "screen"]
+        },
+        defaultTreatmentSteps: ["couch"]
+    }
+};
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
     diagnostician: 5,
     nurse: 4,
@@ -528,6 +555,24 @@ export function requiredStaffSpecialtyForRoom(roomType) {
 }
 export function requiredStaffCountForRoom(roomType) {
     return STAFF_COUNT_BY_ROOM_TYPE[roomType] ?? 1;
+}
+function cloneNativeRoomDefinition(definition) {
+    return {
+        ...definition,
+        categories: { ...definition.categories },
+        objectsNeeded: { ...definition.objectsNeeded },
+        objectsAdditional: [...definition.objectsAdditional],
+        requiredStaff: { ...definition.requiredStaff },
+        specialTreatmentStepsByDisease: Object.fromEntries(Object.entries(definition.specialTreatmentStepsByDisease).map(([diseaseId, steps]) => [diseaseId, [...steps]])),
+        defaultTreatmentSteps: [...definition.defaultTreatmentSteps]
+    };
+}
+export function nativeRoomDefinitionForType(roomType) {
+    const definition = NATIVE_ROOM_DEFINITIONS_BY_TYPE[roomType];
+    return definition ? cloneNativeRoomDefinition(definition) : null;
+}
+export function nativeRoomMinimumSize(roomType) {
+    return NATIVE_ROOM_DEFINITIONS_BY_TYPE[roomType]?.minimumSize ?? null;
 }
 export function staffWageCostPerTick(role) {
     return STAFF_WAGE_COST_PER_TICK_BY_ROLE[role];

@@ -579,6 +579,9 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             preferredTreatmentRoomType: "psychiatry",
             status: "awaiting-treatment"
         });
+        expect(blocked.getState().entities.rooms.find((room) => room.roomType === "psychiatry")).toMatchObject({
+            footprint: { width: 5, height: 5 }
+        });
         expect(blocked.getState().hospitalLoop.dischargedPatients).toBe(0);
         expect(specializedDischargeTick).toBeGreaterThan(0);
         expect(specialized.getState().hospitalLoop.dischargedPatients).toBe(1);
