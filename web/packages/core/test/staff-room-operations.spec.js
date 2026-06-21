@@ -480,6 +480,28 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(specializedDischargeTick).toBeGreaterThan(0);
         expect(specialized.getState().hospitalLoop.dischargedPatients).toBe(1);
     });
+    it("requires an open staffed ward before surgery patients enter Operating Theatre", () => {
+        const missingWard = new DeterministicSimulation(72099, { bounds: { width: 14, height: 14 } });
+        const ready = new DeterministicSimulation(72099, { bounds: { width: 14, height: 14 } });
+        missingWard.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 8 } });
+        ready.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 8 } });
+        missingWard.execute({ type: "set-room-status", roomId: 2, status: "closed" });
+        for (const simulation of [missingWard, ready]) {
+            simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
+            simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 9, y: 4 } });
+            simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
+        }
+        missingWard.execute({ type: "tick", count: 16 });
+        ready.execute({ type: "tick", count: 16 });
+        expect(missingWard.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "spare-ribs",
+            preferredTreatmentRoomType: "specialist",
+            status: "awaiting-treatment",
+            assignedRoomId: null
+        });
+        expect(missingWard.getState().hospitalLoop.dischargedPatients).toBe(0);
+        expect(ready.getState().hospitalLoop.dischargedPatients).toBe(1);
+    });
     it("requires psychiatrist-qualified doctors for psychiatry treatment", () => {
         const blocked = new DeterministicSimulation(72098, { bounds: { width: 14, height: 14 } });
         const specialized = new DeterministicSimulation(72098, { bounds: { width: 14, height: 14 } });

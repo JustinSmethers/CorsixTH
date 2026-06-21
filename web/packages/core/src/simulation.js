@@ -3557,7 +3557,7 @@ export class DeterministicSimulation {
     }
     availableTreatmentStaffIds(roomId, assignments, patient = null) {
         const room = this.getRoomById(roomId);
-        const busyStaffIds = new Set(assignments.map((assignment) => assignment.staffId));
+        const busyStaffIds = new Set(assignments.flatMap((assignment) => assignment.staffIds ?? [assignment.staffId]));
         const requirement = this.treatmentStaffRequirement(room, patient);
         return this.staff
             .filter((staff) => staff.status === "active" && !busyStaffIds.has(staff.id) &&
@@ -3599,7 +3599,8 @@ export class DeterministicSimulation {
             const staffedRoomIds = availableRoomIds.filter((roomId) => {
                 const room = this.getRoomById(roomId);
                 const requirement = this.treatmentStaffRequirement(room, patient);
-                return this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length >= requirement.count;
+                return this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length >= requirement.count &&
+                    this.hasRequiredWardForTreatment(room, patient);
             });
             const roomId = this.selectTreatmentRoomIdForPatient(patient, staffedRoomIds);
             if (roomId === null) {
@@ -3630,6 +3631,16 @@ export class DeterministicSimulation {
         }
         const general = this.selectBestRoutedRoomForPatient(patient, availableRooms.filter((room) => room.roomType === "treatment"), "treatment");
         return general?.id ?? null;
+    }
+    hasRequiredWardForTreatment(room, patient) {
+        if (room?.roomType !== "specialist" || treatmentRoomTypeForDisease(patient?.diseaseId) !== "specialist") {
+            return true;
+        }
+        return this.availableRoomIds("treatment", this.treatmentAssignments).some((roomId) => {
+            const wardRoom = this.getRoomById(roomId);
+            const requirement = this.treatmentStaffRequirement(wardRoom, patient);
+            return this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length >= requirement.count;
+        });
     }
     selectBestRoutedRoomForPatient(patient, rooms, stage) {
         if (rooms.length === 0) {
