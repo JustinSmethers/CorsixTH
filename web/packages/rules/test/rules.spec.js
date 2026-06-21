@@ -215,6 +215,25 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(DEFAULT_ROOM_BLUEPRINT).toEqual(["diagnosis", "treatment"]);
     });
     it("exports native room metadata for imported room parity", () => {
+        expect(nativeRoomDefinitionForType("diagnosis")).toEqual({
+            nativeId: "gp",
+            nativeClass: "GPRoom",
+            levelConfigId: 7,
+            categories: { diagnosis: 1 },
+            objectsNeeded: { desk: 1, cabinet: 1, chair: 1 },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+            buildPreviewAnimation: 900,
+            minimumSize: 4,
+            wallType: "white",
+            floorTile: 18,
+            requiredStaff: { Doctor: 1 },
+            specialTreatmentStepsByDisease: {},
+            defaultTreatmentSteps: [],
+            diagnosisSteps: ["cabinet", "desk"],
+            patientUseObject: "chair",
+            callSound: "reqd008.wav"
+        });
+        expect(nativeRoomMinimumSize("diagnosis")).toBe(4);
         expect(nativeRoomDefinitionForType("psychiatry")).toEqual({
             nativeId: "psych",
             nativeClass: "PsychRoom",
@@ -266,6 +285,59 @@ describe("phase 7 slice 1 gameplay rules", () => {
             hasNoQueueDialog: true
         });
         expect(nativeRoomMinimumSize("training-room")).toBe(4);
+        expect(nativeRoomDefinitionForType("staff-room")).toEqual({
+            nativeId: "staff_room",
+            nativeClass: "StaffRoom",
+            levelConfigId: 25,
+            categories: { facilities: 1 },
+            objectsNeeded: { sofa: 1 },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "sofa", "pool_table", "tv", "video_game"],
+            buildPreviewAnimation: 5066,
+            minimumSize: 4,
+            wallType: "green",
+            floorTile: 17,
+            requiredStaff: {},
+            specialTreatmentStepsByDisease: {},
+            defaultTreatmentSteps: [],
+            hasNoQueueDialog: true
+        });
+        expect(nativeRoomDefinitionForType("research")).toEqual({
+            nativeId: "research",
+            nativeClass: "ResearchRoom",
+            levelConfigId: 28,
+            categories: { facilities: 2 },
+            objectsNeeded: { desk: 1, cabinet: 1, autopsy: 1 },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "computer", "desk", "cabinet", "analyser"],
+            buildPreviewAnimation: 5102,
+            minimumSize: 5,
+            wallType: "green",
+            floorTile: 21,
+            requiredStaff: { Researcher: 1 },
+            specialTreatmentStepsByDisease: {},
+            defaultTreatmentSteps: [],
+            researchWorkObjects: ["desk", "cabinet", "computer", "analyser"],
+            capacityObjects: { Researcher: "desk" },
+            callSound: "reqd023.wav"
+        });
+        expect(nativeRoomDefinitionForType("toilets")).toEqual({
+            nativeId: "toilets",
+            nativeClass: "ToiletRoom",
+            levelConfigId: 29,
+            categories: { facilities: 3 },
+            objectsNeeded: { loo: 1, sink: 1 },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "loo", "sink"],
+            buildPreviewAnimation: 5098,
+            minimumSize: 4,
+            wallType: "green",
+            floorTile: 21,
+            requiredStaff: {},
+            specialTreatmentStepsByDisease: {},
+            defaultTreatmentSteps: [],
+            capacityObjects: { patient: "loo" },
+            patientUseObject: "loo",
+            patientAfterUseObject: "sink"
+        });
+        expect(["staff-room", "research", "toilets"].map(nativeRoomMinimumSize)).toEqual([4, 5, 4]);
         expect(nativeRoomDefinitionForType("pharmacy")).toEqual({
             nativeId: "pharmacy",
             nativeClass: "PharmacyRoom",
@@ -513,8 +585,11 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(["decontamination", "electrolysis", "dna-fixer"].map(nativeRoomMinimumSize)).toEqual([5, 5, 5]);
         expect(["inflation-room", "slack-tongue-clinic", "hair-restoration", "jelly-vat"].map(nativeRoomMinimumSize)).toEqual([4, 4, 4, 4]);
         expect(["cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"].map(nativeRoomMinimumSize)).toEqual([4, 5, 4, 4, 6, 5]);
+        const mutableDiagnosisDefinition = nativeRoomDefinitionForType("diagnosis");
         const mutableDefinition = nativeRoomDefinitionForType("psychiatry");
         const mutableTrainingDefinition = nativeRoomDefinitionForType("training-room");
+        const mutableResearchDefinition = nativeRoomDefinitionForType("research");
+        const mutableToiletsDefinition = nativeRoomDefinitionForType("toilets");
         const mutablePharmacyDefinition = nativeRoomDefinitionForType("pharmacy");
         const mutableScannerDefinition = nativeRoomDefinitionForType("scanner");
         const mutableFractureDefinition = nativeRoomDefinitionForType("fracture-clinic");
@@ -522,10 +597,14 @@ describe("phase 7 slice 1 gameplay rules", () => {
         const mutableDnaFixerDefinition = nativeRoomDefinitionForType("dna-fixer");
         const mutableWardDefinition = nativeRoomDefinitionForType("ward");
         const mutableOperatingTheatreDefinition = nativeRoomDefinitionForType("operating-theatre");
+        mutableDiagnosisDefinition.diagnosisSteps.push("chair");
         mutableDefinition.objectsNeeded.screen = 0;
         mutableDefinition.specialTreatmentStepsByDisease["king-complex"].push("bookcase");
         mutableTrainingDefinition.objectsNeeded.projector = 0;
         mutableTrainingDefinition.trainingFactorObjects.push("radiator");
+        mutableResearchDefinition.researchWorkObjects.push("autopsy");
+        mutableResearchDefinition.capacityObjects.Researcher = "computer";
+        mutableToiletsDefinition.capacityObjects.patient = "sink";
         mutablePharmacyDefinition.objectsNeeded.pharmacy_cabinet = 0;
         mutablePharmacyDefinition.defaultTreatmentSteps.push("bin");
         mutableScannerDefinition.objectsNeeded.console = 0;
@@ -542,6 +621,16 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(nativeRoomDefinitionForType("training-room")).toMatchObject({
             objectsNeeded: { projector: 1 },
             trainingFactorObjects: ["projector", "skeleton", "bookcase"]
+        });
+        expect(nativeRoomDefinitionForType("diagnosis")).toMatchObject({
+            diagnosisSteps: ["cabinet", "desk"]
+        });
+        expect(nativeRoomDefinitionForType("research")).toMatchObject({
+            capacityObjects: { Researcher: "desk" },
+            researchWorkObjects: ["desk", "cabinet", "computer", "analyser"]
+        });
+        expect(nativeRoomDefinitionForType("toilets")).toMatchObject({
+            capacityObjects: { patient: "loo" }
         });
         expect(nativeRoomDefinitionForType("pharmacy")).toMatchObject({
             objectsNeeded: { pharmacy_cabinet: 1 },

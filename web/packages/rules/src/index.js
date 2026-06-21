@@ -254,6 +254,24 @@ const STAFF_COUNT_BY_ROOM_TYPE = {
     specialist: 2
 };
 const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
+    diagnosis: {
+        nativeId: "gp",
+        nativeClass: "GPRoom",
+        levelConfigId: 7,
+        categories: { diagnosis: 1 },
+        objectsNeeded: { desk: 1, cabinet: 1, chair: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 900,
+        minimumSize: 4,
+        wallType: "white",
+        floorTile: 18,
+        requiredStaff: { Doctor: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: [],
+        diagnosisSteps: ["cabinet", "desk"],
+        patientUseObject: "chair",
+        callSound: "reqd008.wav"
+    },
     psychiatry: {
         nativeId: "psych",
         nativeClass: "PsychRoom",
@@ -302,6 +320,58 @@ const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
         defaultTreatmentSteps: [],
         trainingFactorObjects: ["projector", "skeleton", "bookcase"],
         hasNoQueueDialog: true
+    },
+    "staff-room": {
+        nativeId: "staff_room",
+        nativeClass: "StaffRoom",
+        levelConfigId: 25,
+        categories: { facilities: 1 },
+        objectsNeeded: { sofa: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "sofa", "pool_table", "tv", "video_game"],
+        buildPreviewAnimation: 5066,
+        minimumSize: 4,
+        wallType: "green",
+        floorTile: 17,
+        requiredStaff: {},
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: [],
+        hasNoQueueDialog: true
+    },
+    research: {
+        nativeId: "research",
+        nativeClass: "ResearchRoom",
+        levelConfigId: 28,
+        categories: { facilities: 2 },
+        objectsNeeded: { desk: 1, cabinet: 1, autopsy: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "computer", "desk", "cabinet", "analyser"],
+        buildPreviewAnimation: 5102,
+        minimumSize: 5,
+        wallType: "green",
+        floorTile: 21,
+        requiredStaff: { Researcher: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: [],
+        researchWorkObjects: ["desk", "cabinet", "computer", "analyser"],
+        capacityObjects: { Researcher: "desk" },
+        callSound: "reqd023.wav"
+    },
+    toilets: {
+        nativeId: "toilets",
+        nativeClass: "ToiletRoom",
+        levelConfigId: 29,
+        categories: { facilities: 3 },
+        objectsNeeded: { loo: 1, sink: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin", "loo", "sink"],
+        buildPreviewAnimation: 5098,
+        minimumSize: 4,
+        wallType: "green",
+        floorTile: 21,
+        requiredStaff: {},
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: [],
+        capacityObjects: { patient: "loo" },
+        patientUseObject: "loo",
+        patientAfterUseObject: "sink"
     },
     pharmacy: {
         nativeId: "pharmacy",
@@ -892,6 +962,8 @@ function cloneNativeRoomDefinition(definition) {
         specialTreatmentStepsByDisease: Object.fromEntries(Object.entries(definition.specialTreatmentStepsByDisease).map(([diseaseId, steps]) => [diseaseId, [...steps]])),
         defaultTreatmentSteps: [...definition.defaultTreatmentSteps],
         ...(definition.capacityObjects ? { capacityObjects: { ...definition.capacityObjects } } : {}),
+        ...(definition.diagnosisSteps ? { diagnosisSteps: [...definition.diagnosisSteps] } : {}),
+        ...(definition.researchWorkObjects ? { researchWorkObjects: [...definition.researchWorkObjects] } : {}),
         ...(definition.trainingFactorObjects ? { trainingFactorObjects: [...definition.trainingFactorObjects] } : {})
     };
 }
