@@ -38,7 +38,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(diseaseForSeverity(3, 2)).toMatchObject({ id: "cranial-pressure", name: "Cranial Pressure", severity: 3 });
     });
     it("locks deterministic disease-to-treatment-room mapping and specialty bonuses", () => {
-        expect(diagnosisRoomTypes()).toEqual(["diagnosis", "blood-machine"]);
+        expect(diagnosisRoomTypes()).toEqual(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"]);
         expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"]);
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("psychiatry");
@@ -175,7 +175,12 @@ describe("phase 7 slice 1 gameplay rules", () => {
     });
     it("locks deterministic room-to-staff role mappings and default staffing blueprints", () => {
         expect(requiredStaffRoleForRoom("diagnosis")).toBe("diagnostician");
+        expect(requiredStaffRoleForRoom("cardiogram")).toBe("diagnostician");
+        expect(requiredStaffRoleForRoom("scanner")).toBe("diagnostician");
+        expect(requiredStaffRoleForRoom("ultrascan")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("blood-machine")).toBe("diagnostician");
+        expect(requiredStaffRoleForRoom("x-ray")).toBe("diagnostician");
+        expect(requiredStaffRoleForRoom("general-diagnosis")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("treatment")).toBe("nurse");
         expect(requiredStaffRoleForRoom("pharmacy")).toBe("nurse");
         expect(requiredStaffRoleForRoom("specialist")).toBe("diagnostician");
@@ -210,7 +215,12 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(staffWageCostPerTick("nurse")).toBe(4);
         expect(staffWageCostPerTick("handyman")).toBe(3);
         expect(roomUpkeepCostPerTick("diagnosis")).toBe(2);
+        expect(roomUpkeepCostPerTick("cardiogram")).toBe(4);
+        expect(roomUpkeepCostPerTick("scanner")).toBe(5);
+        expect(roomUpkeepCostPerTick("ultrascan")).toBe(5);
         expect(roomUpkeepCostPerTick("blood-machine")).toBe(4);
+        expect(roomUpkeepCostPerTick("x-ray")).toBe(5);
+        expect(roomUpkeepCostPerTick("general-diagnosis")).toBe(4);
         expect(roomUpkeepCostPerTick("treatment")).toBe(3);
         expect(roomUpkeepCostPerTick("pharmacy")).toBe(4);
         expect(roomUpkeepCostPerTick("specialist")).toBe(5);
@@ -225,7 +235,12 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(staffHireCost("nurse")).toBe(250);
         expect(staffHireCost("handyman")).toBe(200);
         expect(roomBuildCost("diagnosis")).toBe(800);
+        expect(roomBuildCost("cardiogram")).toBe(2000);
+        expect(roomBuildCost("scanner")).toBe(4000);
+        expect(roomBuildCost("ultrascan")).toBe(3000);
         expect(roomBuildCost("blood-machine")).toBe(3000);
+        expect(roomBuildCost("x-ray")).toBe(4000);
+        expect(roomBuildCost("general-diagnosis")).toBe(1500);
         expect(roomBuildCost("treatment")).toBe(1000);
         expect(roomBuildCost("pharmacy")).toBe(1200);
         expect(roomBuildCost("specialist")).toBe(1600);

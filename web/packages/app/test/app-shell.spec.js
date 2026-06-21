@@ -187,11 +187,11 @@ describe("app shell campaign objectives", () => {
             "pause-toggle",
             "step",
             "build-diagnosis-room",
-            "build-treatment-room",
-            "build-pharmacy-room",
-            "build-specialist-room",
-            "build-psychiatry-room",
-            "build-inflation-room",
+            "build-cardiogram-room",
+            "build-scanner-room",
+            "build-ultrascan-room",
+            "build-blood-machine-room",
+            "build-x-ray-room",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -201,13 +201,13 @@ describe("app shell campaign objectives", () => {
             "pause-toggle",
             "step",
             "build-diagnosis-room",
+            "build-cardiogram-room",
+            "build-scanner-room",
+            "build-ultrascan-room",
+            "build-blood-machine-room",
+            "build-x-ray-room",
+            "build-general-diagnosis-room",
             "build-treatment-room",
-            "build-pharmacy-room",
-            "build-specialist-room",
-            "build-psychiatry-room",
-            "build-inflation-room",
-            "build-slack-tongue-clinic",
-            "build-fracture-clinic-room",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -217,17 +217,17 @@ describe("app shell campaign objectives", () => {
             "pause-toggle",
             "step",
             "build-diagnosis-room",
+            "build-cardiogram-room",
+            "build-scanner-room",
+            "build-ultrascan-room",
+            "build-blood-machine-room",
+            "build-x-ray-room",
+            "build-general-diagnosis-room",
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
             "build-psychiatry-room",
             "build-inflation-room",
-            "build-slack-tongue-clinic",
-            "build-fracture-clinic-room",
-            "build-hair-restoration-room",
-            "build-jelly-vat-room",
-            "build-decontamination-room",
-            "build-electrolysis-room",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -237,18 +237,18 @@ describe("app shell campaign objectives", () => {
             "pause-toggle",
             "step",
             "build-diagnosis-room",
+            "build-cardiogram-room",
+            "build-scanner-room",
+            "build-ultrascan-room",
+            "build-blood-machine-room",
+            "build-x-ray-room",
+            "build-general-diagnosis-room",
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
             "build-psychiatry-room",
             "build-inflation-room",
             "build-slack-tongue-clinic",
-            "build-fracture-clinic-room",
-            "build-hair-restoration-room",
-            "build-jelly-vat-room",
-            "build-decontamination-room",
-            "build-electrolysis-room",
-            "build-dna-fixer-room",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -258,6 +258,12 @@ describe("app shell campaign objectives", () => {
             "pause-toggle",
             "step",
             "build-diagnosis-room",
+            "build-cardiogram-room",
+            "build-scanner-room",
+            "build-ultrascan-room",
+            "build-blood-machine-room",
+            "build-x-ray-room",
+            "build-general-diagnosis-room",
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
@@ -270,16 +276,10 @@ describe("app shell campaign objectives", () => {
             "build-decontamination-room",
             "build-electrolysis-room",
             "build-dna-fixer-room",
-            "build-blood-machine-room",
             "hire-diagnostician",
             "hire-nurse",
             "hire-handyman",
             "hire-receptionist",
-            "admit",
-            "treat",
-            "staff-break-toggle",
-            "treatment-room-toggle",
-            "open-jukebox",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -289,6 +289,12 @@ describe("app shell campaign objectives", () => {
             "pause-toggle",
             "step",
             "build-diagnosis-room",
+            "build-cardiogram-room",
+            "build-scanner-room",
+            "build-ultrascan-room",
+            "build-blood-machine-room",
+            "build-x-ray-room",
+            "build-general-diagnosis-room",
             "build-treatment-room",
             "build-pharmacy-room",
             "build-specialist-room",
@@ -301,7 +307,6 @@ describe("app shell campaign objectives", () => {
             "build-decontamination-room",
             "build-electrolysis-room",
             "build-dna-fixer-room",
-            "build-blood-machine-room",
             "hire-diagnostician",
             "hire-nurse",
             "hire-handyman",
@@ -316,23 +321,18 @@ describe("app shell campaign objectives", () => {
             "open-first-message",
             "open-casebook",
             "open-map",
-            "open-staff",
-            "open-research",
-            "open-policy",
-            "open-machine-menu",
-            "take-loan"
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
                 sprites: Array.from({ length: 46 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
         }, 740, 40).map((zone) => zone.id).slice(40)).toEqual([
-            "run-awards-ceremony",
-            "start-emergency-wave",
-            "start-epidemic-outbreak",
-            "start-vip-inspection",
-            "save-game",
-            "load-game"
+            "repay-loan",
+            "start-research",
+            "run-finance-audit",
+            "run-marketing-campaign",
+            "start-insurance-contract",
+            "run-awards-ceremony"
         ]);
     });
     it("uses imported original language names in the patient casebook", () => {
@@ -546,9 +546,14 @@ describe("app shell campaign objectives", () => {
         })).toBe("Room availability: unrestricted");
     });
     it("uses imported room names and scenario costs in build labels", () => {
-        expect(["diagnosis", "blood-machine", "treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
+        expect(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis", "treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
             "Build Diagnosis",
+            "Build Cardiogram",
+            "Build Scanner",
+            "Build Ultrascan",
             "Build Blood Machine",
+            "Build X-Ray",
+            "Build General Diagnosis",
             "Build Treatment",
             "Build Pharmacy",
             "Build Specialist",

@@ -41,7 +41,12 @@ const PATIENT_STATUS_COLORS = {
 };
 const ROOM_TYPE_COLORS = {
     diagnosis: "#5fb3c8",
+    cardiogram: "#d4a64e",
+    scanner: "#6aa0d8",
+    ultrascan: "#69b898",
     "blood-machine": "#c95d5d",
+    "x-ray": "#a7aeb8",
+    "general-diagnosis": "#88b86a",
     treatment: "#79c66a",
     pharmacy: "#b894f6",
     specialist: "#f08e67",
@@ -585,7 +590,12 @@ export function formatOriginalUiStripControlLabel(control) {
         "pause-toggle": "Pause",
         step: formatGameplayActionButtonLabel("step"),
         "build-diagnosis-room": "Build GP",
+        "build-cardiogram-room": "Build Cardio",
+        "build-scanner-room": "Build Scanner",
+        "build-ultrascan-room": "Build Ultrascan",
         "build-blood-machine-room": "Build Blood",
+        "build-x-ray-room": "Build X-Ray",
+        "build-general-diagnosis-room": "Build Gen Diag",
         "build-treatment-room": "Build Ward",
         "build-pharmacy-room": "Build Pharmacy",
         "build-specialist-room": "Build Specialist",
@@ -1002,6 +1012,12 @@ function roomTypeDisplayName(roomType, languageSummary) {
     }
     if (roomType === "blood-machine") {
         return languageSummary?.roomNames?.[roomType] ?? "Blood Machine";
+    }
+    if (roomType === "x-ray") {
+        return languageSummary?.roomNames?.[roomType] ?? "X-Ray";
+    }
+    if (roomType === "general-diagnosis") {
+        return languageSummary?.roomNames?.[roomType] ?? "General Diagnosis";
     }
     if (roomType === "fracture-clinic") {
         return languageSummary?.roomNames?.[roomType] ?? "Fracture Clinic";
@@ -1888,6 +1904,12 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "pause-toggle", label: formatOriginalUiStripControlLabel("pause-toggle") },
     { id: "step", label: formatOriginalUiStripControlLabel("step") },
     { id: "build-diagnosis-room", label: formatOriginalUiStripControlLabel("build-diagnosis-room") },
+    { id: "build-cardiogram-room", label: formatOriginalUiStripControlLabel("build-cardiogram-room") },
+    { id: "build-scanner-room", label: formatOriginalUiStripControlLabel("build-scanner-room") },
+    { id: "build-ultrascan-room", label: formatOriginalUiStripControlLabel("build-ultrascan-room") },
+    { id: "build-blood-machine-room", label: formatOriginalUiStripControlLabel("build-blood-machine-room") },
+    { id: "build-x-ray-room", label: formatOriginalUiStripControlLabel("build-x-ray-room") },
+    { id: "build-general-diagnosis-room", label: formatOriginalUiStripControlLabel("build-general-diagnosis-room") },
     { id: "build-treatment-room", label: formatOriginalUiStripControlLabel("build-treatment-room") },
     { id: "build-pharmacy-room", label: formatOriginalUiStripControlLabel("build-pharmacy-room") },
     { id: "build-specialist-room", label: formatOriginalUiStripControlLabel("build-specialist-room") },
@@ -1900,7 +1922,6 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "build-decontamination-room", label: formatOriginalUiStripControlLabel("build-decontamination-room") },
     { id: "build-electrolysis-room", label: formatOriginalUiStripControlLabel("build-electrolysis-room") },
     { id: "build-dna-fixer-room", label: formatOriginalUiStripControlLabel("build-dna-fixer-room") },
-    { id: "build-blood-machine-room", label: formatOriginalUiStripControlLabel("build-blood-machine-room") },
     { id: "hire-diagnostician", label: formatOriginalUiStripControlLabel("hire-diagnostician") },
     { id: "hire-nurse", label: formatOriginalUiStripControlLabel("hire-nurse") },
     { id: "hire-handyman", label: formatOriginalUiStripControlLabel("hire-handyman") },
@@ -3156,6 +3177,12 @@ export function mountAppShell(options) {
           <button type="button" data-testid="sell-selected-object">${formatSelectedStaffRoomActionButtonLabel("sell-object")}</button>
           <button type="button" data-testid="repair-selected-room">${formatSelectedStaffRoomActionButtonLabel("repair-room")}</button>
           <button type="button" data-testid="build-diagnosis-room">${formatBuildRoomButtonLabel("diagnosis")}</button>
+          <button type="button" data-testid="build-cardiogram-room">${formatBuildRoomButtonLabel("cardiogram")}</button>
+          <button type="button" data-testid="build-scanner-room">${formatBuildRoomButtonLabel("scanner")}</button>
+          <button type="button" data-testid="build-ultrascan-room">${formatBuildRoomButtonLabel("ultrascan")}</button>
+          <button type="button" data-testid="build-blood-machine-room">${formatBuildRoomButtonLabel("blood-machine")}</button>
+          <button type="button" data-testid="build-x-ray-room">${formatBuildRoomButtonLabel("x-ray")}</button>
+          <button type="button" data-testid="build-general-diagnosis-room">${formatBuildRoomButtonLabel("general-diagnosis")}</button>
           <button type="button" data-testid="build-treatment-room">${formatBuildRoomButtonLabel("treatment")}</button>
           <button type="button" data-testid="build-pharmacy-room">${formatBuildRoomButtonLabel("pharmacy")}</button>
           <button type="button" data-testid="build-specialist-room">${formatBuildRoomButtonLabel("specialist")}</button>
@@ -3168,7 +3195,6 @@ export function mountAppShell(options) {
           <button type="button" data-testid="build-decontamination-room">${formatBuildRoomButtonLabel("decontamination")}</button>
           <button type="button" data-testid="build-electrolysis-room">${formatBuildRoomButtonLabel("electrolysis")}</button>
           <button type="button" data-testid="build-dna-fixer-room">${formatBuildRoomButtonLabel("dna-fixer")}</button>
-          <button type="button" data-testid="build-blood-machine-room">${formatBuildRoomButtonLabel("blood-machine")}</button>
           <button type="button" data-testid="hire-diagnostician">${formatHireStaffButtonLabel("diagnostician")}</button>
           <button type="button" data-testid="hire-nurse">${formatHireStaffButtonLabel("nurse")}</button>
           <button type="button" data-testid="hire-handyman">${formatHireStaffButtonLabel("handyman")}</button>
@@ -3761,6 +3787,12 @@ export function mountAppShell(options) {
     const sellSelectedObjectButton = requiredElement(options.root, "[data-testid='sell-selected-object']");
     const repairSelectedRoomButton = requiredElement(options.root, "[data-testid='repair-selected-room']");
     const buildDiagnosisRoomButton = requiredElement(options.root, "[data-testid='build-diagnosis-room']");
+    const buildCardiogramRoomButton = requiredElement(options.root, "[data-testid='build-cardiogram-room']");
+    const buildScannerRoomButton = requiredElement(options.root, "[data-testid='build-scanner-room']");
+    const buildUltrascanRoomButton = requiredElement(options.root, "[data-testid='build-ultrascan-room']");
+    const buildBloodMachineRoomButton = requiredElement(options.root, "[data-testid='build-blood-machine-room']");
+    const buildXRayRoomButton = requiredElement(options.root, "[data-testid='build-x-ray-room']");
+    const buildGeneralDiagnosisRoomButton = requiredElement(options.root, "[data-testid='build-general-diagnosis-room']");
     const buildTreatmentRoomButton = requiredElement(options.root, "[data-testid='build-treatment-room']");
     const buildPharmacyRoomButton = requiredElement(options.root, "[data-testid='build-pharmacy-room']");
     const buildSpecialistRoomButton = requiredElement(options.root, "[data-testid='build-specialist-room']");
@@ -3773,7 +3805,6 @@ export function mountAppShell(options) {
     const buildDecontaminationRoomButton = requiredElement(options.root, "[data-testid='build-decontamination-room']");
     const buildElectrolysisRoomButton = requiredElement(options.root, "[data-testid='build-electrolysis-room']");
     const buildDnaFixerRoomButton = requiredElement(options.root, "[data-testid='build-dna-fixer-room']");
-    const buildBloodMachineRoomButton = requiredElement(options.root, "[data-testid='build-blood-machine-room']");
     const hireDiagnosticianButton = requiredElement(options.root, "[data-testid='hire-diagnostician']");
     const hireNurseButton = requiredElement(options.root, "[data-testid='hire-nurse']");
     const hireHandymanButton = requiredElement(options.root, "[data-testid='hire-handyman']");
@@ -4089,6 +4120,12 @@ export function mountAppShell(options) {
         machineMenuRoomsMetric.textContent = formatRoomAvailabilityHudStatus(telemetry, hospitalView?.languageSummary ?? null);
         machineMenuObjectsMetric.textContent = formatObjectAvailabilityStatus(telemetry, currentMap?.scenario ?? null, hospitalView?.languageSummary ?? null);
         buildDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("diagnosis", telemetry, hospitalView?.languageSummary ?? null);
+        buildCardiogramRoomButton.textContent = formatBuildRoomButtonLabel("cardiogram", telemetry, hospitalView?.languageSummary ?? null);
+        buildScannerRoomButton.textContent = formatBuildRoomButtonLabel("scanner", telemetry, hospitalView?.languageSummary ?? null);
+        buildUltrascanRoomButton.textContent = formatBuildRoomButtonLabel("ultrascan", telemetry, hospitalView?.languageSummary ?? null);
+        buildBloodMachineRoomButton.textContent = formatBuildRoomButtonLabel("blood-machine", telemetry, hospitalView?.languageSummary ?? null);
+        buildXRayRoomButton.textContent = formatBuildRoomButtonLabel("x-ray", telemetry, hospitalView?.languageSummary ?? null);
+        buildGeneralDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("general-diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
         buildSpecialistRoomButton.textContent = formatBuildRoomButtonLabel("specialist", telemetry, hospitalView?.languageSummary ?? null);
@@ -4101,7 +4138,6 @@ export function mountAppShell(options) {
         buildDecontaminationRoomButton.textContent = formatBuildRoomButtonLabel("decontamination", telemetry, hospitalView?.languageSummary ?? null);
         buildElectrolysisRoomButton.textContent = formatBuildRoomButtonLabel("electrolysis", telemetry, hospitalView?.languageSummary ?? null);
         buildDnaFixerRoomButton.textContent = formatBuildRoomButtonLabel("dna-fixer", telemetry, hospitalView?.languageSummary ?? null);
-        buildBloodMachineRoomButton.textContent = formatBuildRoomButtonLabel("blood-machine", telemetry, hospitalView?.languageSummary ?? null);
         hireDiagnosticianButton.textContent = formatHireStaffButtonLabel("diagnostician", telemetry, hospitalView?.languageSummary ?? null);
         hireNurseButton.textContent = formatHireStaffButtonLabel("nurse", telemetry, hospitalView?.languageSummary ?? null);
         hireHandymanButton.textContent = formatHireStaffButtonLabel("handyman", telemetry, hospitalView?.languageSummary ?? null);
@@ -4109,6 +4145,12 @@ export function mountAppShell(options) {
         admitButton.disabled = isTerminalLevelTelemetry(telemetry);
         treatButton.disabled = isTerminalLevelTelemetry(telemetry);
         buildDiagnosisRoomButton.disabled = !canBuildRoomFromTelemetry("diagnosis", telemetry);
+        buildCardiogramRoomButton.disabled = !canBuildRoomFromTelemetry("cardiogram", telemetry);
+        buildScannerRoomButton.disabled = !canBuildRoomFromTelemetry("scanner", telemetry);
+        buildUltrascanRoomButton.disabled = !canBuildRoomFromTelemetry("ultrascan", telemetry);
+        buildBloodMachineRoomButton.disabled = !canBuildRoomFromTelemetry("blood-machine", telemetry);
+        buildXRayRoomButton.disabled = !canBuildRoomFromTelemetry("x-ray", telemetry);
+        buildGeneralDiagnosisRoomButton.disabled = !canBuildRoomFromTelemetry("general-diagnosis", telemetry);
         buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
         buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
         buildSpecialistRoomButton.disabled = !canBuildRoomFromTelemetry("specialist", telemetry);
@@ -4121,7 +4163,6 @@ export function mountAppShell(options) {
         buildDecontaminationRoomButton.disabled = !canBuildRoomFromTelemetry("decontamination", telemetry);
         buildElectrolysisRoomButton.disabled = !canBuildRoomFromTelemetry("electrolysis", telemetry);
         buildDnaFixerRoomButton.disabled = !canBuildRoomFromTelemetry("dna-fixer", telemetry);
-        buildBloodMachineRoomButton.disabled = !canBuildRoomFromTelemetry("blood-machine", telemetry);
         hireDiagnosticianButton.disabled = !canHireStaffFromTelemetry("diagnostician", telemetry);
         hireNurseButton.disabled = !canHireStaffFromTelemetry("nurse", telemetry);
         hireHandymanButton.disabled = !canHireStaffFromTelemetry("handyman", telemetry);
@@ -4902,6 +4943,30 @@ export function mountAppShell(options) {
         actionStatus.textContent = formatChoosePlacementActionStatus();
         renderRuntime();
     };
+    const onBuildDiagnosisEquipmentRoom = (roomType, source) => {
+        if (!canBuildRoomFromTelemetry(roomType, orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
+        placementAction = {
+            action: "build-room",
+            roomType,
+            orientation: "north",
+            source,
+            label: `build ${roomTypeDisplayName(roomType, hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildCardiogramRoom = () => onBuildDiagnosisEquipmentRoom("cardiogram", "ui:build-cardiogram-room");
+    const onBuildScannerRoom = () => onBuildDiagnosisEquipmentRoom("scanner", "ui:build-scanner-room");
+    const onBuildUltrascanRoom = () => onBuildDiagnosisEquipmentRoom("ultrascan", "ui:build-ultrascan-room");
+    const onBuildBloodMachineRoom = () => onBuildDiagnosisEquipmentRoom("blood-machine", "ui:build-blood-machine-room");
+    const onBuildXRayRoom = () => onBuildDiagnosisEquipmentRoom("x-ray", "ui:build-x-ray-room");
+    const onBuildGeneralDiagnosisRoom = () => onBuildDiagnosisEquipmentRoom("general-diagnosis", "ui:build-general-diagnosis-room");
     const onBuildTreatmentRoom = () => {
         if (!canBuildRoomFromTelemetry("treatment", orchestrator.telemetry())) {
             actionStatus.textContent = formatActionStatus("room.build-blocked");
@@ -5112,24 +5177,6 @@ export function mountAppShell(options) {
             orientation: "north",
             source: "ui:build-dna-fixer-room",
             label: `build ${roomTypeDisplayName("dna-fixer", hospitalView?.languageSummary ?? null)}`
-        };
-        placementPreview = null;
-        selectedEntity = null;
-        actionStatus.textContent = formatChoosePlacementActionStatus();
-        renderRuntime();
-    };
-    const onBuildBloodMachineRoom = () => {
-        if (!canBuildRoomFromTelemetry("blood-machine", orchestrator.telemetry())) {
-            actionStatus.textContent = formatActionStatus("room.build-blocked");
-            renderRuntime();
-            return;
-        }
-        placementAction = {
-            action: "build-room",
-            roomType: "blood-machine",
-            orientation: "north",
-            source: "ui:build-blood-machine-room",
-            label: `build ${roomTypeDisplayName("blood-machine", hospitalView?.languageSummary ?? null)}`
         };
         placementPreview = null;
         selectedEntity = null;
@@ -6315,6 +6362,12 @@ export function mountAppShell(options) {
         ["pause-toggle", onPauseToggle],
         ["step", onStep],
         ["build-diagnosis-room", onBuildDiagnosisRoom],
+        ["build-cardiogram-room", onBuildCardiogramRoom],
+        ["build-scanner-room", onBuildScannerRoom],
+        ["build-ultrascan-room", onBuildUltrascanRoom],
+        ["build-blood-machine-room", onBuildBloodMachineRoom],
+        ["build-x-ray-room", onBuildXRayRoom],
+        ["build-general-diagnosis-room", onBuildGeneralDiagnosisRoom],
         ["build-treatment-room", onBuildTreatmentRoom],
         ["build-pharmacy-room", onBuildPharmacyRoom],
         ["build-specialist-room", onBuildSpecialistRoom],
@@ -6327,7 +6380,6 @@ export function mountAppShell(options) {
         ["build-decontamination-room", onBuildDecontaminationRoom],
         ["build-electrolysis-room", onBuildElectrolysisRoom],
         ["build-dna-fixer-room", onBuildDnaFixerRoom],
-        ["build-blood-machine-room", onBuildBloodMachineRoom],
         ["hire-diagnostician", onHireDiagnostician],
         ["hire-nurse", onHireNurse],
         ["hire-handyman", onHireHandyman],
@@ -6422,6 +6474,12 @@ export function mountAppShell(options) {
     sellSelectedObjectButton.addEventListener("click", onSellSelectedObject);
     repairSelectedRoomButton.addEventListener("click", onRepairSelectedRoom);
     buildDiagnosisRoomButton.addEventListener("click", onBuildDiagnosisRoom);
+    buildCardiogramRoomButton.addEventListener("click", onBuildCardiogramRoom);
+    buildScannerRoomButton.addEventListener("click", onBuildScannerRoom);
+    buildUltrascanRoomButton.addEventListener("click", onBuildUltrascanRoom);
+    buildBloodMachineRoomButton.addEventListener("click", onBuildBloodMachineRoom);
+    buildXRayRoomButton.addEventListener("click", onBuildXRayRoom);
+    buildGeneralDiagnosisRoomButton.addEventListener("click", onBuildGeneralDiagnosisRoom);
     buildTreatmentRoomButton.addEventListener("click", onBuildTreatmentRoom);
     buildPharmacyRoomButton.addEventListener("click", onBuildPharmacyRoom);
     buildSpecialistRoomButton.addEventListener("click", onBuildSpecialistRoom);
@@ -6552,6 +6610,12 @@ export function mountAppShell(options) {
             sellSelectedObjectButton.removeEventListener("click", onSellSelectedObject);
             repairSelectedRoomButton.removeEventListener("click", onRepairSelectedRoom);
             buildDiagnosisRoomButton.removeEventListener("click", onBuildDiagnosisRoom);
+            buildCardiogramRoomButton.removeEventListener("click", onBuildCardiogramRoom);
+            buildScannerRoomButton.removeEventListener("click", onBuildScannerRoom);
+            buildUltrascanRoomButton.removeEventListener("click", onBuildUltrascanRoom);
+            buildBloodMachineRoomButton.removeEventListener("click", onBuildBloodMachineRoom);
+            buildXRayRoomButton.removeEventListener("click", onBuildXRayRoom);
+            buildGeneralDiagnosisRoomButton.removeEventListener("click", onBuildGeneralDiagnosisRoom);
             buildTreatmentRoomButton.removeEventListener("click", onBuildTreatmentRoom);
             buildPharmacyRoomButton.removeEventListener("click", onBuildPharmacyRoom);
             buildSpecialistRoomButton.removeEventListener("click", onBuildSpecialistRoom);

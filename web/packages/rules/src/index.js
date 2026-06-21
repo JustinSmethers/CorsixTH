@@ -177,7 +177,7 @@ export const DISEASE_CATALOG = [
     { id: "pregnancy", name: "Pregnancy", severity: 2 },
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
-export const DIAGNOSIS_ROOM_TYPES = ["diagnosis", "blood-machine"];
+export const DIAGNOSIS_ROOM_TYPES = ["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"];
 export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
@@ -221,7 +221,12 @@ const DEFAULT_DISEASE_IDS_BY_SEVERITY = {
 };
 const STAFF_ROLE_BY_ROOM_TYPE = {
     diagnosis: "diagnostician",
+    cardiogram: "diagnostician",
+    scanner: "diagnostician",
+    ultrascan: "diagnostician",
     "blood-machine": "diagnostician",
+    "x-ray": "diagnostician",
+    "general-diagnosis": "diagnostician",
     treatment: "nurse",
     pharmacy: "nurse",
     specialist: "diagnostician",
@@ -251,7 +256,12 @@ const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
 };
 const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     diagnosis: 2,
+    cardiogram: 4,
+    scanner: 5,
+    ultrascan: 5,
     "blood-machine": 4,
+    "x-ray": 5,
+    "general-diagnosis": 4,
     treatment: 3,
     pharmacy: 4,
     specialist: 5,
@@ -273,7 +283,12 @@ const STAFF_HIRE_COST_BY_ROLE = {
 };
 const ROOM_BUILD_COST_BY_TYPE = {
     diagnosis: 800,
+    cardiogram: 2000,
+    scanner: 4000,
+    ultrascan: 3000,
     "blood-machine": 3000,
+    "x-ray": 4000,
+    "general-diagnosis": 1500,
     treatment: 1000,
     pharmacy: 1200,
     specialist: 1600,
@@ -289,7 +304,12 @@ const ROOM_BUILD_COST_BY_TYPE = {
 };
 const ROOM_REPAIR_COST_BY_TYPE = {
     diagnosis: 120,
+    cardiogram: 220,
+    scanner: 260,
+    ultrascan: 260,
     "blood-machine": 220,
+    "x-ray": 260,
+    "general-diagnosis": 180,
     treatment: 150,
     pharmacy: 170,
     specialist: 220,
@@ -317,7 +337,12 @@ const STAFF_AUTO_BREAK_TICKS_BY_ROLE = {
 };
 const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     diagnosis: 8,
+    cardiogram: 8,
+    scanner: 8,
+    ultrascan: 8,
     "blood-machine": 8,
+    "x-ray": 8,
+    "general-diagnosis": 8,
     treatment: 8,
     pharmacy: 8,
     specialist: 8,
@@ -333,7 +358,12 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
 };
 const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     diagnosis: 2,
+    cardiogram: 3,
+    scanner: 3,
+    ultrascan: 3,
     "blood-machine": 3,
+    "x-ray": 3,
+    "general-diagnosis": 3,
     treatment: 2,
     pharmacy: 2,
     specialist: 3,

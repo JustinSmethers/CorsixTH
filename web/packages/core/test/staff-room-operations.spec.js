@@ -124,6 +124,19 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             footprint: { width: 4, height: 4 }
         });
     });
+    it("uses native diagnosis equipment rooms as doctor-staffed diagnosis capacity", () => {
+        const simulation = new DeterministicSimulation(72072, { bounds: { width: 14, height: 14 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", position: { x: 8, y: 4 } });
+        simulation.execute({ type: "open-room", roomType: "scanner", position: { x: 7, y: 7 } });
+        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "gut-rot", position: { x: 2, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "broken-heart", position: { x: 3, y: 4 } });
+        simulation.execute({ type: "tick", count: 1 });
+        expect(simulation.getState().roomOperations.openDiagnosisRooms).toBe(2);
+        expect(simulation.getState().hospitalLoop.walkingToDiagnosisPatients).toBe(2);
+        expect(simulation.getState().entities.rooms.find((room) => room.roomType === "scanner")).toMatchObject({
+            footprint: { width: 5, height: 5 }
+        });
+    });
     it("blocks object placement on staff and patient positions", () => {
         const simulation = new DeterministicSimulation(7208, { bounds: { width: 12, height: 12 } });
         simulation.execute({ type: "hire-staff", role: "handyman", position: { x: 6, y: 6 } });

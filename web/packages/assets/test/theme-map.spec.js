@@ -180,13 +180,17 @@ Level One
 #rooms[9].Cost 1700 WARD
 #rooms[11].Cost 500 PHARMACY
 #rooms[12].Cost 470 CARDIO
+#rooms[13].Cost 4000 SCANNER
+#rooms[14].Cost 3000 ULTRASCAN
 #rooms[15].Cost 3200 BLOOD_MACHINE
+#rooms[16].Cost 4000 X_RAY
 #rooms[17].Cost 1500 INFLATOR
 #rooms[19].Cost 500 HAIR_RESTORE
 #rooms[21].Cost 500 FRACTURE
 #rooms[23].Cost 1800 DNA_FIXER
 #rooms[23].Cost 500 ELECTRO
 #rooms[24].Cost 4500 JELLY_VAT
+#rooms[27].Cost 1500 GENERAL_DIAG
 #rooms[30].Cost 5500 DECON_SHOWER
 #staff[0].MinSalary 45 Nurse
 #staff[1].MinSalary 60 Doctor
@@ -230,6 +234,8 @@ Level One
 #non_visuals[17] 5 I_GUT_ROT
 #objects[9].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 2500 1 0 12 1 9 Inflator Machine
 #objects[13].StartCost.StartAvail.WhenAvail.AvailableForLevel 1000 0 0 1 13 Cardiogram
+#objects[14].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 4000 0 3 12 1 14 Scanner
+#objects[22].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 3000 0 2 12 1 22 Ultrascan
 #objects[23].StartCost.StartAvail.WhenAvail.AvailableForLevel 1800 1 0 1 23 DNA Fixer
 #objects[24].StartCost.StartAvail.WhenAvail.AvailableForLevel 2000 1 0 1 24 Cast Remover
 #objects[42].StartCost.StartAvail.WhenAvail.StartStrength.AvailableForLevel 3000 0 4 12 1 42 Blood Machine
@@ -408,14 +414,18 @@ Emergency Mappings
             { index: 8, cost: 2270, roomType: "psychiatry", name: "PSYCH" },
             { index: 9, cost: 1700, roomType: "treatment", name: "WARD" },
             { index: 11, cost: 500, roomType: "pharmacy", name: "PHARMACY" },
-            { index: 12, cost: 470, roomType: "diagnosis", name: "CARDIO" },
+            { index: 12, cost: 470, roomType: "cardiogram", name: "CARDIO" },
+            { index: 13, cost: 4000, roomType: "scanner", name: "SCANNER" },
+            { index: 14, cost: 3000, roomType: "ultrascan", name: "ULTRASCAN" },
             { index: 15, cost: 3200, roomType: "blood-machine", name: "BLOOD_MACHINE" },
+            { index: 16, cost: 4000, roomType: "x-ray", name: "X_RAY" },
             { index: 17, cost: 1500, roomType: "inflation-room", name: "INFLATOR" },
             { index: 19, cost: 500, roomType: "hair-restoration", name: "HAIR_RESTORE" },
             { index: 21, cost: 500, roomType: "fracture-clinic", name: "FRACTURE" },
             { index: 23, cost: 1800, roomType: "dna-fixer", name: "DNA_FIXER" },
             { index: 23, cost: 500, roomType: "electrolysis", name: "ELECTRO" },
             { index: 24, cost: 4500, roomType: "jelly-vat", name: "JELLY_VAT" },
+            { index: 27, cost: 1500, roomType: "general-diagnosis", name: "GENERAL_DIAG" },
             { index: 30, cost: 5500, roomType: "decontamination", name: "DECON_SHOWER" }
         ]);
         expect(scenario.staffSalaries).toEqual([
@@ -519,8 +529,28 @@ Network Level
                 startAvailable: false,
                 whenAvailable: 0,
                 availableForLevel: true,
-                roomType: "diagnosis",
+                roomType: "cardiogram",
                 name: "Cardiogram"
+            },
+            {
+                index: 14,
+                startCost: 4000,
+                startAvailable: false,
+                whenAvailable: 3,
+                startStrength: 12,
+                availableForLevel: true,
+                roomType: "scanner",
+                name: "Scanner"
+            },
+            {
+                index: 22,
+                startCost: 3000,
+                startAvailable: false,
+                whenAvailable: 2,
+                startStrength: 12,
+                availableForLevel: true,
+                roomType: "ultrascan",
+                name: "Ultrascan"
             },
             {
                 index: 23,
@@ -576,7 +606,7 @@ Network Level
                 startAvailable: false,
                 whenAvailable: 0,
                 availableForLevel: true,
-                roomType: "diagnosis",
+                roomType: "x-ray",
                 name: "X-Ray"
             },
             {
@@ -622,11 +652,11 @@ Network Level
             diseasePool: [{ source: "visuals", index: 0, weight: 5, token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3 }],
             staffLevels: [{ month: 0, nurses: 8, doctors: 7, handymen: 3, receptionists: 5 }],
             financialSettings: { index: 1, startCash: 40000, illnessRate: 2, interestRate: 100, name: "Level 1" },
-            roomCostOverrides: { diagnosis: 1470, psychiatry: 2270, treatment: 1700, pharmacy: 500, "inflation-room": 4000, "hair-restoration": 500, "fracture-clinic": 500, "dna-fixer": 3600 },
+            roomCostOverrides: { diagnosis: 2280, cardiogram: 1470, psychiatry: 2270, treatment: 1700, pharmacy: 500, "inflation-room": 4000, "hair-restoration": 500, "fracture-clinic": 500, "dna-fixer": 3600 },
             staffWageOverrides: { nurse: 5, diagnostician: 6, handyman: 2, receptionist: 2 },
             objectAvailability: [
                 { index: 9, startCost: 2500, startAvailable: true, roomType: "inflation-room" },
-                { index: 13, startCost: 1000, startAvailable: false, whenAvailable: 2, roomType: "diagnosis" },
+                { index: 13, startCost: 1000, startAvailable: false, whenAvailable: 2, roomType: "cardiogram" },
                 { index: 23, startCost: 1800, startAvailable: true, roomType: "dna-fixer" }
             ],
             admissionRules: { holdVisualPeepCount: 2 },

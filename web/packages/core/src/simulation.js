@@ -14,7 +14,12 @@ const MAX_RECENT_EVENTS = 24;
 const DEFAULT_TREATMENT_PRICING_POLICY = "standard";
 const ROOM_FOOTPRINTS = {
     diagnosis: { width: 3, height: 3 },
+    cardiogram: { width: 4, height: 4 },
+    scanner: { width: 5, height: 5 },
+    ultrascan: { width: 4, height: 4 },
     "blood-machine": { width: 4, height: 4 },
+    "x-ray": { width: 6, height: 6 },
+    "general-diagnosis": { width: 5, height: 5 },
     treatment: { width: 3, height: 3 },
     pharmacy: { width: 3, height: 3 },
     specialist: { width: 6, height: 6 },

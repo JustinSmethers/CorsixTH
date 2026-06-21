@@ -26,7 +26,12 @@ describe("command contract", () => {
         expect(isGameCommand({ type: "rest-staff", staffId: 1, restType: "sofa" })).toBe(true);
         expect(isGameCommand({ type: "rest-staff", staffId: 1, restType: "game" })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "diagnosis" })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "cardiogram", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "scanner", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "ultrascan", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "blood-machine", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "x-ray", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "general-diagnosis", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "treatment", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "pharmacy", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "specialist", position: { x: 7, y: 8 } })).toBe(true);
