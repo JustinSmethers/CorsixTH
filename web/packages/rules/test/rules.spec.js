@@ -363,11 +363,29 @@ describe("phase 7 slice 1 gameplay rules", () => {
             buildPreviewAnimation: 916,
             callSound: "reqd021.wav"
         });
+        expect(nativeRoomDefinitionForType("fracture-clinic")).toMatchObject({
+            nativeId: "fracture_clinic",
+            nativeClass: "FractureRoom",
+            levelConfigId: 21,
+            categories: { clinics: 3 },
+            objectsNeeded: { cast_remover: 1 },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+            minimumSize: 4,
+            wallType: "blue",
+            floorTile: 17,
+            requiredStaff: { Nurse: 1 },
+            buildPreviewAnimation: 5072,
+            defaultTreatmentSteps: ["cast_remover"],
+            callSound: "reqd004.wav",
+            handymanCallSound: "maint014.wav"
+        });
+        expect(nativeRoomMinimumSize("fracture-clinic")).toBe(4);
         expect(["cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"].map(nativeRoomMinimumSize)).toEqual([4, 5, 4, 4, 6, 5]);
         const mutableDefinition = nativeRoomDefinitionForType("psychiatry");
         const mutableTrainingDefinition = nativeRoomDefinitionForType("training-room");
         const mutablePharmacyDefinition = nativeRoomDefinitionForType("pharmacy");
         const mutableScannerDefinition = nativeRoomDefinitionForType("scanner");
+        const mutableFractureDefinition = nativeRoomDefinitionForType("fracture-clinic");
         mutableDefinition.objectsNeeded.screen = 0;
         mutableDefinition.specialTreatmentStepsByDisease["king-complex"].push("bookcase");
         mutableTrainingDefinition.objectsNeeded.projector = 0;
@@ -375,6 +393,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         mutablePharmacyDefinition.objectsNeeded.pharmacy_cabinet = 0;
         mutablePharmacyDefinition.defaultTreatmentSteps.push("bin");
         mutableScannerDefinition.objectsNeeded.console = 0;
+        mutableFractureDefinition.objectsNeeded.cast_remover = 0;
         expect(nativeRoomDefinitionForType("psychiatry")).toMatchObject({
             objectsNeeded: { screen: 1 },
             specialTreatmentStepsByDisease: { "king-complex": ["couch", "screen"] }
@@ -389,6 +408,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         });
         expect(nativeRoomDefinitionForType("scanner")).toMatchObject({
             objectsNeeded: { console: 1 }
+        });
+        expect(nativeRoomDefinitionForType("fracture-clinic")).toMatchObject({
+            objectsNeeded: { cast_remover: 1 }
         });
         expect(nativeRoomDefinitionForType("treatment")).toBeNull();
         expect(nativeRoomMinimumSize("treatment")).toBeNull();

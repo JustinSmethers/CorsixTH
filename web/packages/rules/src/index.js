@@ -424,6 +424,23 @@ const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
         specialTreatmentStepsByDisease: {},
         defaultTreatmentSteps: [],
         callSound: "reqd021.wav"
+    },
+    "fracture-clinic": {
+        nativeId: "fracture_clinic",
+        nativeClass: "FractureRoom",
+        levelConfigId: 21,
+        categories: { clinics: 3 },
+        objectsNeeded: { cast_remover: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 5072,
+        minimumSize: 4,
+        wallType: "blue",
+        floorTile: 17,
+        requiredStaff: { Nurse: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["cast_remover"],
+        callSound: "reqd004.wav",
+        handymanCallSound: "maint014.wav"
     }
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
