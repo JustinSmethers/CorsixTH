@@ -468,7 +468,7 @@ describe("phase 7 slice 3 economy/progression/events", () => {
             }
         });
         expect(simulation.getState().events.recent.map((event) => event.type)).toContain("research-completed");
-        simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 8 } });
+        simulation.execute({ type: "open-room", roomType: "operating-theatre", position: { x: 1, y: 8 } });
         simulation.execute({ type: "open-room", roomType: "ward", position: { x: 8, y: 1 } });
         simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 6, y: 4 } });
         simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 7, y: 4 } });

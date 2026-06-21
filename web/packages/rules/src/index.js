@@ -178,7 +178,7 @@ export const DISEASE_CATALOG = [
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
 export const DIAGNOSIS_ROOM_TYPES = ["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"];
-export const TREATMENT_ROOM_TYPES = ["treatment", "ward", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "ward", "pharmacy", "operating-theatre", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -189,30 +189,30 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "acute-sneezes": "pharmacy",
     "gut-rot": "pharmacy",
     "king-complex": "psychiatry",
-    "spare-ribs": "specialist",
+    "spare-ribs": "operating-theatre",
     "kidney-beans": "ward",
     "fractured-bones": "fracture-clinic",
     "corrugated-ankles": "pharmacy",
     "transparency": "pharmacy",
     "baldness": "hair-restoration",
     "broken-wind": "pharmacy",
-    "golf-stones": "specialist",
+    "golf-stones": "operating-theatre",
     "infectious-laughter": "psychiatry",
     "radiation": "decontamination",
     "sweaty-palms": "psychiatry",
-    "unexpected-swelling": "specialist",
+    "unexpected-swelling": "operating-theatre",
     "hairyitis": "electrolysis",
     "jellyitis": "jelly-vat",
     "gastric-ejections": "pharmacy",
     "discrete-itching": "pharmacy",
-    "broken-heart": "specialist",
+    "broken-heart": "operating-theatre",
     "sideburns": "psychiatry",
     "alien-dna": "dna-fixer",
     "chronic-nosehair": "pharmacy",
     "fake-blood": "psychiatry",
-    "iron-lungs": "specialist",
+    "iron-lungs": "operating-theatre",
     "pregnancy": "ward",
-    "ruptured-nodules": "specialist"
+    "ruptured-nodules": "operating-theatre"
 };
 const DEFAULT_DISEASE_IDS_BY_SEVERITY = {
     1: ["mild-cold", "itchy-feet"],
@@ -230,6 +230,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     treatment: "nurse",
     ward: "nurse",
     pharmacy: "nurse",
+    "operating-theatre": "diagnostician",
     specialist: "diagnostician",
     psychiatry: "diagnostician",
     "inflation-room": "diagnostician",
@@ -243,10 +244,12 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
 };
 const STAFF_SPECIALTY_BY_ROOM_TYPE = {
     psychiatry: "psychiatrist",
+    "operating-theatre": "surgeon",
     specialist: "surgeon",
     "dna-fixer": "researcher"
 };
 const STAFF_COUNT_BY_ROOM_TYPE = {
+    "operating-theatre": 2,
     specialist: 2
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
@@ -266,6 +269,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     treatment: 3,
     ward: 3,
     pharmacy: 4,
+    "operating-theatre": 5,
     specialist: 5,
     psychiatry: 5,
     "inflation-room": 5,
@@ -294,6 +298,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     treatment: 1000,
     ward: 1700,
     pharmacy: 1200,
+    "operating-theatre": 1600,
     specialist: 1600,
     psychiatry: 2500,
     "inflation-room": 1600,
@@ -316,6 +321,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     treatment: 150,
     ward: 150,
     pharmacy: 170,
+    "operating-theatre": 220,
     specialist: 220,
     psychiatry: 220,
     "inflation-room": 220,
@@ -350,6 +356,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     treatment: 8,
     ward: 8,
     pharmacy: 8,
+    "operating-theatre": 8,
     specialist: 8,
     psychiatry: 8,
     "inflation-room": 8,
@@ -372,6 +379,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     treatment: 2,
     ward: 2,
     pharmacy: 2,
+    "operating-theatre": 3,
     specialist: 3,
     psychiatry: 3,
     "inflation-room": 3,

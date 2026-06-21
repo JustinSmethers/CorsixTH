@@ -2826,8 +2826,8 @@ describe("app orchestrator", () => {
         expect(orchestrator.dispatch({
             device: "ui",
             action: "build-room",
-            roomType: "specialist",
-            source: "ui:build-specialist-room",
+            roomType: "operating-theatre",
+            source: "ui:build-operating-theatre-room",
             pointer: { x: 64, y: 56 }
         })).toEqual(["room.built"]);
         expect(orchestrator.dispatch({
@@ -2848,7 +2848,8 @@ describe("app orchestrator", () => {
             openTreatmentRooms: 5,
             openGeneralTreatmentRooms: 1,
             openPharmacyRooms: 1,
-            openSpecialistRooms: 1,
+            openOperatingTheatreRooms: 1,
+            openSpecialistRooms: 0,
             openPsychiatryRooms: 1,
             openDnaFixerRooms: 1,
             specializedTreatmentRooms: 4
@@ -2874,9 +2875,9 @@ describe("app orchestrator", () => {
             tickRateHz: 4,
             pointerTileSize: 8,
             bounds: { width: 12, height: 12 },
-            roomAvailability: ["specialist"]
+            roomAvailability: ["operating-theatre"]
         });
-        expect(orchestrator.telemetry().roomAvailabilityStatus).toBe("diagnosis,treatment,specialist");
+        expect(orchestrator.telemetry().roomAvailabilityStatus).toBe("diagnosis,treatment,operating-theatre");
         expect(orchestrator.evaluatePlacement({
             device: "ui",
             action: "build-room",
@@ -2897,12 +2898,12 @@ describe("app orchestrator", () => {
         expect(orchestrator.dispatch({
             device: "ui",
             action: "build-room",
-            roomType: "specialist",
-            source: "ui:build-specialist-room",
+            roomType: "operating-theatre",
+            source: "ui:build-operating-theatre-room",
             pointer: { x: 48, y: 48 }
         })).toEqual(["room.built"]);
         const snapshot = orchestrator.createPersistenceSnapshot();
-        expect(snapshot.roomAvailability).toEqual(["diagnosis", "treatment", "specialist"]);
+        expect(snapshot.roomAvailability).toEqual(["diagnosis", "treatment", "operating-theatre"]);
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
     it("unlocks scenario object-gated rooms by scenario month", () => {

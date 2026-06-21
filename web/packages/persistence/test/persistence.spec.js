@@ -151,12 +151,12 @@ function sampleSnapshot() {
         mapView: { mapPath: "LEVELS/EXAMPLE.MAP", startX: 50, startY: 57 },
         diseasePool: [{ source: "visuals", token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3, weight: 5 }],
         staffMarketSchedule: [{ index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 5 }],
-        roomAvailability: ["diagnosis", "treatment", "specialist"],
+        roomAvailability: ["diagnosis", "treatment", "operating-theatre"],
         objectAvailability: [
             { index: 5, name: "Plant", startCost: 100, startStrength: 7, startAvailable: true, whenAvailable: 0, availableForLevel: true },
             { index: 13, name: "Cardiogram", roomType: "diagnosis", startCost: 1000, startStrength: 12, startAvailable: false, whenAvailable: 1, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
         ],
-        roomWearThresholdOverrides: { diagnosis: 12, specialist: 8 },
+        roomWearThresholdOverrides: { diagnosis: 12, "operating-theatre": 8 },
         admissionRules: { holdVisualMonths: 1, holdVisualPeepCount: 2 },
         researchSettings: { startRating: 95, researchPointsDivisor: 4, drugImproveRate: 5 },
         trainingSettings: { trainingRate: 30, trainingValues: [{ index: 0, value: 10, name: "Projector" }] },

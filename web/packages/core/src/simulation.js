@@ -23,6 +23,7 @@ const ROOM_FOOTPRINTS = {
     treatment: { width: 3, height: 3 },
     ward: { width: 6, height: 6 },
     pharmacy: { width: 3, height: 3 },
+    "operating-theatre": { width: 6, height: 6 },
     specialist: { width: 6, height: 6 },
     psychiatry: { width: 5, height: 5 },
     "inflation-room": { width: 3, height: 3 },
@@ -3016,7 +3017,7 @@ export class DeterministicSimulation {
         const staff = this.getStaffById(staffId);
         const room = this.getRoomById(roomId);
         const roomReduction = room ? treatmentRoomDurationReductionForDisease(room.roomType, patient.diseaseId) : 0;
-        const surgeonReduction = room?.roomType === "specialist" && staff?.specialties?.includes("surgeon") ? 1 : 0;
+        const surgeonReduction = room?.roomType === "operating-theatre" && staff?.specialties?.includes("surgeon") ? 1 : 0;
         const researcherReduction = room?.roomType === "dna-fixer" && staff?.specialties?.includes("researcher") ? 1 : 0;
         return Math.max(1, treatmentTicksForSeverity(patient.severity) - staffSkillDurationReductionForLevel(staff?.skillLevel ?? 0) - roomReduction - surgeonReduction - researcherReduction);
     }
@@ -3647,7 +3648,7 @@ export class DeterministicSimulation {
         return general?.id ?? null;
     }
     hasRequiredWardForTreatment(room, patient) {
-        if (room?.roomType !== "specialist" || treatmentRoomTypeForDisease(patient?.diseaseId) !== "specialist") {
+        if (room?.roomType !== "operating-theatre" || treatmentRoomTypeForDisease(patient?.diseaseId) !== "operating-theatre") {
             return true;
         }
         return this.availableRoomIds("ward", this.treatmentAssignments).some((roomId) => {
@@ -3723,7 +3724,7 @@ export class DeterministicSimulation {
             room.status === "open");
     }
     treatmentStaffRequirement(room, patient = null) {
-        if (room?.roomType === "specialist") {
+        if (room?.roomType === "operating-theatre") {
             return { role: "diagnostician", specialty: "surgeon", diseaseId: null, count: requiredStaffCountForRoom(room.roomType) };
         }
         if (room?.roomType === "psychiatry") {
