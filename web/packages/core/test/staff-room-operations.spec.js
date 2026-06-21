@@ -442,15 +442,21 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
     });
     it("requires surgeon-qualified doctors for generic specialist treatment", () => {
         const blocked = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
+        const oneSurgeon = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
         const specialized = new DeterministicSimulation(72094, { bounds: { width: 12, height: 12 } });
         blocked.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        oneSurgeon.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
         specialized.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 7 } });
+        oneSurgeon.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
         specialized.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 8, y: 4 } });
+        specialized.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 9, y: 4 } });
         blocked.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
+        oneSurgeon.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         specialized.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         let specializedDischargeTick = null;
         for (let tick = 1; tick <= 16; tick += 1) {
             blocked.execute({ type: "tick", count: 1 });
+            oneSurgeon.execute({ type: "tick", count: 1 });
             specialized.execute({ type: "tick", count: 1 });
             if (specializedDischargeTick === null && specialized.getState().hospitalLoop.dischargedPatients === 1) {
                 specializedDischargeTick = tick;
@@ -462,6 +468,12 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             status: "awaiting-treatment"
         });
         expect(blocked.getState().hospitalLoop.dischargedPatients).toBe(0);
+        expect(oneSurgeon.getState().entities.waitingPatients[0]).toMatchObject({
+            diseaseId: "spare-ribs",
+            preferredTreatmentRoomType: "specialist",
+            status: "awaiting-treatment"
+        });
+        expect(oneSurgeon.getState().hospitalLoop.dischargedPatients).toBe(0);
         expect(specializedDischargeTick).toBeGreaterThan(0);
         expect(specialized.getState().hospitalLoop.dischargedPatients).toBe(1);
     });

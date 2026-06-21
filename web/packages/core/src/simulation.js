@@ -1,4 +1,4 @@
-import { diagnosisTicksForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, diseaseForId, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, isTreatmentRoomType, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, maintenanceStaffRepairBonusTicks, marketingCampaignCost, marketingCampaignReputationGain, OPERATING_COST_PER_ACTIVE_PATIENT_PER_TICK, PATIENT_CRITICAL_HEALTH_THRESHOLD, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientMaxHealthForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, requiredStaffRoleForRoom, roomBuildCost, roomMaintenanceTicks, roomMaintenanceWearThreshold, roomRepairCost, roomSellRefund, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomTypeForDisease, treatmentSucceedsForPatient, treatmentTicksForSeverity, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, progressionIncomeBonusForUnlock, roomUpkeepCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "@corsixth/rules";
+import { diagnosisTicksForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, diseaseForId, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, isTreatmentRoomType, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, maintenanceStaffRepairBonusTicks, marketingCampaignCost, marketingCampaignReputationGain, OPERATING_COST_PER_ACTIVE_PATIENT_PER_TICK, PATIENT_CRITICAL_HEALTH_THRESHOLD, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientMaxHealthForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, requiredStaffCountForRoom, requiredStaffRoleForRoom, roomBuildCost, roomMaintenanceTicks, roomMaintenanceWearThreshold, roomRepairCost, roomSellRefund, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomTypeForDisease, treatmentSucceedsForPatient, treatmentTicksForSeverity, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, progressionIncomeBonusForUnlock, roomUpkeepCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "@corsixth/rules";
 import { assertGameCommand } from "./command-contract";
 import { DeterministicRng, SimulationClock, TickScheduler } from "./deterministic";
 import { TileMap } from "./map-model";
@@ -811,6 +811,9 @@ function removeFromQueue(queue, patientId) {
     }
 }
 function countUniqueAssignments(assignments, key) {
+    if (key === "staffId") {
+        return new Set(assignments.flatMap((assignment) => assignment.staffIds ?? [assignment.staffId])).size;
+    }
     return new Set(assignments.map((assignment) => assignment[key])).size;
 }
 export function hashSimulationState(state) {
@@ -2939,12 +2942,14 @@ export class DeterministicSimulation {
                 return;
             }
             const availableStaffIds = this.availableTreatmentStaffIds(matched.roomId, this.treatmentAssignments, matched.patient);
-            if (availableStaffIds.length === 0) {
+            const requirement = this.treatmentStaffRequirement(this.getRoomById(matched.roomId), matched.patient);
+            if (availableStaffIds.length < requirement.count) {
                 this.treatmentQueue.unshift(matched.patient.id);
                 return;
             }
-            const staffId = availableStaffIds[0];
-            const assignment = this.createPatientAssignment(matched.patient, staffId, matched.roomId, "treatment", this.treatmentTicksForStaff(matched.patient, staffId, matched.roomId));
+            const staffIds = availableStaffIds.slice(0, requirement.count);
+            const staffId = staffIds[0];
+            const assignment = this.createPatientAssignment(matched.patient, staffId, matched.roomId, "treatment", this.treatmentTicksForStaff(matched.patient, staffId, matched.roomId), staffIds);
             if (!assignment) {
                 this.treatmentQueue.unshift(matched.patient.id);
                 return;
@@ -2956,7 +2961,7 @@ export class DeterministicSimulation {
             }
         }
     }
-    createPatientAssignment(patient, staffId, roomId, stage, remainingTicks) {
+    createPatientAssignment(patient, staffId, roomId, stage, remainingTicks, staffIds = [staffId]) {
         const room = this.getRoomById(roomId);
         if (!room) {
             return null;
@@ -2975,6 +2980,7 @@ export class DeterministicSimulation {
         return {
             patientId: patient.id,
             staffId,
+            staffIds,
             roomId,
             remainingTicks
         };
@@ -3094,7 +3100,9 @@ export class DeterministicSimulation {
                 activeAssignments.push(assignment);
                 continue;
             }
-            utilizedStaffIds.add(assignment.staffId);
+            for (const staffId of assignment.staffIds ?? [assignment.staffId]) {
+                utilizedStaffIds.add(staffId);
+            }
             assignment.remainingTicks -= 1;
             if (assignment.remainingTicks > 0) {
                 activeAssignments.push(assignment);
@@ -3541,7 +3549,7 @@ export class DeterministicSimulation {
         return null;
     }
     availableStaffIds(role, assignments) {
-        const busyStaffIds = new Set(assignments.map((assignment) => assignment.staffId));
+        const busyStaffIds = new Set(assignments.flatMap((assignment) => assignment.staffIds ?? [assignment.staffId]));
         return this.staff
             .filter((staff) => staff.role === role && staff.status === "active" && !busyStaffIds.has(staff.id))
             .map((staff) => staff.id)
@@ -3588,7 +3596,11 @@ export class DeterministicSimulation {
                 index -= 1;
                 continue;
             }
-            const staffedRoomIds = availableRoomIds.filter((roomId) => this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length > 0);
+            const staffedRoomIds = availableRoomIds.filter((roomId) => {
+                const room = this.getRoomById(roomId);
+                const requirement = this.treatmentStaffRequirement(room, patient);
+                return this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length >= requirement.count;
+            });
             const roomId = this.selectTreatmentRoomIdForPatient(patient, staffedRoomIds);
             if (roomId === null) {
                 continue;
@@ -3670,29 +3682,32 @@ export class DeterministicSimulation {
         return Boolean(staff && room && staff.role === staffRole && staff.status === "active" && roomMatchesStage && room.status === "open");
     }
     isTreatmentAssignmentOperational(assignment) {
-        const staff = this.getStaffById(assignment.staffId);
         const room = this.getRoomById(assignment.roomId);
         const patient = this.getPatientById(assignment.patientId);
         const requirement = this.treatmentStaffRequirement(room, patient);
-        return Boolean(staff && room && patient &&
+        const staffIds = assignment.staffIds ?? [assignment.staffId];
+        const assignedStaff = staffIds.map((staffId) => this.getStaffById(staffId));
+        return Boolean(room && patient &&
+            assignedStaff.length >= requirement.count &&
+            assignedStaff.every((staff) => staff &&
             staff.role === requirement.role &&
             staff.status === "active" &&
-            (requirement.specialty === null || staff.specialties?.includes(requirement.specialty)) &&
+            (requirement.specialty === null || staff.specialties?.includes(requirement.specialty))) &&
             (!requirement.diseaseId || patient.diseaseId === requirement.diseaseId) &&
             isTreatmentRoomType(room.roomType) &&
             room.status === "open");
     }
     treatmentStaffRequirement(room, patient = null) {
         if (room?.roomType === "specialist") {
-            return { role: "diagnostician", specialty: "surgeon", diseaseId: null };
+            return { role: "diagnostician", specialty: "surgeon", diseaseId: null, count: requiredStaffCountForRoom(room.roomType) };
         }
         if (room?.roomType === "psychiatry") {
-            return { role: "diagnostician", specialty: "psychiatrist", diseaseId: null };
+            return { role: "diagnostician", specialty: "psychiatrist", diseaseId: null, count: requiredStaffCountForRoom(room.roomType) };
         }
         if (room?.roomType === "dna-fixer") {
-            return { role: "diagnostician", specialty: "researcher", diseaseId: "alien-dna" };
+            return { role: "diagnostician", specialty: "researcher", diseaseId: "alien-dna", count: requiredStaffCountForRoom(room.roomType) };
         }
-        return { role: requiredStaffRoleForRoom(room?.roomType) ?? "nurse", specialty: null, diseaseId: null };
+        return { role: requiredStaffRoleForRoom(room?.roomType) ?? "nurse", specialty: null, diseaseId: null, count: requiredStaffCountForRoom(room?.roomType) };
     }
     removeAssignmentsForPatient(patientId) {
         removeFromQueue(this.receptionQueue, patientId);
@@ -3705,7 +3720,7 @@ export class DeterministicSimulation {
     cancelAssignmentsForStaff(staffId) {
         const receptionAssignments = this.receptionAssignments.filter((assignment) => assignment.staffId === staffId);
         const diagnosisAssignments = this.diagnosisAssignments.filter((assignment) => assignment.staffId === staffId);
-        const treatmentAssignments = this.treatmentAssignments.filter((assignment) => assignment.staffId === staffId);
+        const treatmentAssignments = this.treatmentAssignments.filter((assignment) => (assignment.staffIds ?? [assignment.staffId]).includes(staffId));
         for (const assignment of receptionAssignments) {
             this.cancelAssignment(assignment, "reception");
         }
@@ -3717,7 +3732,7 @@ export class DeterministicSimulation {
         }
         this.receptionAssignments = this.receptionAssignments.filter((assignment) => assignment.staffId !== staffId);
         this.diagnosisAssignments = this.diagnosisAssignments.filter((assignment) => assignment.staffId !== staffId);
-        this.treatmentAssignments = this.treatmentAssignments.filter((assignment) => assignment.staffId !== staffId);
+        this.treatmentAssignments = this.treatmentAssignments.filter((assignment) => !(assignment.staffIds ?? [assignment.staffId]).includes(staffId));
     }
     cancelAssignmentsForRoom(roomId) {
         const diagnosisAssignments = this.diagnosisAssignments.filter((assignment) => assignment.roomId === roomId);

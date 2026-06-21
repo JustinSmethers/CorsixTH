@@ -3,7 +3,7 @@ import { patientSendHomeCashPenaltyForSeverity } from "@corsixth/rules";
 describe("phase 7 slice 1 hospital loop", () => {
     it("progresses admissions through queue, diagnosis, treatment, and discharge", () => {
         const simulation = new DeterministicSimulation(7001, { bounds: { width: 8, height: 8 } });
-        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "iron-lungs", position: { x: 3, y: 4 } });
+        simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "itchy-feet", position: { x: 3, y: 4 } });
         expect(simulation.getState().hospitalLoop).toMatchObject({
             queuedPatients: 1,
             diagnosingPatients: 0,
@@ -13,8 +13,8 @@ describe("phase 7 slice 1 hospital loop", () => {
         });
         expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("queued");
         expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
-            diseaseId: "iron-lungs",
-            diseaseName: "Iron Lungs",
+            diseaseId: "itchy-feet",
+            diseaseName: "Itchy Feet",
             diagnosisKnown: false
         });
         simulation.execute({ type: "tick", count: 1 });
@@ -53,8 +53,8 @@ describe("phase 7 slice 1 hospital loop", () => {
         });
         expect(simulation.getState().entities.waitingPatients[0]?.status).toBe("awaiting-treatment");
         expect(simulation.getState().entities.waitingPatients[0]).toMatchObject({
-            diseaseId: "iron-lungs",
-            diseaseName: "Iron Lungs",
+            diseaseId: "itchy-feet",
+            diseaseName: "Itchy Feet",
             diagnosisKnown: true
         });
         expect(simulation.getState().hospitalLoop.diagnosedPatients).toBe(1);
@@ -233,6 +233,7 @@ describe("phase 7 slice 1 hospital loop", () => {
         const simulation = new DeterministicSimulation(7004, { bounds: { width: 8, height: 8 } });
         simulation.execute({ type: "open-room", roomType: "specialist", position: { x: 1, y: 4 } });
         simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 6, y: 4 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["surgeon"], position: { x: 7, y: 4 } });
         simulation.execute({ type: "admit-patient", severity: 3, diseaseId: "unexpected-swelling", position: { x: 2, y: 2 } });
         simulation.execute({ type: "admit-patient", severity: 3, diseaseId: "unexpected-swelling", position: { x: 2, y: 2 } });
         expect(simulation.getState().entities.waitingPatients.map((patient) => patient.diseaseId)).toEqual([

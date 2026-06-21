@@ -204,14 +204,14 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "jellyitis": "jelly-vat",
     "gastric-ejections": "pharmacy",
     "discrete-itching": "pharmacy",
-    "broken-heart": "treatment",
+    "broken-heart": "specialist",
     "sideburns": "psychiatry",
     "alien-dna": "dna-fixer",
     "chronic-nosehair": "pharmacy",
     "fake-blood": "psychiatry",
-    "iron-lungs": "treatment",
-    "pregnancy": "treatment",
-    "ruptured-nodules": "treatment"
+    "iron-lungs": "specialist",
+    "pregnancy": "specialist",
+    "ruptured-nodules": "specialist"
 };
 const DEFAULT_DISEASE_IDS_BY_SEVERITY = {
     1: ["mild-cold", "itchy-feet"],
@@ -222,7 +222,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     diagnosis: "diagnostician",
     treatment: "nurse",
     pharmacy: "nurse",
-    specialist: "nurse",
+    specialist: "diagnostician",
     psychiatry: "diagnostician",
     "inflation-room": "diagnostician",
     "slack-tongue-clinic": "diagnostician",
@@ -237,6 +237,9 @@ const STAFF_SPECIALTY_BY_ROOM_TYPE = {
     psychiatry: "psychiatrist",
     specialist: "surgeon",
     "dna-fixer": "researcher"
+};
+const STAFF_COUNT_BY_ROOM_TYPE = {
+    specialist: 2
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
     diagnostician: 5,
@@ -456,6 +459,9 @@ export function requiredStaffRoleForRoom(roomType) {
 }
 export function requiredStaffSpecialtyForRoom(roomType) {
     return STAFF_SPECIALTY_BY_ROOM_TYPE[roomType] ?? null;
+}
+export function requiredStaffCountForRoom(roomType) {
+    return STAFF_COUNT_BY_ROOM_TYPE[roomType] ?? 1;
 }
 export function staffWageCostPerTick(role) {
     return STAFF_WAGE_COST_PER_TICK_BY_ROLE[role];
