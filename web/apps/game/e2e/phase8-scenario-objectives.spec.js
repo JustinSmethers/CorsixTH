@@ -271,7 +271,7 @@ test("phase 8 scenario import: original SAM criteria drive browser level objecti
     await expect(page.getByTestId("loan-status")).toHaveText("Loan: 0/20000, chunk 5000, available 5000, repay 0");
     await expect(page.getByTestId("loan-interest")).toHaveText("Loan interest: 0 tick, 0 total; scenario 2/chunk");
     await expect(page.getByTestId("build-diagnosis-room")).toHaveText("Build GP's Office (2280)");
-    await expect(page.getByTestId("build-treatment-room")).toHaveText("Build Ward (1700)");
+    await expect(page.getByTestId("build-ward-room")).toHaveText("Build Ward (1700)");
     await expect(page.getByTestId("build-pharmacy-room")).toHaveText("Build Pharmacy (500)");
     await expect(page.getByTestId("build-inflation-room")).toHaveText("Build Inflation Room (1500)");
     await expect(page.getByTestId("hire-diagnostician")).toHaveText("Hire Doctor (300, wage 6)");
@@ -512,7 +512,7 @@ test("phase 8 scenario import: expertise start prices drive browser treatment in
 test("phase 8 scenario import: machine strength and max object strength drive browser maintenance", async ({ page }) => {
     await importScenarioFixture(page, machineStrengthFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
-    await expect(page.getByTestId("maintenance-staff-status")).toHaveText("Handymen: 0/0, repairs 0, bonus 1 ticks; scenario wear GP's Office 12, Inflation Room 14, max 14");
+    await expect(page.getByTestId("maintenance-staff-status")).toHaveText("Handymen: 0/0, repairs 0, bonus 1 ticks; scenario wear Cardiogram 12, Inflation Room 14, max 14");
     await expect(page.getByTestId("research-effect")).toContainText("object strength 14/2");
     await page.getByTestId("start-research").click();
     for (let index = 0; index < 6; index += 1) {
@@ -524,7 +524,7 @@ test("phase 8 scenario import: machine strength and max object strength drive br
     }
     await expect(page.getByTestId("tick")).toHaveText("Tick: 64");
     await expect(page.getByTestId("quake-status")).toHaveText("Quake: scheduled 2, active none, severity 0, triggered 1, next 1 months 2-2 severity 1");
-    await expect(page.getByTestId("rooms-in-maintenance")).toHaveText("Rooms in maintenance: 1, worn 100%");
+    await expect(page.getByTestId("rooms-in-maintenance")).toHaveText("Rooms in maintenance: 2, worn 100%");
     for (let index = 0; index < 15; index += 1) {
         await page.getByTestId("hospital-camera-west").click();
         await page.getByTestId("hospital-camera-north").click();
@@ -532,7 +532,7 @@ test("phase 8 scenario import: machine strength and max object strength drive br
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.click({ position: { x: 384, y: 66 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: GP's Office room #1");
-    await expect(page.getByTestId("selection-status")).toContainText("open");
+    await expect(page.getByTestId("selection-status")).toContainText("closed");
     await expect(page.getByTestId("selection-status")).toContainText("wear 13");
 
     for (let index = 0; index < 64; index += 1) {
@@ -542,8 +542,8 @@ test("phase 8 scenario import: machine strength and max object strength drive br
     await expect(page.getByTestId("quake-status")).toHaveText("Quake: scheduled 2, active none, severity 0, triggered 2");
     await canvas.click({ position: { x: 384, y: 66 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: GP's Office room #1");
-    await expect(page.getByTestId("selection-status")).toContainText("closed");
-    await expect(page.getByTestId("selection-status")).toContainText("wear 14");
+    await expect(page.getByTestId("selection-status")).toContainText("open");
+    await expect(page.getByTestId("selection-status")).toContainText("wear 1");
 });
 
 test("phase 8 scenario import: training values drive browser training speed without rate", async ({ page }) => {
@@ -1704,7 +1704,7 @@ test("phase 8 scenario import: object availability unlocks room builds by scenar
 test("phase 8 scenario import: disabled object availability blocks browser room builds", async ({ page }) => {
     await importScenarioFixture(page, objectAvailabilityFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
-    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward");
+    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Cardiogram");
     await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 0, disabled 1, research 0; available: Cardiogram; disabled: Inflator Machine");
     await page.getByTestId("build-inflation-room").click();
     const canvas = page.getByTestId("hospital-map-canvas");
@@ -1714,7 +1714,7 @@ test("phase 8 scenario import: disabled object availability blocks browser room 
         await page.getByTestId("step").click();
     }
     await expect(page.getByTestId("tick")).toHaveText("Tick: 129");
-    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward");
+    await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Cardiogram");
     await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 0, disabled 1, research 0; available: Cardiogram; disabled: Inflator Machine");
 });
 

@@ -224,10 +224,10 @@ describe("app shell campaign objectives", () => {
             "build-x-ray-room",
             "build-general-diagnosis-room",
             "build-treatment-room",
+            "build-ward-room",
             "build-pharmacy-room",
             "build-specialist-room",
             "build-psychiatry-room",
-            "build-inflation-room",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -244,11 +244,11 @@ describe("app shell campaign objectives", () => {
             "build-x-ray-room",
             "build-general-diagnosis-room",
             "build-treatment-room",
+            "build-ward-room",
             "build-pharmacy-room",
             "build-specialist-room",
             "build-psychiatry-room",
             "build-inflation-room",
-            "build-slack-tongue-clinic",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -265,6 +265,7 @@ describe("app shell campaign objectives", () => {
             "build-x-ray-room",
             "build-general-diagnosis-room",
             "build-treatment-room",
+            "build-ward-room",
             "build-pharmacy-room",
             "build-specialist-room",
             "build-psychiatry-room",
@@ -279,7 +280,6 @@ describe("app shell campaign objectives", () => {
             "hire-diagnostician",
             "hire-nurse",
             "hire-handyman",
-            "hire-receptionist",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
@@ -296,6 +296,7 @@ describe("app shell campaign objectives", () => {
             "build-x-ray-room",
             "build-general-diagnosis-room",
             "build-treatment-room",
+            "build-ward-room",
             "build-pharmacy-room",
             "build-specialist-room",
             "build-psychiatry-room",
@@ -320,19 +321,18 @@ describe("app shell campaign objectives", () => {
             "open-edit-room",
             "open-first-message",
             "open-casebook",
-            "open-map",
         ]);
         expect(createOriginalUiStripControlZones({
             originalUiSpriteSheet: {
                 sprites: Array.from({ length: 46 }, () => ({ width: 10, height: 10, indices: [1] }))
             }
         }, 740, 40).map((zone) => zone.id).slice(40)).toEqual([
+            "take-loan",
             "repay-loan",
             "start-research",
             "run-finance-audit",
             "run-marketing-campaign",
-            "start-insurance-contract",
-            "run-awards-ceremony"
+            "start-insurance-contract"
         ]);
     });
     it("uses imported original language names in the patient casebook", () => {
@@ -546,7 +546,7 @@ describe("app shell campaign objectives", () => {
         })).toBe("Room availability: unrestricted");
     });
     it("uses imported room names and scenario costs in build labels", () => {
-        expect(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis", "treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
+        expect(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis", "treatment", "ward", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"].map((roomType) => formatBuildRoomButtonLabel(roomType).replace(/\s+\(\d+\)$/, ""))).toEqual([
             "Build Diagnosis",
             "Build Cardiogram",
             "Build Scanner",
@@ -555,6 +555,7 @@ describe("app shell campaign objectives", () => {
             "Build X-Ray",
             "Build General Diagnosis",
             "Build Treatment",
+            "Build Ward",
             "Build Pharmacy",
             "Build Specialist",
             "Build Psychiatry",

@@ -52,7 +52,7 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete; scenario rate 40, values 3, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 7, nurses 7, handymen 3, receptionists 8, consultants 0, juniors 10, psych 3, surgeons 0, researchers 0, receptionists target 8; scenario staff month 0, seed 4953");
     await expect(page.getByTestId("room-availability")).toContainText("GP's Office");
-    await expect(page.getByTestId("object-availability")).toContainText("available: Inflator Machine, Pharmacy Cabinet, Desk +");
+    await expect(page.getByTestId("object-availability")).toContainText("available: Inflator Machine, Screen, Couch +");
     await expect(page.getByTestId("object-availability")).toContainText("disabled: Cardiogram, Scanner, Ultrascan +");
     await expect(page.getByTestId("scenario-expertise")).toHaveText("Scenario expertise: 2/7 known, 0 research-required, diagnosable 4, capability 100");
     await expect(page.getByTestId("scenario-opponents")).toHaveText("Scenario opponents: 3/3 active (ORAC, COLOSSUS, HAL)");

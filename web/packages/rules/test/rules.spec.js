@@ -39,10 +39,12 @@ describe("phase 7 slice 1 gameplay rules", () => {
     });
     it("locks deterministic disease-to-treatment-room mapping and specialty bonuses", () => {
         expect(diagnosisRoomTypes()).toEqual(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"]);
-        expect(treatmentRoomTypes()).toEqual(["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"]);
+        expect(treatmentRoomTypes()).toEqual(["treatment", "ward", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"]);
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("gut-rot")).toBe("pharmacy");
+        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("ward");
+        expect(treatmentRoomTypeForDisease("kidney-beans")).toBe("ward");
         expect(treatmentRoomTypeForDisease("slack-tongue")).toBe("slack-tongue-clinic");
         expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("inflation-room");
         expect(treatmentRoomTypeForDisease("acute-sneezes")).toBe("pharmacy");
@@ -65,7 +67,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("fake-blood")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("broken-heart")).toBe("specialist");
         expect(treatmentRoomTypeForDisease("iron-lungs")).toBe("specialist");
-        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("specialist");
+        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("ward");
         expect(treatmentRoomTypeForDisease("ruptured-nodules")).toBe("specialist");
         expect(treatmentRoomSuccessBonusForDisease("psychiatry", "gastric-grumble")).toBe(15);
         expect(treatmentRoomSuccessBonusForDisease("treatment", "gastric-grumble")).toBe(0);
@@ -182,6 +184,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(requiredStaffRoleForRoom("x-ray")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("general-diagnosis")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("treatment")).toBe("nurse");
+        expect(requiredStaffRoleForRoom("ward")).toBe("nurse");
         expect(requiredStaffRoleForRoom("pharmacy")).toBe("nurse");
         expect(requiredStaffRoleForRoom("specialist")).toBe("diagnostician");
         expect(requiredStaffRoleForRoom("psychiatry")).toBe("diagnostician");
@@ -222,6 +225,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomUpkeepCostPerTick("x-ray")).toBe(5);
         expect(roomUpkeepCostPerTick("general-diagnosis")).toBe(4);
         expect(roomUpkeepCostPerTick("treatment")).toBe(3);
+        expect(roomUpkeepCostPerTick("ward")).toBe(3);
         expect(roomUpkeepCostPerTick("pharmacy")).toBe(4);
         expect(roomUpkeepCostPerTick("specialist")).toBe(5);
         expect(roomUpkeepCostPerTick("psychiatry")).toBe(5);
@@ -242,6 +246,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(roomBuildCost("x-ray")).toBe(4000);
         expect(roomBuildCost("general-diagnosis")).toBe(1500);
         expect(roomBuildCost("treatment")).toBe(1000);
+        expect(roomBuildCost("ward")).toBe(1700);
         expect(roomBuildCost("pharmacy")).toBe(1200);
         expect(roomBuildCost("specialist")).toBe(1600);
         expect(roomBuildCost("psychiatry")).toBe(2500);

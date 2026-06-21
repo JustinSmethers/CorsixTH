@@ -1931,7 +1931,7 @@ function parseScenarioTownLine(line) {
 const SCENARIO_ROOM_TYPE_BY_ROOM_ID = new Map([
     [7, "diagnosis"],
     [8, "psychiatry"],
-    [9, "treatment"],
+    [9, "ward"],
     [10, "specialist"],
     [11, "pharmacy"],
     [12, "cardiogram"],

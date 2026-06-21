@@ -178,7 +178,7 @@ export const DISEASE_CATALOG = [
     { id: "ruptured-nodules", name: "Ruptured Nodules", severity: 3 }
 ];
 export const DIAGNOSIS_ROOM_TYPES = ["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"];
-export const TREATMENT_ROOM_TYPES = ["treatment", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
+export const TREATMENT_ROOM_TYPES = ["treatment", "ward", "pharmacy", "specialist", "psychiatry", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
 const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "mild-cold": "treatment",
     "itchy-feet": "treatment",
@@ -190,7 +190,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "gut-rot": "pharmacy",
     "king-complex": "psychiatry",
     "spare-ribs": "specialist",
-    "kidney-beans": "specialist",
+    "kidney-beans": "ward",
     "fractured-bones": "fracture-clinic",
     "corrugated-ankles": "pharmacy",
     "transparency": "pharmacy",
@@ -211,7 +211,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "chronic-nosehair": "pharmacy",
     "fake-blood": "psychiatry",
     "iron-lungs": "specialist",
-    "pregnancy": "specialist",
+    "pregnancy": "ward",
     "ruptured-nodules": "specialist"
 };
 const DEFAULT_DISEASE_IDS_BY_SEVERITY = {
@@ -228,6 +228,7 @@ const STAFF_ROLE_BY_ROOM_TYPE = {
     "x-ray": "diagnostician",
     "general-diagnosis": "diagnostician",
     treatment: "nurse",
+    ward: "nurse",
     pharmacy: "nurse",
     specialist: "diagnostician",
     psychiatry: "diagnostician",
@@ -263,6 +264,7 @@ const ROOM_UPKEEP_COST_PER_TICK_BY_TYPE = {
     "x-ray": 5,
     "general-diagnosis": 4,
     treatment: 3,
+    ward: 3,
     pharmacy: 4,
     specialist: 5,
     psychiatry: 5,
@@ -290,6 +292,7 @@ const ROOM_BUILD_COST_BY_TYPE = {
     "x-ray": 4000,
     "general-diagnosis": 1500,
     treatment: 1000,
+    ward: 1700,
     pharmacy: 1200,
     specialist: 1600,
     psychiatry: 2500,
@@ -311,6 +314,7 @@ const ROOM_REPAIR_COST_BY_TYPE = {
     "x-ray": 260,
     "general-diagnosis": 180,
     treatment: 150,
+    ward: 150,
     pharmacy: 170,
     specialist: 220,
     psychiatry: 220,
@@ -344,6 +348,7 @@ const ROOM_MAINTENANCE_WEAR_THRESHOLD_BY_TYPE = {
     "x-ray": 8,
     "general-diagnosis": 8,
     treatment: 8,
+    ward: 8,
     pharmacy: 8,
     specialist: 8,
     psychiatry: 8,
@@ -365,6 +370,7 @@ const ROOM_MAINTENANCE_TICKS_BY_TYPE = {
     "x-ray": 3,
     "general-diagnosis": 3,
     treatment: 2,
+    ward: 2,
     pharmacy: 2,
     specialist: 3,
     psychiatry: 3,

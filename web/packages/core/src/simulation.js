@@ -21,6 +21,7 @@ const ROOM_FOOTPRINTS = {
     "x-ray": { width: 6, height: 6 },
     "general-diagnosis": { width: 5, height: 5 },
     treatment: { width: 3, height: 3 },
+    ward: { width: 6, height: 6 },
     pharmacy: { width: 3, height: 3 },
     specialist: { width: 6, height: 6 },
     psychiatry: { width: 5, height: 5 },
@@ -3649,7 +3650,7 @@ export class DeterministicSimulation {
         if (room?.roomType !== "specialist" || treatmentRoomTypeForDisease(patient?.diseaseId) !== "specialist") {
             return true;
         }
-        return this.availableRoomIds("treatment", this.treatmentAssignments).some((roomId) => {
+        return this.availableRoomIds("ward", this.treatmentAssignments).some((roomId) => {
             const wardRoom = this.getRoomById(roomId);
             const requirement = this.treatmentStaffRequirement(wardRoom, patient);
             return this.availableTreatmentStaffIds(roomId, this.treatmentAssignments, patient).length >= requirement.count;

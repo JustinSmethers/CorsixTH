@@ -412,7 +412,7 @@ Emergency Mappings
         expect(scenario.roomCosts).toEqual([
             { index: 7, cost: 2280, roomType: "diagnosis", name: "GP_OFFICE" },
             { index: 8, cost: 2270, roomType: "psychiatry", name: "PSYCH" },
-            { index: 9, cost: 1700, roomType: "treatment", name: "WARD" },
+            { index: 9, cost: 1700, roomType: "ward", name: "WARD" },
             { index: 11, cost: 500, roomType: "pharmacy", name: "PHARMACY" },
             { index: 12, cost: 470, roomType: "cardiogram", name: "CARDIO" },
             { index: 13, cost: 4000, roomType: "scanner", name: "SCANNER" },
@@ -652,7 +652,7 @@ Network Level
             diseasePool: [{ source: "visuals", index: 0, weight: 5, token: "I_BLOATY_HEAD", diseaseId: "cranial-pressure", severity: 3 }],
             staffLevels: [{ month: 0, nurses: 8, doctors: 7, handymen: 3, receptionists: 5 }],
             financialSettings: { index: 1, startCash: 40000, illnessRate: 2, interestRate: 100, name: "Level 1" },
-            roomCostOverrides: { diagnosis: 2280, cardiogram: 1470, psychiatry: 2270, treatment: 1700, pharmacy: 500, "inflation-room": 4000, "hair-restoration": 500, "fracture-clinic": 500, "dna-fixer": 3600 },
+            roomCostOverrides: { diagnosis: 2280, cardiogram: 1470, psychiatry: 2270, ward: 1700, pharmacy: 500, "inflation-room": 4000, "hair-restoration": 500, "fracture-clinic": 500, "dna-fixer": 3600 },
             staffWageOverrides: { nurse: 5, diagnostician: 6, handyman: 2, receptionist: 2 },
             objectAvailability: [
                 { index: 9, startCost: 2500, startAvailable: true, roomType: "inflation-room" },

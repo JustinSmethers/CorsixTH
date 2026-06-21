@@ -33,6 +33,7 @@ describe("command contract", () => {
         expect(isGameCommand({ type: "open-room", roomType: "x-ray", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "general-diagnosis", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "treatment", position: { x: 7, y: 8 } })).toBe(true);
+        expect(isGameCommand({ type: "open-room", roomType: "ward", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "pharmacy", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "specialist", position: { x: 7, y: 8 } })).toBe(true);
         expect(isGameCommand({ type: "open-room", roomType: "psychiatry", position: { x: 7, y: 8 } })).toBe(true);
@@ -89,7 +90,7 @@ describe("command contract", () => {
         expect(isGameCommand({ type: "set-staff-status", staffId: 0, status: "on-break" })).toBe(false);
         expect(isGameCommand({ type: "rest-staff", staffId: 0, restType: "sofa" })).toBe(false);
         expect(isGameCommand({ type: "rest-staff", staffId: 1, restType: "bench" })).toBe(false);
-        expect(isGameCommand({ type: "open-room", roomType: "ward" })).toBe(false);
+        expect(isGameCommand({ type: "open-room", roomType: "toilets" })).toBe(false);
         expect(isGameCommand({ type: "open-room", roomType: "diagnosis", position: { x: -1, y: 0 } })).toBe(false);
         expect(isGameCommand({ type: "place-object", objectIndex: 2 })).toBe(false);
         expect(isGameCommand({ type: "place-object", objectIndex: 2, orientation: "diagonal", position: { x: 7, y: 8 } })).toBe(false);

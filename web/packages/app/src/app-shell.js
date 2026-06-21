@@ -48,6 +48,7 @@ const ROOM_TYPE_COLORS = {
     "x-ray": "#a7aeb8",
     "general-diagnosis": "#88b86a",
     treatment: "#79c66a",
+    ward: "#8ecf84",
     pharmacy: "#b894f6",
     specialist: "#f08e67",
     psychiatry: "#a9a35f",
@@ -60,6 +61,7 @@ const ROOM_TYPE_COLORS = {
     electrolysis: "#83a1dc",
     "dna-fixer": "#c59bf7"
 };
+const DIAGNOSIS_RESEARCH_ROOM_TYPES = new Set(["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"]);
 const STAFF_ROLE_COLORS = {
     diagnostician: "#d8b55a",
     nurse: "#d96c75",
@@ -596,7 +598,8 @@ export function formatOriginalUiStripControlLabel(control) {
         "build-blood-machine-room": "Build Blood",
         "build-x-ray-room": "Build X-Ray",
         "build-general-diagnosis-room": "Build Gen Diag",
-        "build-treatment-room": "Build Ward",
+        "build-treatment-room": "Build Treatment",
+        "build-ward-room": "Build Ward",
         "build-pharmacy-room": "Build Pharmacy",
         "build-specialist-room": "Build Specialist",
         "build-psychiatry-room": "Build Psych",
@@ -1018,6 +1021,9 @@ function roomTypeDisplayName(roomType, languageSummary) {
     }
     if (roomType === "general-diagnosis") {
         return languageSummary?.roomNames?.[roomType] ?? "General Diagnosis";
+    }
+    if (roomType === "ward") {
+        return languageSummary?.roomNames?.[roomType] ?? "Ward";
     }
     if (roomType === "fracture-clinic") {
         return languageSummary?.roomNames?.[roomType] ?? "Fracture Clinic";
@@ -1911,6 +1917,7 @@ const ORIGINAL_UI_STRIP_CONTROLS = [
     { id: "build-x-ray-room", label: formatOriginalUiStripControlLabel("build-x-ray-room") },
     { id: "build-general-diagnosis-room", label: formatOriginalUiStripControlLabel("build-general-diagnosis-room") },
     { id: "build-treatment-room", label: formatOriginalUiStripControlLabel("build-treatment-room") },
+    { id: "build-ward-room", label: formatOriginalUiStripControlLabel("build-ward-room") },
     { id: "build-pharmacy-room", label: formatOriginalUiStripControlLabel("build-pharmacy-room") },
     { id: "build-specialist-room", label: formatOriginalUiStripControlLabel("build-specialist-room") },
     { id: "build-psychiatry-room", label: formatOriginalUiStripControlLabel("build-psychiatry-room") },
@@ -2361,7 +2368,7 @@ function scenarioObjectAvailabilityDetails(scenario, languageSummary, telemetry 
             available.push(name);
         }
         else if (showResearchLocked &&
-            object.roomType === "diagnosis" &&
+            DIAGNOSIS_RESEARCH_ROOM_TYPES.has(object.roomType) &&
             diagnosisResearchRequired !== null) {
             research.push(name);
         }
@@ -2610,7 +2617,7 @@ export function createRoomAvailabilityScheduleFromScenario(scenario) {
         startAvailable: object.startAvailable === true,
         whenAvailable: Number.isInteger(object.whenAvailable) ? object.whenAvailable : 0,
         availableForLevel: object.availableForLevel !== false,
-        ...(object.roomType === "diagnosis" && object.startAvailable !== true && diagnosisResearchRequired !== null
+        ...(DIAGNOSIS_RESEARCH_ROOM_TYPES.has(object.roomType) && object.startAvailable !== true && diagnosisResearchRequired !== null
             ? { researchRequired: diagnosisResearchRequired, expertiseCategory: "DIAGNOSIS" }
             : {})
     }));
@@ -3184,6 +3191,7 @@ export function mountAppShell(options) {
           <button type="button" data-testid="build-x-ray-room">${formatBuildRoomButtonLabel("x-ray")}</button>
           <button type="button" data-testid="build-general-diagnosis-room">${formatBuildRoomButtonLabel("general-diagnosis")}</button>
           <button type="button" data-testid="build-treatment-room">${formatBuildRoomButtonLabel("treatment")}</button>
+          <button type="button" data-testid="build-ward-room">${formatBuildRoomButtonLabel("ward")}</button>
           <button type="button" data-testid="build-pharmacy-room">${formatBuildRoomButtonLabel("pharmacy")}</button>
           <button type="button" data-testid="build-specialist-room">${formatBuildRoomButtonLabel("specialist")}</button>
           <button type="button" data-testid="build-psychiatry-room">${formatBuildRoomButtonLabel("psychiatry")}</button>
@@ -3794,6 +3802,7 @@ export function mountAppShell(options) {
     const buildXRayRoomButton = requiredElement(options.root, "[data-testid='build-x-ray-room']");
     const buildGeneralDiagnosisRoomButton = requiredElement(options.root, "[data-testid='build-general-diagnosis-room']");
     const buildTreatmentRoomButton = requiredElement(options.root, "[data-testid='build-treatment-room']");
+    const buildWardRoomButton = requiredElement(options.root, "[data-testid='build-ward-room']");
     const buildPharmacyRoomButton = requiredElement(options.root, "[data-testid='build-pharmacy-room']");
     const buildSpecialistRoomButton = requiredElement(options.root, "[data-testid='build-specialist-room']");
     const buildPsychiatryRoomButton = requiredElement(options.root, "[data-testid='build-psychiatry-room']");
@@ -4127,6 +4136,7 @@ export function mountAppShell(options) {
         buildXRayRoomButton.textContent = formatBuildRoomButtonLabel("x-ray", telemetry, hospitalView?.languageSummary ?? null);
         buildGeneralDiagnosisRoomButton.textContent = formatBuildRoomButtonLabel("general-diagnosis", telemetry, hospitalView?.languageSummary ?? null);
         buildTreatmentRoomButton.textContent = formatBuildRoomButtonLabel("treatment", telemetry, hospitalView?.languageSummary ?? null);
+        buildWardRoomButton.textContent = formatBuildRoomButtonLabel("ward", telemetry, hospitalView?.languageSummary ?? null);
         buildPharmacyRoomButton.textContent = formatBuildRoomButtonLabel("pharmacy", telemetry, hospitalView?.languageSummary ?? null);
         buildSpecialistRoomButton.textContent = formatBuildRoomButtonLabel("specialist", telemetry, hospitalView?.languageSummary ?? null);
         buildPsychiatryRoomButton.textContent = formatBuildRoomButtonLabel("psychiatry", telemetry, hospitalView?.languageSummary ?? null);
@@ -4152,6 +4162,7 @@ export function mountAppShell(options) {
         buildXRayRoomButton.disabled = !canBuildRoomFromTelemetry("x-ray", telemetry);
         buildGeneralDiagnosisRoomButton.disabled = !canBuildRoomFromTelemetry("general-diagnosis", telemetry);
         buildTreatmentRoomButton.disabled = !canBuildRoomFromTelemetry("treatment", telemetry);
+        buildWardRoomButton.disabled = !canBuildRoomFromTelemetry("ward", telemetry);
         buildPharmacyRoomButton.disabled = !canBuildRoomFromTelemetry("pharmacy", telemetry);
         buildSpecialistRoomButton.disabled = !canBuildRoomFromTelemetry("specialist", telemetry);
         buildPsychiatryRoomButton.disabled = !canBuildRoomFromTelemetry("psychiatry", telemetry);
@@ -4979,6 +4990,24 @@ export function mountAppShell(options) {
             orientation: "north",
             source: "ui:build-treatment-room",
             label: `build ${roomTypeDisplayName("treatment", hospitalView?.languageSummary ?? null)}`
+        };
+        placementPreview = null;
+        selectedEntity = null;
+        actionStatus.textContent = formatChoosePlacementActionStatus();
+        renderRuntime();
+    };
+    const onBuildWardRoom = () => {
+        if (!canBuildRoomFromTelemetry("ward", orchestrator.telemetry())) {
+            actionStatus.textContent = formatActionStatus("room.build-blocked");
+            renderRuntime();
+            return;
+        }
+        placementAction = {
+            action: "build-room",
+            roomType: "ward",
+            orientation: "north",
+            source: "ui:build-ward-room",
+            label: `build ${roomTypeDisplayName("ward", hospitalView?.languageSummary ?? null)}`
         };
         placementPreview = null;
         selectedEntity = null;
@@ -6369,6 +6398,7 @@ export function mountAppShell(options) {
         ["build-x-ray-room", onBuildXRayRoom],
         ["build-general-diagnosis-room", onBuildGeneralDiagnosisRoom],
         ["build-treatment-room", onBuildTreatmentRoom],
+        ["build-ward-room", onBuildWardRoom],
         ["build-pharmacy-room", onBuildPharmacyRoom],
         ["build-specialist-room", onBuildSpecialistRoom],
         ["build-psychiatry-room", onBuildPsychiatryRoom],
@@ -6481,6 +6511,7 @@ export function mountAppShell(options) {
     buildXRayRoomButton.addEventListener("click", onBuildXRayRoom);
     buildGeneralDiagnosisRoomButton.addEventListener("click", onBuildGeneralDiagnosisRoom);
     buildTreatmentRoomButton.addEventListener("click", onBuildTreatmentRoom);
+    buildWardRoomButton.addEventListener("click", onBuildWardRoom);
     buildPharmacyRoomButton.addEventListener("click", onBuildPharmacyRoom);
     buildSpecialistRoomButton.addEventListener("click", onBuildSpecialistRoom);
     buildPsychiatryRoomButton.addEventListener("click", onBuildPsychiatryRoom);
@@ -6617,6 +6648,7 @@ export function mountAppShell(options) {
             buildXRayRoomButton.removeEventListener("click", onBuildXRayRoom);
             buildGeneralDiagnosisRoomButton.removeEventListener("click", onBuildGeneralDiagnosisRoom);
             buildTreatmentRoomButton.removeEventListener("click", onBuildTreatmentRoom);
+            buildWardRoomButton.removeEventListener("click", onBuildWardRoom);
             buildPharmacyRoomButton.removeEventListener("click", onBuildPharmacyRoom);
             buildSpecialistRoomButton.removeEventListener("click", onBuildSpecialistRoom);
             buildPsychiatryRoomButton.removeEventListener("click", onBuildPsychiatryRoom);
