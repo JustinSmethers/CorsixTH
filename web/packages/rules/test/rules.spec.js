@@ -474,6 +474,42 @@ describe("phase 7 slice 1 gameplay rules", () => {
             callSound: "reqd015.wav",
             handymanCallSound: "maint006.wav"
         });
+        expect(nativeRoomDefinitionForType("ward")).toMatchObject({
+            nativeId: "ward",
+            nativeClass: "WardRoom",
+            levelConfigId: 9,
+            categories: { treatment: 2, diagnosis: 9 },
+            objectsNeeded: { desk: 1, bed: 1 },
+            objectsAdditional: ["extinguisher", "radiator", "plant", "desk", "bin", "bed"],
+            minimumSize: 6,
+            floorTile: 21,
+            swingDoors: true,
+            requiredStaff: { Nurse: 1 },
+            buildPreviewAnimation: 910,
+            defaultTreatmentSteps: ["bed"],
+            capacityObjects: { Nurse: "desk", patient: "bed" },
+            callSound: "reqd009.wav"
+        });
+        expect(nativeRoomDefinitionForType("operating-theatre")).toMatchObject({
+            nativeId: "operating_theatre",
+            nativeClass: "OperatingTheatreRoom",
+            levelConfigId: 10,
+            categories: { treatment: 3 },
+            objectsNeeded: {
+                operating_table: 1,
+                surgeon_screen: 1,
+                op_sink1: 1,
+                x_ray_viewer: 1
+            },
+            minimumSize: 6,
+            floorTile: 21,
+            swingDoors: true,
+            requiredStaff: { Surgeon: 2 },
+            buildPreviewAnimation: 5080,
+            defaultTreatmentSteps: ["surgeon_screen", "op_sink1", "operating_table", "x_ray_viewer"],
+            callSound: "reqd010.wav"
+        });
+        expect(["ward", "operating-theatre"].map(nativeRoomMinimumSize)).toEqual([6, 6]);
         expect(["decontamination", "electrolysis", "dna-fixer"].map(nativeRoomMinimumSize)).toEqual([5, 5, 5]);
         expect(["inflation-room", "slack-tongue-clinic", "hair-restoration", "jelly-vat"].map(nativeRoomMinimumSize)).toEqual([4, 4, 4, 4]);
         expect(["cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"].map(nativeRoomMinimumSize)).toEqual([4, 5, 4, 4, 6, 5]);
@@ -484,6 +520,8 @@ describe("phase 7 slice 1 gameplay rules", () => {
         const mutableFractureDefinition = nativeRoomDefinitionForType("fracture-clinic");
         const mutableHairDefinition = nativeRoomDefinitionForType("hair-restoration");
         const mutableDnaFixerDefinition = nativeRoomDefinitionForType("dna-fixer");
+        const mutableWardDefinition = nativeRoomDefinitionForType("ward");
+        const mutableOperatingTheatreDefinition = nativeRoomDefinitionForType("operating-theatre");
         mutableDefinition.objectsNeeded.screen = 0;
         mutableDefinition.specialTreatmentStepsByDisease["king-complex"].push("bookcase");
         mutableTrainingDefinition.objectsNeeded.projector = 0;
@@ -494,6 +532,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         mutableFractureDefinition.objectsNeeded.cast_remover = 0;
         mutableHairDefinition.objectsNeeded.console = 0;
         mutableDnaFixerDefinition.objectsNeeded.console = 0;
+        mutableWardDefinition.capacityObjects.Nurse = "bed";
+        mutableOperatingTheatreDefinition.objectsNeeded.operating_table = 0;
+        mutableOperatingTheatreDefinition.defaultTreatmentSteps.push("bin");
         expect(nativeRoomDefinitionForType("psychiatry")).toMatchObject({
             objectsNeeded: { screen: 1 },
             specialTreatmentStepsByDisease: { "king-complex": ["couch", "screen"] }
@@ -517,6 +558,13 @@ describe("phase 7 slice 1 gameplay rules", () => {
         });
         expect(nativeRoomDefinitionForType("dna-fixer")).toMatchObject({
             objectsNeeded: { console: 1 }
+        });
+        expect(nativeRoomDefinitionForType("ward")).toMatchObject({
+            capacityObjects: { Nurse: "desk" }
+        });
+        expect(nativeRoomDefinitionForType("operating-theatre")).toMatchObject({
+            objectsNeeded: { operating_table: 1 },
+            defaultTreatmentSteps: ["surgeon_screen", "op_sink1", "operating_table", "x_ray_viewer"]
         });
         expect(nativeRoomDefinitionForType("treatment")).toBeNull();
         expect(nativeRoomMinimumSize("treatment")).toBeNull();

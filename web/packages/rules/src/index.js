@@ -561,6 +561,49 @@ const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
         defaultTreatmentSteps: ["dna_fixer"],
         callSound: "reqd015.wav",
         handymanCallSound: "maint006.wav"
+    },
+    ward: {
+        nativeId: "ward",
+        nativeClass: "WardRoom",
+        levelConfigId: 9,
+        categories: {
+            treatment: 2,
+            diagnosis: 9
+        },
+        objectsNeeded: { desk: 1, bed: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "desk", "bin", "bed"],
+        buildPreviewAnimation: 910,
+        minimumSize: 6,
+        wallType: "white",
+        floorTile: 21,
+        swingDoors: true,
+        requiredStaff: { Nurse: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["bed"],
+        capacityObjects: { Nurse: "desk", patient: "bed" },
+        callSound: "reqd009.wav"
+    },
+    "operating-theatre": {
+        nativeId: "operating_theatre",
+        nativeClass: "OperatingTheatreRoom",
+        levelConfigId: 10,
+        categories: { treatment: 3 },
+        objectsNeeded: {
+            operating_table: 1,
+            surgeon_screen: 1,
+            op_sink1: 1,
+            x_ray_viewer: 1
+        },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 5080,
+        minimumSize: 6,
+        wallType: "white",
+        floorTile: 21,
+        swingDoors: true,
+        requiredStaff: { Surgeon: 2 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["surgeon_screen", "op_sink1", "operating_table", "x_ray_viewer"],
+        callSound: "reqd010.wav"
     }
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {
@@ -848,6 +891,7 @@ function cloneNativeRoomDefinition(definition) {
         requiredStaff: { ...definition.requiredStaff },
         specialTreatmentStepsByDisease: Object.fromEntries(Object.entries(definition.specialTreatmentStepsByDisease).map(([diseaseId, steps]) => [diseaseId, [...steps]])),
         defaultTreatmentSteps: [...definition.defaultTreatmentSteps],
+        ...(definition.capacityObjects ? { capacityObjects: { ...definition.capacityObjects } } : {}),
         ...(definition.trainingFactorObjects ? { trainingFactorObjects: [...definition.trainingFactorObjects] } : {})
     };
 }
