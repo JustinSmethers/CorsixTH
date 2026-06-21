@@ -509,6 +509,58 @@ const NATIVE_ROOM_DEFINITIONS_BY_TYPE = {
         defaultTreatmentSteps: ["jelly_moulder"],
         callSound: "reqd020.wav",
         handymanCallSound: "maint009.wav"
+    },
+    decontamination: {
+        nativeId: "decontamination",
+        nativeClass: "DecontaminationRoom",
+        levelConfigId: 30,
+        categories: { clinics: 8 },
+        objectsNeeded: { shower: 1, console: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 5100,
+        minimumSize: 5,
+        wallType: "blue",
+        floorTile: 19,
+        requiredStaff: { Doctor: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["shower"],
+        callSound: "reqd024.wav",
+        handymanCallSound: "maint012.wav"
+    },
+    electrolysis: {
+        nativeId: "electrolysis",
+        nativeClass: "ElectrolysisRoom",
+        levelConfigId: 23,
+        categories: { clinics: 5 },
+        objectsNeeded: { electrolyser: 1, console: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 930,
+        minimumSize: 5,
+        wallType: "blue",
+        floorTile: 17,
+        requiredStaff: { Doctor: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["electrolyser"],
+        callSound: "reqd019.wav",
+        handymanCallSound: "maint008.wav"
+    },
+    "dna-fixer": {
+        nativeId: "dna_fixer",
+        nativeClass: "DNAFixerRoom",
+        levelConfigId: 23,
+        categories: { clinics: 6 },
+        objectsNeeded: { dna_fixer: 1, console: 1 },
+        objectsAdditional: ["extinguisher", "radiator", "plant", "bin"],
+        buildPreviewAnimation: 5070,
+        minimumSize: 5,
+        wallType: "blue",
+        floorTile: 17,
+        swingDoors: true,
+        requiredStaff: { Researcher: 1 },
+        specialTreatmentStepsByDisease: {},
+        defaultTreatmentSteps: ["dna_fixer"],
+        callSound: "reqd015.wav",
+        handymanCallSound: "maint006.wav"
     }
 };
 const STAFF_WAGE_COST_PER_TICK_BY_ROLE = {

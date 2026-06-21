@@ -432,6 +432,49 @@ describe("phase 7 slice 1 gameplay rules", () => {
             callSound: "reqd020.wav",
             handymanCallSound: "maint009.wav"
         });
+        expect(nativeRoomDefinitionForType("decontamination")).toMatchObject({
+            nativeId: "decontamination",
+            nativeClass: "DecontaminationRoom",
+            levelConfigId: 30,
+            categories: { clinics: 8 },
+            objectsNeeded: { shower: 1, console: 1 },
+            minimumSize: 5,
+            floorTile: 19,
+            requiredStaff: { Doctor: 1 },
+            buildPreviewAnimation: 5100,
+            defaultTreatmentSteps: ["shower"],
+            callSound: "reqd024.wav",
+            handymanCallSound: "maint012.wav"
+        });
+        expect(nativeRoomDefinitionForType("electrolysis")).toMatchObject({
+            nativeId: "electrolysis",
+            nativeClass: "ElectrolysisRoom",
+            levelConfigId: 23,
+            categories: { clinics: 5 },
+            objectsNeeded: { electrolyser: 1, console: 1 },
+            minimumSize: 5,
+            floorTile: 17,
+            requiredStaff: { Doctor: 1 },
+            buildPreviewAnimation: 930,
+            defaultTreatmentSteps: ["electrolyser"],
+            callSound: "reqd019.wav",
+            handymanCallSound: "maint008.wav"
+        });
+        expect(nativeRoomDefinitionForType("dna-fixer")).toMatchObject({
+            nativeId: "dna_fixer",
+            nativeClass: "DNAFixerRoom",
+            levelConfigId: 23,
+            categories: { clinics: 6 },
+            objectsNeeded: { dna_fixer: 1, console: 1 },
+            minimumSize: 5,
+            swingDoors: true,
+            requiredStaff: { Researcher: 1 },
+            buildPreviewAnimation: 5070,
+            defaultTreatmentSteps: ["dna_fixer"],
+            callSound: "reqd015.wav",
+            handymanCallSound: "maint006.wav"
+        });
+        expect(["decontamination", "electrolysis", "dna-fixer"].map(nativeRoomMinimumSize)).toEqual([5, 5, 5]);
         expect(["inflation-room", "slack-tongue-clinic", "hair-restoration", "jelly-vat"].map(nativeRoomMinimumSize)).toEqual([4, 4, 4, 4]);
         expect(["cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"].map(nativeRoomMinimumSize)).toEqual([4, 5, 4, 4, 6, 5]);
         const mutableDefinition = nativeRoomDefinitionForType("psychiatry");
@@ -440,6 +483,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         const mutableScannerDefinition = nativeRoomDefinitionForType("scanner");
         const mutableFractureDefinition = nativeRoomDefinitionForType("fracture-clinic");
         const mutableHairDefinition = nativeRoomDefinitionForType("hair-restoration");
+        const mutableDnaFixerDefinition = nativeRoomDefinitionForType("dna-fixer");
         mutableDefinition.objectsNeeded.screen = 0;
         mutableDefinition.specialTreatmentStepsByDisease["king-complex"].push("bookcase");
         mutableTrainingDefinition.objectsNeeded.projector = 0;
@@ -449,6 +493,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         mutableScannerDefinition.objectsNeeded.console = 0;
         mutableFractureDefinition.objectsNeeded.cast_remover = 0;
         mutableHairDefinition.objectsNeeded.console = 0;
+        mutableDnaFixerDefinition.objectsNeeded.console = 0;
         expect(nativeRoomDefinitionForType("psychiatry")).toMatchObject({
             objectsNeeded: { screen: 1 },
             specialTreatmentStepsByDisease: { "king-complex": ["couch", "screen"] }
@@ -468,6 +513,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
             objectsNeeded: { cast_remover: 1 }
         });
         expect(nativeRoomDefinitionForType("hair-restoration")).toMatchObject({
+            objectsNeeded: { console: 1 }
+        });
+        expect(nativeRoomDefinitionForType("dna-fixer")).toMatchObject({
             objectsNeeded: { console: 1 }
         });
         expect(nativeRoomDefinitionForType("treatment")).toBeNull();
