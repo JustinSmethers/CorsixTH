@@ -380,12 +380,66 @@ describe("phase 7 slice 1 gameplay rules", () => {
             handymanCallSound: "maint014.wav"
         });
         expect(nativeRoomMinimumSize("fracture-clinic")).toBe(4);
+        expect(nativeRoomDefinitionForType("inflation-room")).toMatchObject({
+            nativeId: "inflation",
+            nativeClass: "InflationRoom",
+            levelConfigId: 17,
+            categories: { clinics: 1 },
+            objectsNeeded: { inflator: 1 },
+            minimumSize: 4,
+            requiredStaff: { Doctor: 1 },
+            buildPreviewAnimation: 908,
+            defaultTreatmentSteps: ["inflator"],
+            callSound: "reqd014.wav",
+            handymanCallSound: "maint013.wav"
+        });
+        expect(nativeRoomDefinitionForType("slack-tongue-clinic")).toMatchObject({
+            nativeId: "slack_tongue",
+            nativeClass: "SlackTongueRoom",
+            levelConfigId: 20,
+            categories: { clinics: 2 },
+            objectsNeeded: { slicer: 1 },
+            minimumSize: 4,
+            requiredStaff: { Doctor: 1 },
+            buildPreviewAnimation: 932,
+            defaultTreatmentSteps: ["slicer"],
+            callSound: "reqd005.wav",
+            handymanCallSound: "maint004.wav"
+        });
+        expect(nativeRoomDefinitionForType("hair-restoration")).toMatchObject({
+            nativeId: "hair_restoration",
+            nativeClass: "HairRestorationRoom",
+            levelConfigId: 19,
+            categories: { clinics: 4 },
+            objectsNeeded: { hair_restorer: 1, console: 1 },
+            minimumSize: 4,
+            requiredStaff: { Doctor: 1 },
+            buildPreviewAnimation: 5074,
+            defaultTreatmentSteps: ["hair_restorer"],
+            callSound: "reqd016.wav",
+            handymanCallSound: "maint007.wav"
+        });
+        expect(nativeRoomDefinitionForType("jelly-vat")).toMatchObject({
+            nativeId: "jelly_vat",
+            nativeClass: "JellyVatRoom",
+            levelConfigId: 24,
+            categories: { clinics: 7 },
+            objectsNeeded: { jelly_moulder: 1 },
+            minimumSize: 4,
+            requiredStaff: { Doctor: 1 },
+            buildPreviewAnimation: 928,
+            defaultTreatmentSteps: ["jelly_moulder"],
+            callSound: "reqd020.wav",
+            handymanCallSound: "maint009.wav"
+        });
+        expect(["inflation-room", "slack-tongue-clinic", "hair-restoration", "jelly-vat"].map(nativeRoomMinimumSize)).toEqual([4, 4, 4, 4]);
         expect(["cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis"].map(nativeRoomMinimumSize)).toEqual([4, 5, 4, 4, 6, 5]);
         const mutableDefinition = nativeRoomDefinitionForType("psychiatry");
         const mutableTrainingDefinition = nativeRoomDefinitionForType("training-room");
         const mutablePharmacyDefinition = nativeRoomDefinitionForType("pharmacy");
         const mutableScannerDefinition = nativeRoomDefinitionForType("scanner");
         const mutableFractureDefinition = nativeRoomDefinitionForType("fracture-clinic");
+        const mutableHairDefinition = nativeRoomDefinitionForType("hair-restoration");
         mutableDefinition.objectsNeeded.screen = 0;
         mutableDefinition.specialTreatmentStepsByDisease["king-complex"].push("bookcase");
         mutableTrainingDefinition.objectsNeeded.projector = 0;
@@ -394,6 +448,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         mutablePharmacyDefinition.defaultTreatmentSteps.push("bin");
         mutableScannerDefinition.objectsNeeded.console = 0;
         mutableFractureDefinition.objectsNeeded.cast_remover = 0;
+        mutableHairDefinition.objectsNeeded.console = 0;
         expect(nativeRoomDefinitionForType("psychiatry")).toMatchObject({
             objectsNeeded: { screen: 1 },
             specialTreatmentStepsByDisease: { "king-complex": ["couch", "screen"] }
@@ -411,6 +466,9 @@ describe("phase 7 slice 1 gameplay rules", () => {
         });
         expect(nativeRoomDefinitionForType("fracture-clinic")).toMatchObject({
             objectsNeeded: { cast_remover: 1 }
+        });
+        expect(nativeRoomDefinitionForType("hair-restoration")).toMatchObject({
+            objectsNeeded: { console: 1 }
         });
         expect(nativeRoomDefinitionForType("treatment")).toBeNull();
         expect(nativeRoomMinimumSize("treatment")).toBeNull();
