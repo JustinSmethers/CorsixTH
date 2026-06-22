@@ -446,6 +446,7 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("funds treatment research that improves deterministic treatment outcomes", () => {
         const simulation = new DeterministicSimulation(7309, { bounds: { width: 14, height: 14 } });
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         expect(simulation.getState()).toMatchObject({
             cash: 48_500,
@@ -486,13 +487,13 @@ describe("phase 7 slice 3 economy/progression/events", () => {
         noResearchRoom.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 6, y: 4 } });
         noResearchRoom.execute({ type: "start-research" });
         expect(noResearchRoom.getState().research).toMatchObject({
-            active: true,
-            remainingTicks: 6,
+            active: false,
+            remainingTicks: 0,
             activeResearchers: 0,
             ticksPerTick: 1
         });
         const simulation = new DeterministicSimulation(73092, { bounds: { width: 14, height: 14 } });
-        simulation.execute({ type: "open-room", roomType: "research", position: { x: 8, y: 8 } });
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "hire-staff", role: "diagnostician", initialSpecialties: ["researcher"], position: { x: 6, y: 4 } });
         const researcher = simulation.getState().entities.staff.find((staff) => staff.specialties?.includes("researcher"));
         expect(researcher).toMatchObject({
@@ -516,11 +517,12 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("uses imported scenario research start cost for project funding", () => {
         const simulation = new DeterministicSimulation(73091, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             initialCash: 500,
             researchProjectCost: 100
         });
         expect(simulation.getState().research.projectCost).toBe(100);
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         expect(simulation.getState()).toMatchObject({
             cash: 400,
@@ -535,12 +537,13 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("uses imported scenario minimum drug cost as a research project floor", () => {
         const simulation = new DeterministicSimulation(73092, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             initialCash: 500,
             researchProjectCost: 40,
             researchProjectMinCost: 75
         });
         expect(simulation.getState().research.projectCost).toBe(75);
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         expect(simulation.getState()).toMatchObject({
             cash: 425,
@@ -554,7 +557,8 @@ describe("phase 7 slice 3 economy/progression/events", () => {
         });
     });
     it("supports scenario-scaled treatment research duration", () => {
-        const simulation = new DeterministicSimulation(7310, { bounds: { width: 8, height: 8 }, researchProjectTicks: 12 });
+        const simulation = new DeterministicSimulation(7310, { bounds: { width: 14, height: 14 }, researchProjectTicks: 12 });
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         expect(simulation.getState().research).toMatchObject({
             active: true,
@@ -576,10 +580,11 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("uses imported scenario research increment for project completion", () => {
         const simulation = new DeterministicSimulation(73104, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             researchProjectTicks: 1,
             researchLevelIncrement: 2
         });
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         simulation.execute({ type: "tick", count: 1 });
         expect(simulation.getState().research).toMatchObject({
@@ -595,12 +600,13 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("uses imported autopsy settings to advance active research after patient death", () => {
         const simulation = new DeterministicSimulation(73102, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             researchProjectTicks: 100,
             autopsy: { researchPercent: 25, reputationHitPercent: 10 }
         });
         simulation.execute({ type: "set-staff-status", staffId: 1, status: "on-break" });
         simulation.execute({ type: "admit-patient", severity: 3, position: { x: 2, y: 2 } });
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         simulation.execute({ type: "tick", count: patientMaxHealthForSeverity(3) });
         const state = simulation.getState();
@@ -617,11 +623,12 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("uses imported scenario drug rating as baseline treatment research strength", () => {
         const simulation = new DeterministicSimulation(73101, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             researchStartRating: 95,
             researchImproveRate: 5
         });
         expect(simulation.getState().research.successBonus).toBe(25);
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         simulation.execute({ type: "tick", count: 6 });
         expect(simulation.getState().research).toMatchObject({
@@ -637,12 +644,13 @@ describe("phase 7 slice 3 economy/progression/events", () => {
     });
     it("uses imported scenario research cost increases for later projects", () => {
         const simulation = new DeterministicSimulation(73103, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             initialCash: 1_000,
             researchProjectCost: 100,
             researchImproveCostPercent: 25
         });
         expect(simulation.getState().research.projectCost).toBe(100);
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         expect(simulation.getState().cash).toBe(900);
         simulation.execute({ type: "tick", count: 6 });

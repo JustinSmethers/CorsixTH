@@ -1414,6 +1414,7 @@ describe("app orchestrator", () => {
             action: "run-awards-ceremony",
             source: "ui:run-awards-ceremony"
         })).toEqual(["awards.blocked"]);
+        researched.executeCommand({ type: "open-room", roomType: "research" });
         expect(researched.dispatch({ device: "ui", action: "start-research", source: "ui:start-research" })).toEqual(["research.started"]);
         for (let index = 0; index < 6; index += 1) {
             researched.advanceFrame(250);
@@ -1464,9 +1465,16 @@ describe("app orchestrator", () => {
             device: "ui",
             action: "start-research",
             source: "ui:start-research"
+        })).toEqual(["research.blocked"]);
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "start-research",
+            source: "ui:start-research"
         })).toEqual(["research.started"]);
         expect(orchestrator.telemetry()).toMatchObject({
-            cash: 48_500,
+            cash: 44_500,
+            openResearchRooms: 1,
             treatmentResearchActive: true,
             treatmentResearchRemainingTicks: 6
         });
@@ -1527,13 +1535,14 @@ describe("app orchestrator", () => {
             scenarioOpponentLeaderValue: 1700,
             scenarioOpponentLeaderReputation: 360
         });
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
         expect(orchestrator.dispatch({
             device: "ui",
             action: "start-research",
             source: "ui:start-research"
         })).toEqual(["research.started"]);
         expect(orchestrator.telemetry()).toMatchObject({
-            cash: 49_900,
+            cash: 45_900,
             treatmentResearchActive: true,
             treatmentResearchRemainingTicks: 24
         });
@@ -1592,6 +1601,7 @@ describe("app orchestrator", () => {
             pointerTileSize: 8,
             researchSettings: { startRating: 95, startCost: 100, researchImproveIncrementPercent: 7 }
         });
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
         orchestrator.dispatch({ device: "ui", action: "start-research", source: "ui:start-research" });
         for (let index = 0; index < 6; index += 1) {
             orchestrator.advanceFrame(250);
@@ -1618,13 +1628,14 @@ describe("app orchestrator", () => {
             scenarioResearchStartCost: 40,
             scenarioResearchMinDrugCost: 75
         });
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
         expect(orchestrator.dispatch({
             device: "ui",
             action: "start-research",
             source: "ui:start-research"
         })).toEqual(["research.started"]);
         expect(orchestrator.telemetry()).toMatchObject({
-            cash: 49_925,
+            cash: 45_925,
             treatmentResearchActive: true,
             treatmentResearchProjectCost: 75
         });
@@ -1765,6 +1776,7 @@ describe("app orchestrator", () => {
                 { index: 33, known: true, researchRequired: 10000, token: "GUT_ROT", diseaseId: "gut-rot", severity: 3 }
             ]
         });
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
         orchestrator.dispatch({ device: "ui", action: "pause-toggle", source: "ui:pause-toggle" });
         orchestrator.dispatch({ device: "ui", action: "admissions-toggle", source: "ui:admissions-toggle" });
         for (let index = 0; index < 16; index += 1) {
@@ -3029,7 +3041,7 @@ describe("app orchestrator", () => {
             tickRateHz: 4,
             pointerTileSize: 8,
             bounds: { width: 12, height: 12 },
-            roomAvailability: [],
+            roomAvailability: ["research"],
             roomAvailabilitySchedule: [
                 { index: 24, roomType: "fracture-clinic", startAvailable: false, whenAvailable: 99, availableForLevel: true, researchRequired: 40000, expertiseCategory: "DIAGNOSIS" }
             ],
@@ -3037,7 +3049,7 @@ describe("app orchestrator", () => {
                 { index: 38, known: false, researchRequired: 40000, token: "I_D_CARDIO", category: "DIAGNOSIS" }
             ]
         });
-        expect(orchestrator.telemetry().roomAvailabilityStatus).toBe("diagnosis,treatment");
+        expect(orchestrator.telemetry().roomAvailabilityStatus).toBe("diagnosis,treatment,research");
         expect(orchestrator.telemetry()).toMatchObject({
             scenarioObjectAvailabilityCount: 1,
             scenarioObjectAvailableCount: 0,
@@ -3058,6 +3070,7 @@ describe("app orchestrator", () => {
             valid: false,
             reason: "room-unavailable"
         });
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
         expect(orchestrator.dispatch({ device: "ui", action: "start-research", source: "ui:start-research" })).toEqual(["research.started"]);
         for (let index = 0; index < 6; index += 1) {
             orchestrator.advanceFrame(250);
@@ -3065,7 +3078,7 @@ describe("app orchestrator", () => {
         expect(orchestrator.telemetry()).toMatchObject({
             treatmentResearchLevel: 1,
             scenarioKnownExpertiseCount: 1,
-            roomAvailabilityStatus: "diagnosis,treatment,fracture-clinic",
+            roomAvailabilityStatus: "diagnosis,treatment,research,fracture-clinic",
             scenarioObjectAvailableCount: 1,
             scenarioObjectLockedCount: 0,
             scenarioObjectResearchLockedCount: 0,
@@ -3220,6 +3233,7 @@ describe("app orchestrator", () => {
                 { index: 0, month: 0, doctors: 0, nurses: 1, handymen: 1, receptionists: 0 }
             ]
         });
+        orchestrator.executeCommand({ type: "open-room", roomType: "research" });
         expect(orchestrator.dispatch({
             device: "ui",
             action: "start-research",

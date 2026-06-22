@@ -1202,6 +1202,7 @@ export function canStartResearchFromTelemetry(telemetry = null) {
         !isTerminalLevelTelemetry(telemetry) &&
         !telemetry.treatmentResearchActive &&
         telemetry.treatmentResearchLevel < telemetry.treatmentResearchMaxLevel &&
+        telemetry.openResearchRooms > 0 &&
         telemetry.cash >= telemetry.treatmentResearchProjectCost);
 }
 function isTerminalLevelTelemetry(telemetry = null) {
@@ -2628,12 +2629,27 @@ export function createRoomAvailabilityFromScenario(scenario) {
         return null;
     }
     const roomTypes = [];
+    if (scenarioEnablesResearchRoom(scenario)) {
+        roomTypes.push("research");
+    }
     for (const object of objectAvailability) {
         if (object.availableForLevel !== false && object.startAvailable === true && typeof object.roomType === "string" && !roomTypes.includes(object.roomType)) {
             roomTypes.push(object.roomType);
         }
     }
     return roomTypes;
+}
+function scenarioEnablesResearchRoom(scenario) {
+    if (!scenario || typeof scenario !== "object") {
+        return false;
+    }
+    if (scenario.researchSettings && Object.keys(scenario.researchSettings).length > 0) {
+        return true;
+    }
+    if (scenario.awardCriteria?.newTechAward !== undefined || scenario.awardCriteria?.newTechPoor !== undefined) {
+        return true;
+    }
+    return Array.isArray(scenario.staffLevels) && scenario.staffLevels.some((entry) => Number.isFinite(entry.researcherRate) && entry.researcherRate > 0);
 }
 export function createRoomAvailabilityScheduleFromScenario(scenario) {
     const objectAvailability = scenario?.objectAvailability;

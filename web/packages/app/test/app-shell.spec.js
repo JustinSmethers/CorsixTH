@@ -757,6 +757,7 @@ describe("app shell campaign objectives", () => {
             treatmentResearchActive: false,
             treatmentResearchLevel: 1,
             treatmentResearchMaxLevel: 3,
+            openResearchRooms: 1,
             treatmentResearchProjectCost: 1_000,
             cash: 1_000
         })).toBe(true);
@@ -764,6 +765,7 @@ describe("app shell campaign objectives", () => {
             treatmentResearchActive: true,
             treatmentResearchLevel: 1,
             treatmentResearchMaxLevel: 3,
+            openResearchRooms: 1,
             treatmentResearchProjectCost: 1_000,
             cash: 1_000
         })).toBe(false);
@@ -771,6 +773,15 @@ describe("app shell campaign objectives", () => {
             treatmentResearchActive: false,
             treatmentResearchLevel: 1,
             treatmentResearchMaxLevel: 3,
+            openResearchRooms: 0,
+            treatmentResearchProjectCost: 1_000,
+            cash: 1_000
+        })).toBe(false);
+        expect(canStartResearchFromTelemetry({
+            treatmentResearchActive: false,
+            treatmentResearchLevel: 1,
+            treatmentResearchMaxLevel: 3,
+            openResearchRooms: 1,
             treatmentResearchProjectCost: 1_000,
             cash: 1_000,
             levelObjectiveStatus: "lost"
@@ -779,6 +790,7 @@ describe("app shell campaign objectives", () => {
             treatmentResearchActive: false,
             treatmentResearchLevel: 1,
             treatmentResearchMaxLevel: 3,
+            openResearchRooms: 1,
             treatmentResearchProjectCost: 1_000,
             cash: 1_000,
             levelObjectiveStatus: "won"

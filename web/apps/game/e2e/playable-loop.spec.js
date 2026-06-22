@@ -235,11 +235,15 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   );
   await expect(page.getByTestId("repay-loan")).toBeEnabled();
 
-  const cashBeforeResearch = parseCash(
-    (await page.getByTestId("cash").textContent()) ?? "",
-  );
   await expect(page.getByTestId("research-status")).toHaveText(
     "Research: treatment 0/3, invested 0",
+  );
+  await placeOnFirstValidTile(page, "build-research-room");
+  await expect(page.getByTestId("action-status")).toHaveText(
+    "Action: room built",
+  );
+  const cashBeforeResearch = parseCash(
+    (await page.getByTestId("cash").textContent()) ?? "",
   );
   await expect(page.getByTestId("start-research")).toBeEnabled();
   await page.getByTestId("start-research").click();
@@ -403,7 +407,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "build-treatment-room",
   );
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
-    "rooms 4",
+    "rooms 5",
   );
   await expect(page.getByTestId("open-treatment-rooms")).toHaveText(
     "Open treatment rooms: 2",
@@ -417,7 +421,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
     "Action: room sold",
   );
   await expect(page.getByTestId("hospital-canvas-summary")).toContainText(
-    "rooms 3",
+    "rooms 4",
   );
   await expect(page.getByTestId("open-treatment-rooms")).toHaveText(
     "Open treatment rooms: 1",

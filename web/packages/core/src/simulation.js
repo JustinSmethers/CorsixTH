@@ -2653,6 +2653,9 @@ export class DeterministicSimulation {
         if (this.treatmentResearchLevel >= treatmentResearchMaxLevel() || this.activeTreatmentResearchRemainingTicks > 0) {
             return false;
         }
+        if (!this.hasOpenRoomType("research")) {
+            return false;
+        }
         const cost = this.treatmentResearchProjectCostForCurrentLevel();
         if (!this.canAffordPurchase(cost)) {
             return false;

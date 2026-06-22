@@ -97,6 +97,24 @@ function parseReputation(raw) {
     return Number(match[1]);
 }
 
+async function placeRoomOnFirstValidTile(page, buttonTestId) {
+    await page.getByTestId(buttonTestId).click();
+    const canvas = page.getByTestId("hospital-map-canvas");
+    for (const y of [128, 160, 192, 224, 256, 288, 320]) {
+        for (const x of [256, 288, 320, 352, 384, 416, 448, 480, 512]) {
+            await canvas.hover({ position: { x, y } });
+            const placement = (await page.getByTestId("hospital-placement-mode").textContent()) ?? "";
+            if (!placement.includes("(valid)")) {
+                continue;
+            }
+            await canvas.click({ position: { x, y } });
+            await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+            return;
+        }
+    }
+    throw new Error(`No valid placement found for ${buttonTestId}`);
+}
+
 async function selectVisiblePatient(page) {
     const canvas = page.getByTestId("hospital-map-canvas");
     for (let index = 0; index < 16; index += 1) {
@@ -428,6 +446,7 @@ test("phase 8 scenario import: minimum drug cost floors browser research spend",
     await expect(page.getByTestId("research-effect")).toContainText("next 75/24 ticks");
     await expect(page.getByTestId("research-effect")).toContainText("scenario rating 100, divisor 4, start cost 40, min drug 75");
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3, invested 0");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
 
     await page.getByTestId("start-research").click();
@@ -440,6 +459,7 @@ test("phase 8 scenario import: research increment percent improves browser treat
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("research-effect")).toContainText("Research effect: +25% success, next 100/6 ticks");
     await expect(page.getByTestId("research-effect")).toContainText("scenario rating 95, divisor 1, start cost 100, min drug default, improve default, improve cost default, improve increment 7");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
 
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 100");
@@ -463,6 +483,7 @@ test("phase 8 scenario import: research cost growth and drug improve rate affect
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("research-effect")).toContainText("Research effect: +25% success, next 100/6 ticks");
     await expect(page.getByTestId("research-effect")).toContainText("scenario rating 95, divisor 1, start cost 100, min drug default, improve 5, improve cost 25");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
 
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 100");
@@ -500,6 +521,7 @@ test("phase 8 scenario import: machine strength and max object strength drive br
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("maintenance-staff-status")).toHaveText("Handymen: 0/0, repairs 0, bonus 1 ticks; scenario wear Cardiogram 12, Inflation Room 14, max 14");
     await expect(page.getByTestId("research-effect")).toContainText("object strength 14/2");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
     await page.getByTestId("start-research").click();
     for (let index = 0; index < 6; index += 1) {
         await page.getByTestId("step").click();
@@ -510,7 +532,7 @@ test("phase 8 scenario import: machine strength and max object strength drive br
     }
     await expect(page.getByTestId("tick")).toHaveText("Tick: 64");
     await expect(page.getByTestId("quake-status")).toHaveText("Quake: scheduled 2, active none, severity 0, triggered 1, next 1 months 2-2 severity 1");
-    await expect(page.getByTestId("rooms-in-maintenance")).toHaveText("Rooms in maintenance: 2, worn 100%");
+    await expect(page.getByTestId("rooms-in-maintenance")).toHaveText("Rooms in maintenance: 3, worn 100%");
     for (let index = 0; index < 15; index += 1) {
         await page.getByTestId("hospital-camera-west").click();
         await page.getByTestId("hospital-camera-north").click();
@@ -786,7 +808,7 @@ test("phase 8 scenario import: custom doctor thresholds change browser hire qual
 });
 
 test("phase 8 scenario import: staff market follows imported month schedule", async ({ page }) => {
-    await importScenarioFixture(page);
+    await importScenarioFixture(page, researchIncrementFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 7, nurses 7, handymen 3, receptionists 8, consultants 0, juniors 10, psych 3, surgeons 0, researchers 0, receptionists target 8; scenario staff month 0, seed 4953");
     for (let index = 0; index < 64; index += 1) {
@@ -836,6 +858,7 @@ test("phase 8 scenario import: staff market researcher rate creates browser rese
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 2, nurses 7, handymen 3, receptionists 8, consultants 0, juniors 0, psych 0, surgeons 0, researchers 100, receptionists target 8; scenario staff month 0, seed 4953");
     await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
     await page.getByTestId("hire-diagnostician").click();
     const canvas = page.getByTestId("hospital-map-canvas");
     await canvas.hover({ position: { x: 416, y: 176 } });
@@ -843,7 +866,7 @@ test("phase 8 scenario import: staff market researcher rate creates browser rese
     await canvas.click({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 1, nurses 7, handymen 3, receptionists 8, consultants 0, juniors 0, psych 0, surgeons 0, researchers 100, receptionists target 8; scenario staff month 0, seed 4953");
-    await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 1500");
 
@@ -853,7 +876,7 @@ test("phase 8 scenario import: staff market researcher rate creates browser rese
     await page.getByTestId("save-slot-name").fill(saveSlot);
     await page.getByTestId("load-game").click();
     await expect(page.getByTestId("save-status")).toContainText("Save: loaded tick");
-    await expect(page.getByTestId("research-effect")).toContainText("throughput 1x/0 researchers");
+    await expect(page.getByTestId("research-effect")).toContainText("throughput 2x/1 researchers");
 });
 
 test("phase 8 scenario import: skilled browser hires use imported salary bands", async ({ page }) => {
@@ -1414,6 +1437,7 @@ test("phase 8 scenario import: new tech awards use imported SAM values", async (
     await expect(page.getByTestId("hospital-awards")).toContainText("research spend 0/2000");
     await expect(page.getByTestId("hospital-awards")).toContainText("poor research spend 0/1500");
     await expect(page.getByTestId("run-awards-ceremony")).toBeDisabled();
+    await placeRoomOnFirstValidTile(page, "build-research-room");
 
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 1000");
@@ -1644,19 +1668,20 @@ test("phase 8 scenario import: mayor awards use imported SAM values", async ({ p
 });
 
 test("phase 8 scenario import: browser research unlocks scenario expertise", async ({ page }) => {
-    await importScenarioFixture(page);
+    await importScenarioFixture(page, researchIncrementFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 0, disabled 0, research 1");
     await expect(page.getByTestId("scenario-expertise")).toHaveText("Scenario expertise: 1/3 known, 2 research-required, diagnosable 3, capability 100, next research 10000 Uncommon Cold");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
     const cashBefore = Number(((await page.getByTestId("cash").textContent()) ?? "").match(/^Cash: (\d+)/u)?.[1] ?? "0");
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: research started");
-    await expect(page.getByTestId("cash")).toHaveText(new RegExp(`^Cash: ${cashBefore - 1500}(?:;.*)?$`, "u"));
-    await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 1500");
+    await expect(page.getByTestId("cash")).toHaveText(new RegExp(`^Cash: ${cashBefore - 100}(?:;.*)?$`, "u"));
+    await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (6 ticks), invested 100");
     for (let index = 0; index < 6; index += 1) {
         await page.getByTestId("step").click();
     }
-    await expect(page.getByTestId("research-status")).toContainText("Research: treatment 1/3, invested 1500");
+    await expect(page.getByTestId("research-status")).toContainText("Research: treatment 1/3, invested 100");
     await expect(page.getByTestId("scenario-expertise")).toHaveText("Scenario expertise: 2/3 known, 1 research-required, diagnosable 3, capability 100, next research 40000 D CARDIO");
     await expect(page.getByTestId("object-availability")).toContainText("Object availability: 1/2 available, locked 0, disabled 0, research 1");
     await expect(page.getByTestId("last-event")).toHaveText("Last event: research-completed");
@@ -1852,6 +1877,7 @@ test("phase 8 scenario import: autopsy settings advance research after patient d
     await page.getByTestId("staff-break-toggle").click();
     await page.getByTestId("admission-severity").selectOption("3");
     await page.getByTestId("admit").click();
+    await placeRoomOnFirstValidTile(page, "build-research-room");
     await page.getByTestId("start-research").click();
     await expect(page.getByTestId("research-status")).toContainText("Research: treatment 0/3 (120 ticks), invested 1500");
     for (let i = 0; i < 48; i += 1) {

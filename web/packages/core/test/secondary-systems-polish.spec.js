@@ -300,12 +300,13 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
     });
     it("raises imported room wear thresholds as treatment research improves object strength", () => {
         const simulation = new DeterministicSimulation(74121, {
-            bounds: { width: 8, height: 8 },
+            bounds: { width: 14, height: 14 },
             roomWearThresholdOverrides: { diagnosis: 12 },
             roomWearResearchMaxStrength: 14,
             researchProjectTicks: 1,
             researchLevelIncrement: 2
         });
+        simulation.openRoom("research", { x: 8, y: 8 });
         simulation.execute({ type: "start-research" });
         simulation.execute({ type: "tick", count: 1 });
         expect(simulation.getState().research.level).toBe(2);

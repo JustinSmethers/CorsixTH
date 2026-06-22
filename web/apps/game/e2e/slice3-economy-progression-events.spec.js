@@ -14,6 +14,23 @@ function parseReputation(raw) {
     }
     return Number(match[1]);
 }
+async function placeRoomOnFirstValidTile(page, buttonTestId) {
+    await page.getByTestId(buttonTestId).click();
+    const canvas = page.getByTestId("hospital-map-canvas");
+    for (const y of [128, 160, 192, 224, 256, 288, 320]) {
+        for (const x of [256, 288, 320, 352, 384, 416, 448, 480, 512]) {
+            await canvas.hover({ position: { x, y } });
+            const placement = (await page.getByTestId("hospital-placement-mode").textContent()) ?? "";
+            if (!placement.includes("(valid)")) {
+                continue;
+            }
+            await canvas.click({ position: { x, y } });
+            await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+            return;
+        }
+    }
+    throw new Error(`No valid placement found for ${buttonTestId}`);
+}
 test("phase 7 slice 3 player journey: progress economy milestones and deterministic event flow", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);
     await page.getByTestId("pause-toggle").click();
@@ -186,6 +203,7 @@ test("phase 7 slice 3 player journey: treatment research improves success bonus"
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("research-status")).toHaveText("Research: treatment 0/3, invested 0");
     await expect(page.getByTestId("research-effect")).toHaveText("Research effect: +0% success, next 1500/6 ticks, throughput 1x/0 researchers");
+    await placeRoomOnFirstValidTile(page, "build-research-room");
     const cashBefore = parseCash((await page.getByTestId("cash").textContent()) ?? "");
     await page.getByTestId("playfield").focus();
     await page.keyboard.press("F6");
