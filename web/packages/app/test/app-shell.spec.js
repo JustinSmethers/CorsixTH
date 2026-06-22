@@ -908,31 +908,19 @@ describe("app shell campaign objectives", () => {
         }, {
             maxStaffSkillLevel: 3,
             staffTrainingCost: 400,
-            cash: 500
+            cash: 500,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1
         })).toBe(true);
         expect(canTrainStaffFromTelemetry({
-            trainingRemainingTicks: 1,
-            skillLevel: 1
-        }, {
-            maxStaffSkillLevel: 3,
-            staffTrainingCost: 400,
-            cash: 500
-        })).toBe(false);
-        expect(canTrainStaffFromTelemetry({
-            trainingRemainingTicks: 0,
-            skillLevel: 3
-        }, {
-            maxStaffSkillLevel: 3,
-            staffTrainingCost: 400,
-            cash: 500
-        })).toBe(false);
-        expect(canTrainStaffFromTelemetry({
             trainingRemainingTicks: 0,
             skillLevel: 1
         }, {
             maxStaffSkillLevel: 3,
             staffTrainingCost: 400,
-            cash: 100
+            cash: 500,
+            openTrainingRooms: 0,
+            availableTrainingConsultants: 1
         })).toBe(false);
         expect(canTrainStaffFromTelemetry({
             trainingRemainingTicks: 0,
@@ -941,6 +929,48 @@ describe("app shell campaign objectives", () => {
             maxStaffSkillLevel: 3,
             staffTrainingCost: 400,
             cash: 500,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 0
+        })).toBe(false);
+        expect(canTrainStaffFromTelemetry({
+            trainingRemainingTicks: 1,
+            skillLevel: 1
+        }, {
+            maxStaffSkillLevel: 3,
+            staffTrainingCost: 400,
+            cash: 500,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1
+        })).toBe(false);
+        expect(canTrainStaffFromTelemetry({
+            trainingRemainingTicks: 0,
+            skillLevel: 3
+        }, {
+            maxStaffSkillLevel: 3,
+            staffTrainingCost: 400,
+            cash: 500,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1
+        })).toBe(false);
+        expect(canTrainStaffFromTelemetry({
+            trainingRemainingTicks: 0,
+            skillLevel: 1
+        }, {
+            maxStaffSkillLevel: 3,
+            staffTrainingCost: 400,
+            cash: 100,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1
+        })).toBe(false);
+        expect(canTrainStaffFromTelemetry({
+            trainingRemainingTicks: 0,
+            skillLevel: 1
+        }, {
+            maxStaffSkillLevel: 3,
+            staffTrainingCost: 400,
+            cash: 500,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1,
             levelObjectiveStatus: "lost"
         })).toBe(false);
     });

@@ -404,7 +404,7 @@ test("phase 8 scenario import: staff minimum salaries drive browser wages and ex
     await expect(page.getByTestId("cashflow-cumulative")).toHaveText("Cumulative cashflow: 0 - 415 = -415");
 });
 
-test("phase 8 scenario import: browser staff training uses imported training speed", async ({ page }) => {
+test("phase 8 scenario import: browser staff training requires Training Room and consultant", async ({ page }) => {
     await importScenarioFixture(page);
     await page.getByTestId("pause-toggle").click();
     await page.getByTestId("hire-nurse").click();
@@ -418,22 +418,8 @@ test("phase 8 scenario import: browser staff training uses imported training spe
     await expect(page.getByTestId("selection-status")).toContainText("skill 1");
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
     await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 1/9, trained 1, next 700/4 ticks");
-    await expect(page.getByTestId("train-selected-staff")).toBeEnabled();
-    await page.getByTestId("train-selected-staff").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: staff training started");
-    await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 1 active, 1 started, 0 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
-    await expect(page.getByTestId("selection-status")).toContainText("training 4");
     await expect(page.getByTestId("train-selected-staff")).toBeDisabled();
-    for (let index = 0; index < 3; index += 1) {
-        await page.getByTestId("step").click();
-    }
-    await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 1 active, 1 started, 0 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
-    await expect(page.getByTestId("selection-status")).toContainText("training 1");
-    await page.getByTestId("step").click();
-    await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 1 started, 1 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
-    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 2/9, trained 1, next 700/4 ticks");
-    await expect(page.getByTestId("selection-status")).toContainText("skill 2");
-    await expect(page.getByTestId("last-event")).toHaveText("Last event: staff-training-completed");
+    await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
 });
 
 test("phase 8 scenario import: minimum drug cost floors browser research spend", async ({ page }) => {
@@ -550,15 +536,19 @@ test("phase 8 scenario import: training values drive browser training speed with
     await importScenarioFixture(page, trainingValuesFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete; scenario rate default, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
-    await page.getByTestId("hire-nurse").click();
     const canvas = page.getByTestId("hospital-map-canvas");
+    await page.getByTestId("build-training-room").click();
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 416, y: 176 } });
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await page.getByTestId("hire-diagnostician").click();
+    await canvas.hover({ position: { x: 448, y: 176 } });
+    await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
+    await canvas.click({ position: { x: 448, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
-    await canvas.click({ position: { x: 416, y: 176 } });
-    await expect(page.getByTestId("selection-status")).toContainText("Selection: Nurse");
-    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 1/9, trained 1, next 700/2 ticks");
+    await selectVisibleStaff(page, "Selection: Doctor #1");
+    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 3/9, trained 1, next 700/2 ticks");
 
     await page.getByTestId("train-selected-staff").click();
     await expect(page.getByTestId("selection-status")).toContainText("training 2");
@@ -566,38 +556,39 @@ test("phase 8 scenario import: training values drive browser training speed with
     await expect(page.getByTestId("selection-status")).toContainText("training 1");
     await page.getByTestId("step").click();
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 1 started, 1 complete; scenario rate default, values 2, abilities 3 (75/60/45), promo 6/12, thresholds 250/750");
-    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 2/9, trained 1, next 700/2 ticks");
+    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 4/9, trained 2, next 700/2 ticks");
 });
 
 test("phase 8 scenario import: promotion months drive browser training targets", async ({ page }) => {
     await importScenarioFixture(page, trainingPromotionFixtureDirectory);
     await page.getByTestId("pause-toggle").click();
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 1/4, thresholds 250/750");
-    await page.getByTestId("hire-nurse").click();
     const canvas = page.getByTestId("hospital-map-canvas");
+    await page.getByTestId("build-training-room").click();
     await canvas.hover({ position: { x: 416, y: 176 } });
     await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
     await canvas.click({ position: { x: 416, y: 176 } });
+    await expect(page.getByTestId("action-status")).toHaveText("Action: room built");
+    await page.getByTestId("hire-diagnostician").click();
+    await canvas.hover({ position: { x: 448, y: 176 } });
+    await expect(page.getByTestId("hospital-placement-mode")).toContainText("(valid)");
+    await canvas.click({ position: { x: 448, y: 176 } });
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
-    await canvas.click({ position: { x: 416, y: 176 } });
-    await expect(page.getByTestId("selection-status")).toContainText("Selection: Nurse");
-    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 1/9, trained 1, next 700/4 ticks");
+    await selectVisibleStaff(page, "Selection: Doctor #1");
+    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 3/9, trained 1, next 700/4 ticks");
+
+    await page.getByTestId("train-selected-staff").click();
+    await expect(page.getByTestId("selection-status")).toContainText("training 1");
+    await page.getByTestId("step").click();
+    await expect(page.getByTestId("selection-status")).toContainText("skill 1");
+    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 4/9, trained 2, next 700/4 ticks");
 
     await page.getByTestId("train-selected-staff").click();
     await expect(page.getByTestId("selection-status")).toContainText("training 1");
     await page.getByTestId("step").click();
     await expect(page.getByTestId("selection-status")).toContainText("skill 2");
-    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 2/9, trained 1, next 700/4 ticks");
-
-    await page.getByTestId("train-selected-staff").click();
-    await expect(page.getByTestId("selection-status")).toContainText("training 3");
-    await page.getByTestId("step").click();
-    await expect(page.getByTestId("selection-status")).toContainText("training 2");
-    await page.getByTestId("step").click();
-    await expect(page.getByTestId("selection-status")).toContainText("training 1");
-    await page.getByTestId("step").click();
-    await expect(page.getByTestId("selection-status")).toContainText("skill 3");
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 2 started, 2 complete; scenario rate 40, values 2, abilities 3 (75/60/45), promo 1/4, thresholds 250/750");
+    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 5/9, trained 2, next 700/4 ticks");
 });
 
 test("phase 8 scenario import: selected staff rest requires available Staff Room", async ({ page }) => {

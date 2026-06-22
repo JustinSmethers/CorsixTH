@@ -1232,7 +1232,9 @@ export function canTrainStaffFromTelemetry(staff = null, telemetry = null) {
     }
     return staff.trainingRemainingTicks === 0 &&
         staff.skillLevel < telemetry.maxStaffSkillLevel &&
-        telemetry.cash >= telemetry.staffTrainingCost;
+        telemetry.cash >= telemetry.staffTrainingCost &&
+        telemetry.openTrainingRooms > 0 &&
+        telemetry.availableTrainingConsultants > 0;
 }
 export function canFireStaff(staff = null, telemetry = null) {
     return Boolean(staff && !isTerminalLevelTelemetry(telemetry));

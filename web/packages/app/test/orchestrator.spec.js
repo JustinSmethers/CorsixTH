@@ -2399,13 +2399,33 @@ describe("app orchestrator", () => {
         expect(AppOrchestrator.fromPersistenceSnapshot(snapshot).telemetry()).toEqual(orchestrator.telemetry());
     });
     it("routes selected staff training through deterministic command history and restore", () => {
-        const orchestrator = new AppOrchestrator({ seed: 107, tickRateHz: 4, pointerTileSize: 8 });
+        const orchestrator = new AppOrchestrator({
+            seed: 107,
+            tickRateHz: 4,
+            pointerTileSize: 8,
+            staffMarketSchedule: [
+                { index: 0, month: 0, doctors: 8, nurses: 8, handymen: 3, receptionists: 5, consultantRate: 100, juniorRate: 0 }
+            ]
+        });
         expect(orchestrator.telemetry()).toMatchObject({
             trainingStaff: 0,
             totalStaffSkillLevel: 0,
             maxStaffSkillLevel: 3,
             staffTrainingCost: 700,
-            staffTrainingTicks: 5
+            staffTrainingTicks: 5,
+            openTrainingRooms: 0
+        });
+        expect(orchestrator.dispatch({
+            device: "ui",
+            action: "train-staff",
+            staffId: 1,
+            source: "ui:train-selected-staff"
+        })).toEqual(["training.blocked"]);
+        expect(orchestrator.dispatch({ device: "ui", action: "build-room", roomType: "training-room", source: "ui:build-training-room", pointer: { x: 96, y: 96 } })).toEqual(["room.built"]);
+        expect(orchestrator.dispatch({ device: "ui", action: "hire-staff", role: "diagnostician", source: "ui:hire-diagnostician", pointer: { x: 80, y: 80 } })).toEqual(["staff.hired"]);
+        expect(orchestrator.telemetry()).toMatchObject({
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1
         });
         expect(orchestrator.dispatch({
             device: "ui",
@@ -2414,7 +2434,9 @@ describe("app orchestrator", () => {
             source: "ui:train-selected-staff"
         })).toEqual(["training.started"]);
         expect(orchestrator.telemetry()).toMatchObject({
-            cash: 49_300,
+            cash: 47_000,
+            openTrainingRooms: 1,
+            availableTrainingConsultants: 1,
             trainingStaff: 1,
             staffTrainingStarted: 1,
             staffTrainingCompleted: 0,
@@ -2431,8 +2453,8 @@ describe("app orchestrator", () => {
         }
         expect(orchestrator.telemetry()).toMatchObject({
             trainingStaff: 0,
-            trainedStaff: 1,
-            totalStaffSkillLevel: 1,
+            trainedStaff: 2,
+            totalStaffSkillLevel: 4,
             staffTrainingCompleted: 1,
             lastEventType: "staff-training-completed"
         });
@@ -2471,6 +2493,8 @@ describe("app orchestrator", () => {
             scenarioDoctorThreshold: 250,
             scenarioConsultantThreshold: 750
         });
+        expect(orchestrator.dispatch({ device: "ui", action: "build-room", roomType: "training-room", source: "ui:build-training-room", pointer: { x: 96, y: 96 } })).toEqual(["room.built"]);
+        orchestrator.executeCommand({ type: "hire-staff", role: "nurse", initialSkillLevel: 3, position: { x: 10, y: 10 } });
         expect(orchestrator.dispatch({
             device: "ui",
             action: "train-staff",
@@ -2532,6 +2556,8 @@ describe("app orchestrator", () => {
             scenarioTrainingRate: null,
             scenarioTrainingValueCount: 2
         });
+        expect(orchestrator.dispatch({ device: "ui", action: "build-room", roomType: "training-room", source: "ui:build-training-room", pointer: { x: 96, y: 96 } })).toEqual(["room.built"]);
+        orchestrator.executeCommand({ type: "hire-staff", role: "nurse", initialSkillLevel: 3, position: { x: 10, y: 10 } });
         expect(orchestrator.dispatch({
             device: "ui",
             action: "train-staff",
@@ -4255,6 +4281,8 @@ describe("app orchestrator", () => {
         expect(orchestrator.createPersistenceSnapshot().commandLog
             .filter((command) => command.type === "admit-patient")
             .map((command) => command.diseaseId)).toEqual(["mild-cold"]);
+        expect(orchestrator.dispatch({ device: "ui", action: "build-room", roomType: "training-room", source: "ui:build-training-room", pointer: { x: 96, y: 96 } })).toEqual(["room.built"]);
+        orchestrator.executeCommand({ type: "hire-staff", role: "nurse", initialSkillLevel: 3, position: { x: 10, y: 10 } });
         expect(orchestrator.dispatch({
             device: "ui",
             action: "train-staff",

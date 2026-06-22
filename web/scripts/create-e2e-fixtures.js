@@ -2331,12 +2331,29 @@ function writeScenarioTrainingValuesFixtureSet() {
     camera: { x: 79, y: 81 },
     heliport: { x: 72, y: 86 },
   }));
+  const trainingRoomLines = [
+    "#rooms[7].Cost 2280 GP_OFFICE",
+    "#rooms[9].Cost 1700 WARD",
+    "#rooms[11].Cost 500 PHARMACY",
+    "#rooms[17].Cost 1500 INFLATOR",
+    "#rooms[22].Cost 2000 TRAINING",
+  ];
+  const trainingObjectLines = [
+    "#objects[9].StartAvail.WhenAvail.StartStrength.AvailableForLevel 1 0 12 1 9 Inflator Machine",
+    "#objects[13].StartAvail.WhenAvail.AvailableForLevel 0 0 1 13 Cardiogram",
+    "#objects[36].StartCost.StartAvail.WhenAvail.AvailableForLevel 100 1 0 1 36 Lecture Chair",
+    "#objects[37].StartCost.StartAvail.WhenAvail.AvailableForLevel 300 1 0 1 37 Projector",
+  ];
   const trainingOptions = {
     omitTrainingRate: true,
     trainingValues: [
       { index: 0, value: 60, name: "Projector" },
       { index: 1, value: 60, name: "Skeleton" },
     ],
+    consultantRate: 100,
+    juniorRate: 0,
+    roomLines: trainingRoomLines,
+    objectLines: trainingObjectLines,
   };
   writeFileSync(join(base, "LEVELS", "FULL01.SAM"), scenarioBytes({
     title: "Scenario Training Values",
@@ -2375,9 +2392,26 @@ function writeScenarioTrainingPromotionFixtureSet() {
     camera: { x: 79, y: 81 },
     heliport: { x: 72, y: 86 },
   }));
+  const trainingRoomLines = [
+    "#rooms[7].Cost 2280 GP_OFFICE",
+    "#rooms[9].Cost 1700 WARD",
+    "#rooms[11].Cost 500 PHARMACY",
+    "#rooms[17].Cost 1500 INFLATOR",
+    "#rooms[22].Cost 2000 TRAINING",
+  ];
+  const trainingObjectLines = [
+    "#objects[9].StartAvail.WhenAvail.StartStrength.AvailableForLevel 1 0 12 1 9 Inflator Machine",
+    "#objects[13].StartAvail.WhenAvail.AvailableForLevel 0 0 1 13 Cardiogram",
+    "#objects[36].StartCost.StartAvail.WhenAvail.AvailableForLevel 100 1 0 1 36 Lecture Chair",
+    "#objects[37].StartCost.StartAvail.WhenAvail.AvailableForLevel 300 1 0 1 37 Projector",
+  ];
   const options = {
     promotionDoctorMonths: 1,
     promotionConsultantMonths: 4,
+    consultantRate: 100,
+    juniorRate: 0,
+    roomLines: trainingRoomLines,
+    objectLines: trainingObjectLines,
     disasterLaunch: 999,
   };
   writeFileSync(join(base, "LEVELS", "FULL01.SAM"), scenarioBytes({

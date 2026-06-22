@@ -2744,6 +2744,12 @@ export class DeterministicSimulation {
         if (!staff || staff.trainingRemainingTicks > 0 || staff.skillLevel >= staffMaxSkillLevel()) {
             return false;
         }
+        if (!this.hasOpenRoomType("training-room")) {
+            return false;
+        }
+        if (!this.hasAvailableTrainingConsultant(staff.id)) {
+            return false;
+        }
         const cost = this.staffTrainingCostValue;
         if (!this.canAffordPurchase(cost)) {
             return false;
@@ -3901,6 +3907,12 @@ export class DeterministicSimulation {
     }
     staffTrainingTicksForTargetLevel(targetLevel) {
         return this.staffTrainingTicksByTargetLevel[targetLevel] ?? this.staffTrainingTicksValue;
+    }
+    hasAvailableTrainingConsultant(traineeStaffId) {
+        return this.staff.some((staff) => staff.id !== traineeStaffId &&
+            staff.status === "active" &&
+            staff.trainingRemainingTicks === 0 &&
+            staff.skillLevel >= staffMaxSkillLevel());
     }
     progressStaffTraining() {
         for (const staff of this.staff) {

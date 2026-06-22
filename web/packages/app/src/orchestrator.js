@@ -2341,6 +2341,9 @@ export class AppOrchestrator {
         const openDecontaminationRooms = state.entities.rooms.filter((room) => room.roomType === "decontamination" && room.status === "open").length;
         const openElectrolysisRooms = state.entities.rooms.filter((room) => room.roomType === "electrolysis" && room.status === "open").length;
         const openDnaFixerRooms = state.entities.rooms.filter((room) => room.roomType === "dna-fixer" && room.status === "open").length;
+        const availableTrainingConsultants = state.entities.staff.filter((staff) => staff.status === "active" &&
+            staff.trainingRemainingTicks === 0 &&
+            staff.skillLevel >= state.staffTraining.maxSkillLevel).length;
         const scenarioObjectAvailability = this.scenarioObjectAvailabilityForTick(state.tick);
         const scenarioAvailableDiseases = this.scenarioAvailableDiseases(state);
         const scenarioNextDisease = this.scenarioDiseaseForAdmission(state, scenarioAvailableDiseases);
@@ -2604,6 +2607,7 @@ export class AppOrchestrator {
             staffTrainingTicks: state.staffTraining.trainingTicks,
             staffTrainingStarted: state.staffTraining.trainingStarted,
             staffTrainingCompleted: state.staffTraining.trainingCompleted,
+            availableTrainingConsultants,
             activeHandymen: state.maintenanceStaff.activeHandymen,
             totalHandymen: state.maintenanceStaff.totalHandymen,
             maintenanceStaffRepairBonusTicks: state.maintenanceStaff.repairBonusTicks,

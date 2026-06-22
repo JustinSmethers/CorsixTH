@@ -334,11 +334,17 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
     it("trains staff deterministically and reduces service durations", () => {
         const simulation = new DeterministicSimulation(7209, { bounds: { width: 8, height: 8 } });
         simulation.execute({ type: "train-staff", staffId: 1 });
+        expect(simulation.getState().staffTraining.trainingStarted).toBe(0);
+        simulation.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        simulation.execute({ type: "train-staff", staffId: 1 });
+        expect(simulation.getState().staffTraining.trainingStarted).toBe(0);
+        simulation.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
+        simulation.execute({ type: "train-staff", staffId: 1 });
         expect(simulation.getState()).toMatchObject({
-            cash: 49_300,
+            cash: 47_000,
             staffTraining: {
                 activeTrainingStaff: 1,
-                totalSkillLevel: 0,
+                totalSkillLevel: 3,
                 maxSkillLevel: 3,
                 trainingCost: 700,
                 trainingTicks: 5,
@@ -364,8 +370,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         });
         expect(simulation.getState().staffTraining).toMatchObject({
             activeTrainingStaff: 0,
-            trainedStaff: 1,
-            totalSkillLevel: 1,
+            trainedStaff: 2,
+            totalSkillLevel: 4,
             trainingCompleted: 1
         });
         expect(simulation.getState().events.recent.map((event) => event.type)).toContain("staff-training-completed");
@@ -381,6 +387,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             bounds: { width: 8, height: 8 },
             staffTrainingTicks: 7
         });
+        simulation.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
         simulation.execute({ type: "train-staff", staffId: 1 });
         expect(simulation.getState()).toMatchObject({
             staffTraining: {
@@ -410,6 +418,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             staffTrainingTicks: 9,
             staffTrainingTicksByTargetLevel: { 1: 2, 3: 4 }
         });
+        simulation.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
         simulation.execute({ type: "train-staff", staffId: 1 });
         expect(simulation.getState().staffTraining.trainingTicksByTargetLevel).toEqual({ 1: 2, 3: 4 });
         expect(simulation.getState().entities.staff.find((staff) => staff.id === 1)).toMatchObject({
@@ -440,6 +450,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             skillLevel: 3,
             trainingRemainingTicks: 0
         });
+        simulation.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        simulation.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 7, y: 4 } });
         simulation.execute({ type: "train-staff", staffId: 4 });
         expect(simulation.getState().staffTraining.trainingStarted).toBe(0);
     });
@@ -868,6 +880,8 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
     });
     it("keeps deterministic hashes for identical staff/room command streams", () => {
         const commands = [
+            { type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } },
+            { type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } },
             { type: "train-staff", staffId: 1 },
             { type: "tick", count: 5 },
             { type: "set-staff-status", staffId: 1, status: "on-break" },

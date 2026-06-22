@@ -118,13 +118,17 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
                 salaryTooLow: -200
             }
         });
+        baseline.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        tolerated.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        baseline.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
+        tolerated.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
         baseline.execute({ type: "train-staff", staffId: 1 });
         tolerated.execute({ type: "train-staff", staffId: 1 });
         baseline.execute({ type: "tick", count: 2 });
         tolerated.execute({ type: "tick", count: 2 });
         expect(baseline.staffWorkStressTicks(baseline.staff[0])).toBe(2);
         expect(tolerated.staffWorkStressTicks(tolerated.staff[0])).toBe(1);
-        expect(baseline.getState().secondarySystems.underpaidStaff).toBe(1);
+        expect(baseline.getState().secondarySystems.underpaidStaff).toBe(2);
         expect(tolerated.getState().secondarySystems.underpaidStaff).toBe(0);
     });
     it("uses imported scenario salary-too-high threshold to dampen staff work stress", () => {
@@ -148,6 +152,10 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
                 salaryTooHigh: 20
             }
         });
+        baseline.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        generous.execute({ type: "open-room", roomType: "training-room", position: { x: 1, y: 4 } });
+        baseline.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
+        generous.execute({ type: "hire-staff", role: "diagnostician", initialSkillLevel: 3, position: { x: 6, y: 4 } });
         baseline.execute({ type: "train-staff", staffId: 1 });
         generous.execute({ type: "train-staff", staffId: 1 });
         baseline.execute({ type: "tick", count: 2 });
@@ -155,7 +163,7 @@ describe("phase 7 slice 4 secondary systems and polish features", () => {
         expect(baseline.staffWorkStressTicks(baseline.staff[0])).toBe(2);
         expect(generous.staffWorkStressTicks(generous.staff[0])).toBe(1);
         expect(baseline.getState().secondarySystems.overpaidStaff).toBe(0);
-        expect(generous.getState().secondarySystems.overpaidStaff).toBe(1);
+        expect(generous.getState().secondarySystems.overpaidStaff).toBe(2);
     });
     it("uses imported scenario standing rest as idle staff recovery", () => {
         const defaultRecovery = new DeterministicSimulation(7417, {
