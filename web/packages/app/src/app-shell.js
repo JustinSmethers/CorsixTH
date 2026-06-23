@@ -1206,7 +1206,7 @@ export function canStartResearchFromTelemetry(telemetry = null) {
         telemetry.cash >= telemetry.treatmentResearchProjectCost);
 }
 function isTerminalLevelTelemetry(telemetry = null) {
-    return telemetry?.levelObjectiveStatus === "lost" || telemetry?.levelObjectiveStatus === "won";
+    return telemetry?.levelObjectiveStatus === "lost";
 }
 export function canRepairRoomFromTelemetry(room, telemetry = null) {
     if (!room || !telemetry) {
