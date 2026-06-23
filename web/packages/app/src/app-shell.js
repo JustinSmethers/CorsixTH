@@ -79,6 +79,7 @@ const PLACEMENT_REASON_LABELS = {
     "out-of-bounds": "out of bounds",
     "invalid-terrain": "invalid terrain",
     "non-buildable": "not buildable",
+    "non-traversable": "not passable",
     occupied: "occupied",
     "insufficient-cash": "not enough cash",
     "no-traversable-position": "no clear path",

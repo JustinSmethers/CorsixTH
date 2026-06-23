@@ -2332,31 +2332,28 @@ export class DeterministicSimulation {
             valid: false,
             reason: "out-of-bounds",
             cost,
-            position: null,
+            position: hasIntegerPosition ? requestedPosition : null,
             requestedPosition: hasIntegerPosition ? requestedPosition : null,
             tiles: hasIntegerPosition ? [requestedPosition] : []
         };
         if (!hasIntegerPosition || !isPositionInBounds(requestedPosition, this.bounds)) {
             return clonePlacementEvaluation(base);
         }
-        const resolvedPosition = this.findNearestStaffPosition(requestedPosition);
-        if (!resolvedPosition) {
-            return clonePlacementEvaluation({ ...base, reason: "no-traversable-position" });
+        if (!this.isTraversablePosition(requestedPosition)) {
+            return clonePlacementEvaluation({ ...base, reason: "non-traversable" });
+        }
+        if (this.isStaffPositionOccupied(requestedPosition)) {
+            return clonePlacementEvaluation({ ...base, reason: "occupied" });
         }
         if (!this.canAffordPurchase(cost)) {
-            return clonePlacementEvaluation({
-                ...base,
-                reason: "insufficient-cash",
-                position: resolvedPosition,
-                tiles: [resolvedPosition]
-            });
+            return clonePlacementEvaluation({ ...base, reason: "insufficient-cash" });
         }
         return clonePlacementEvaluation({
             ...base,
             valid: true,
             reason: null,
-            position: resolvedPosition,
-            tiles: [resolvedPosition]
+            position: requestedPosition,
+            tiles: [requestedPosition]
         });
     }
     evaluateStaffMove(staffId, position) {
@@ -2380,16 +2377,18 @@ export class DeterministicSimulation {
         if (!hasIntegerPosition || !isPositionInBounds(requestedPosition, this.bounds)) {
             return clonePlacementEvaluation(base);
         }
-        const resolvedPosition = this.findNearestStaffPosition(requestedPosition, { ignoreStaffId: staffId });
-        if (!resolvedPosition) {
-            return clonePlacementEvaluation({ ...base, reason: "no-traversable-position" });
+        if (!this.isTraversablePosition(requestedPosition)) {
+            return clonePlacementEvaluation({ ...base, reason: "non-traversable", position: requestedPosition });
+        }
+        if (this.isStaffPositionOccupied(requestedPosition, { ignoreStaffId: staffId })) {
+            return clonePlacementEvaluation({ ...base, reason: "occupied", position: requestedPosition });
         }
         return clonePlacementEvaluation({
             ...base,
             valid: true,
             reason: null,
-            position: resolvedPosition,
-            tiles: [resolvedPosition]
+            position: requestedPosition,
+            tiles: [requestedPosition]
         });
     }
     setRoomStatus(roomId, status) {
@@ -2874,9 +2873,6 @@ export class DeterministicSimulation {
     }
     findNearestTraversablePosition(preferred) {
         return this.findNearestPosition(preferred, (position) => this.isTraversablePosition(position));
-    }
-    findNearestStaffPosition(preferred, options = {}) {
-        return this.findNearestPosition(preferred, (position) => this.isTraversablePosition(position) && !this.isStaffPositionOccupied(position, options));
     }
     isStaffPositionOccupied(position, options = {}) {
         return this.objects.some((object) => samePosition(object.position, position)) ||

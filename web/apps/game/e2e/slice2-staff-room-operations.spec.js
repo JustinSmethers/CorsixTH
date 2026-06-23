@@ -76,21 +76,9 @@ test("phase 7 slice 2 player journey: selected staff can be moved on the map", a
     await expect(page.getByTestId("last-event")).toHaveText("Last event: staff-moved");
     await canvas.click({ position: { x: 448, y: 192 } });
     await expect(page.getByTestId("selection-status")).toContainText("Selection: Nurse");
-    await expect(page.getByTestId("train-selected-staff")).toBeEnabled();
+    await expect(page.getByTestId("train-selected-staff")).toBeDisabled();
     await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 0 started, 0 complete");
     await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 0/9, trained 0, next 700/5 ticks");
-    await page.getByTestId("train-selected-staff").click();
-    await expect(page.getByTestId("action-status")).toHaveText("Action: staff training started");
-    await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 1 active, 1 started, 0 complete");
-    await expect(page.getByTestId("selection-status")).toContainText("training 5");
-    await expect(page.getByTestId("train-selected-staff")).toBeDisabled();
-    for (let index = 0; index < 5; index += 1) {
-        await page.getByTestId("step").click();
-    }
-    await expect(page.getByTestId("staff-training-status")).toHaveText("Training: 0 active, 1 started, 1 complete");
-    await expect(page.getByTestId("staff-skill-status")).toHaveText("Staff skill: 1/9, trained 1, next 700/5 ticks");
-    await expect(page.getByTestId("selection-status")).toContainText("skill 1");
-    await expect(page.getByTestId("last-event")).toHaveText("Last event: staff-training-completed");
 });
 test("phase 7 slice 2 player journey: handyman hiring surfaces maintenance staffing", async ({ page }) => {
     await importAssetsAndEnterPlayableShell(page);

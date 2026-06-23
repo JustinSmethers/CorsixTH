@@ -1197,6 +1197,11 @@ describe("app shell campaign objectives", () => {
             position: { x: 1, y: 2 },
             reason: "occupied"
         })).toBe("Placement: hire Nurse at 1,2 blocked: occupied");
+        expect(formatPlacementMode({ label: "hire Nurse" }, {
+            valid: false,
+            position: { x: 1, y: 2 },
+            reason: "non-traversable"
+        })).toBe("Placement: hire Nurse at 1,2 blocked: not passable");
         expect(formatPlacementMode({ label: "move Doctor" }, {
             valid: false,
             reason: "unknown-rule"

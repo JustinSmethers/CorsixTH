@@ -66,7 +66,7 @@ describe("simulation terrain integration", () => {
         });
     });
 
-    it("snaps admitted patients and hired staff away from impassable terrain", () => {
+    it("snaps admitted patients but rejects staff hires on impassable terrain", () => {
         const terrain = createTerrain(8, 8);
         setTile(terrain, 3, 4, { passable: false, buildable: false });
         const simulation = new DeterministicSimulation(7602, {
@@ -74,16 +74,18 @@ describe("simulation terrain integration", () => {
             terrain
         });
         simulation.execute({ type: "admit-patient", severity: 2, position: { x: 3, y: 4 } });
+        const beforeHire = simulation.getState();
         simulation.execute({ type: "hire-staff", role: "nurse", position: { x: 3, y: 4 } });
         const state = simulation.getState();
         expect(state.entities.waitingPatients[0]?.position).not.toEqual({ x: 3, y: 4 });
-        expect(state.entities.staff[state.entities.staff.length - 1]?.position).not.toEqual({ x: 3, y: 4 });
+        expect(state.entities.staff).toHaveLength(beforeHire.entities.staff.length);
+        expect(state.cash).toBe(beforeHire.cash);
         expect(simulation.evaluateStaffPlacement("nurse", { x: 3, y: 4 }, { charge: true })).toMatchObject({
-            valid: true,
-            reason: null,
-            cost: 250
+            valid: false,
+            reason: "non-traversable",
+            cost: 250,
+            position: { x: 3, y: 4 }
         });
-        expect(simulation.evaluateStaffPlacement("nurse", { x: 3, y: 4 }, { charge: true }).position).not.toEqual({ x: 3, y: 4 });
     });
 
     it("surfaces affordability in read-only placement evaluations", () => {
