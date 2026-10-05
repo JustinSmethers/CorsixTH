@@ -6,7 +6,7 @@ const DEFAULT_FALLBACK_SEED = 1;
 const DEFAULT_TICK_RATE_HZ = 4;
 const DEFAULT_POINTER_TILE_SIZE = 16;
 const DEFAULT_SPEED_MULTIPLIER = 1;
-const ALLOWED_SPEED_MULTIPLIERS = [0.5, 1, 2, 4];
+const ALLOWED_SPEED_MULTIPLIERS = [0.5, 1, 2, 4, 8];
 const DEFAULT_ADMISSION_POLICY = "standard";
 const ALLOWED_ADMISSION_POLICIES = ["conservative", "standard", "aggressive"];
 const ALLOWED_ROOM_TYPES = ["diagnosis", "cardiogram", "scanner", "ultrascan", "blood-machine", "x-ray", "general-diagnosis", "treatment", "ward", "pharmacy", "operating-theatre", "specialist", "psychiatry", "staff-room", "research", "toilets", "training-room", "inflation-room", "slack-tongue-clinic", "fracture-clinic", "hair-restoration", "jelly-vat", "decontamination", "electrolysis", "dna-fixer"];
@@ -1042,10 +1042,14 @@ function normalizeMapView(value) {
         value.startY < 0) {
         throw new Error("Invalid save map view");
     }
+    if (value.zoomIndex !== undefined && (!Number.isInteger(value.zoomIndex) || value.zoomIndex < 0 || value.zoomIndex > 4)) {
+        throw new Error("Invalid save map zoom");
+    }
     return {
         mapPath: value.mapPath,
         startX: value.startX,
-        startY: value.startY
+        startY: value.startY,
+        ...(value.zoomIndex !== undefined ? { zoomIndex: value.zoomIndex } : {})
     };
 }
 function coerceV1Envelope(input) {
@@ -1157,6 +1161,7 @@ function cloneCommand(command) {
             type: "hire-staff",
             role: command.role,
             ...(command.initialSkillLevel !== undefined ? { initialSkillLevel: command.initialSkillLevel } : {}),
+            ...(command.initialSpecialties?.length > 0 ? { initialSpecialties: [...command.initialSpecialties] } : {}),
             ...(command.position ? { position: { x: command.position.x, y: command.position.y } } : {})
         };
     }

@@ -7,11 +7,11 @@ import {
     renderThemeHospitalSprite
 } from "@corsixth/assets";
 import { createWebAudioMixer } from "@corsixth/audio-webaudio";
-import { createIndexedDbPersistenceAdapter } from "@corsixth/persistence";
+import { createIndexedDbPersistenceAdapter, deserializeSaveEnvelope, serializeSaveEnvelope } from "@corsixth/persistence";
 import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, roomRepairCost, staffHireCost, staffWageCostPerTick, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
 import { normalizeKeyboardEvent, normalizeKeyboardReleaseEvent, normalizeMouseEvent, normalizeTouchEvent } from "./input-normalization";
 import { AppOrchestrator } from "./orchestrator";
-import { restoreOrchestratorFromSaveEnvelope, saveOrchestratorToSlot } from "./persistence";
+import { createAppSaveEnvelope, restoreOrchestratorFromSaveEnvelope, saveOrchestratorToSlot } from "./persistence";
 const HOSPITAL_CANVAS_WIDTH = 768;
 const HOSPITAL_CANVAS_HEIGHT = 480;
 const DEFAULT_TICK_RATE_HZ = 4;
@@ -697,6 +697,12 @@ export function formatSaveLifecycleStatus(status) {
     return `Save: ${status}`;
 }
 export function formatSaveActionButtonLabel(action) {
+    if (action === "export") {
+        return "Export Save";
+    }
+    if (action === "import") {
+        return "Import Save";
+    }
     if (action === "load") {
         return "Load";
     }
@@ -3277,6 +3283,11 @@ export function mountAppShell(options) {
           <button type="button" data-testid="load-game">${formatSaveActionButtonLabel("load")}</button>
           <button type="button" data-testid="refresh-save-slots">${formatSaveActionButtonLabel("refresh-slots")}</button>
           <button type="button" data-testid="delete-save-slot">${formatSaveActionButtonLabel("delete-slot")}</button>
+          <button type="button" data-testid="export-save" title="Download the current hospital as a browser save file">${formatSaveActionButtonLabel("export")}</button>
+          <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
+            ${formatSaveActionButtonLabel("import")}
+            <input type="file" accept=".json,.corsixth" data-testid="import-save-picker" aria-label="Import browser save file" style="max-width:180px;" />
+          </label>
           <button type="button" data-testid="audio-mute-toggle">${formatMuteToggleLabel({ muted: false })}</button>
           <label style="display:flex; align-items:center; gap:6px; color:#c8d2d7; font-size:13px;">
             ${formatFieldLabel("volume")}
@@ -3889,6 +3900,8 @@ export function mountAppShell(options) {
     const loadGameButton = requiredElement(options.root, "[data-testid='load-game']");
     const refreshSaveSlotsButton = requiredElement(options.root, "[data-testid='refresh-save-slots']");
     const deleteSaveSlotButton = requiredElement(options.root, "[data-testid='delete-save-slot']");
+    const exportSaveButton = requiredElement(options.root, "[data-testid='export-save']");
+    const importSavePicker = requiredElement(options.root, "[data-testid='import-save-picker']");
     const gameMenuBar = requiredElement(options.root, "[data-testid='game-menu-bar']");
     const gameMenuFileButton = requiredElement(options.root, "[data-testid='game-menu-file']");
     const quitLevelConfirmation = requiredElement(options.root, "[data-testid='quit-level-confirmation']");
@@ -5460,15 +5473,39 @@ export function mountAppShell(options) {
         onHireReceptionist();
         closeStaffPanelForPlacement();
     };
+    const saveLoadOptions = {
+        fallbackSeed: options.seed,
+        defaultTickRateHz: options.tickRateHz ?? DEFAULT_TICK_RATE_HZ,
+        defaultPointerTileSize: options.pointerTileSize ?? DEFAULT_POINTER_TILE_SIZE
+    };
+    const prepareLoadedSave = (loaded) => {
+        // Validate and replay against a separate view before replacing the active hospital.
+        const restoredView = hospitalView ? { ...hospitalView } : null;
+        if (!restoreHospitalMapViewSnapshot(restoredView, loaded.envelope.payload.mapView)) {
+            throw new Error(`missing map ${loaded.envelope.payload.mapView.mapPath}`);
+        }
+        const restoredOrchestrator = restoreOrchestratorFromSaveEnvelope(loaded.envelope, createRestoreOptionsFromHospitalView(restoredView));
+        return { restoredView, restoredOrchestrator };
+    };
+    const applyLoadedSave = ({ restoredView, restoredOrchestrator }) => {
+        if (hospitalView && restoredView) {
+            Object.assign(hospitalView, restoredView);
+        }
+        orchestrator = restoredOrchestrator;
+        hospitalMapSelect.value = hospitalView?.mapPath ?? "";
+        resetInteractionState();
+        renderRuntime();
+    };
     const onSaveGame = () => {
         const slot = activeSaveSlot();
+        const tick = orchestrator.telemetry().tick;
         saveSlotNameInput.value = slot;
         saveStatus.textContent = formatSaveLifecycleStatus("saving");
         void saveOrchestratorToSlot(persistenceAdapter, slot, orchestrator, {
             mapView: createHospitalMapViewSnapshot(hospitalView)
         })
             .then(() => {
-            saveStatus.textContent = formatSaveTickStatus(orchestrator.telemetry().tick, slot);
+            saveStatus.textContent = formatSaveTickStatus(tick, slot);
             return refreshSaveSlots({ silent: true });
         })
             .catch((error) => {
@@ -5479,30 +5516,78 @@ export function mountAppShell(options) {
         const slot = activeSaveSlot();
         saveSlotNameInput.value = slot;
         saveStatus.textContent = formatSaveLifecycleStatus("loading");
-        void persistenceAdapter.loadSlot(slot, {
-            fallbackSeed: options.seed,
-            defaultTickRateHz: options.tickRateHz ?? DEFAULT_TICK_RATE_HZ,
-            defaultPointerTileSize: options.pointerTileSize ?? DEFAULT_POINTER_TILE_SIZE
-        })
+        void persistenceAdapter.loadSlot(slot, saveLoadOptions)
             .then((loaded) => {
             if (loaded.status === "fallback" && loaded.issues.includes("missing-save-slot")) {
                 saveStatus.textContent = formatSaveLifecycleStatus("no slot");
                 return;
             }
-            const mapRestored = restoreHospitalMapViewSnapshot(hospitalView, loaded.envelope.payload.mapView);
-            if (!mapRestored) {
-                saveStatus.textContent = formatMissingMapLoadStatus(loaded.envelope.payload.mapView.mapPath);
-                return;
+            if (loaded.status === "fallback") {
+                throw new Error(`invalid browser save (${loaded.issues.join(", ")})`);
             }
-            hospitalMapSelect.value = hospitalView?.mapPath ?? "";
-            orchestrator = restoreOrchestratorFromSaveEnvelope(loaded.envelope, createRestoreOptionsFromHospitalView(hospitalView));
-            resetInteractionState();
+            applyLoadedSave(prepareLoadedSave(loaded));
             saveStatus.textContent = formatLoadResultStatus(loaded.status, orchestrator.telemetry().tick, slot);
-            renderRuntime();
         })
             .catch((error) => {
             saveStatus.textContent = formatSaveFailureStatus("Load", stringifyError(error));
         });
+    };
+    const onExportSave = () => {
+        let downloadUrl = null;
+        try {
+            const slot = activeSaveSlot();
+            const envelope = createAppSaveEnvelope(orchestrator, {
+                mapView: createHospitalMapViewSnapshot(hospitalView)
+            });
+            const serialized = serializeSaveEnvelope(envelope);
+            downloadUrl = URL.createObjectURL(new Blob([serialized], { type: "application/json" }));
+            const link = document.createElement("a");
+            link.href = downloadUrl;
+            link.download = `${slot.replace(/[^a-zA-Z0-9._-]/g, "_")}.corsixth.json`;
+            link.hidden = true;
+            options.root.append(link);
+            link.click();
+            link.remove();
+            saveStatus.textContent = `Save: exported tick ${orchestrator.telemetry().tick} (${slot})`;
+        }
+        catch (error) {
+            saveStatus.textContent = formatSaveFailureStatus("Export", stringifyError(error));
+        }
+        finally {
+            if (downloadUrl) {
+                const url = downloadUrl;
+                window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+            }
+        }
+    };
+    const onImportSave = async () => {
+        const file = importSavePicker.files?.[0];
+        if (!file) {
+            return;
+        }
+        const slot = activeSaveSlot();
+        saveStatus.textContent = formatSaveLifecycleStatus("importing");
+        importSavePicker.disabled = true;
+        try {
+            const loaded = deserializeSaveEnvelope(await file.text(), saveLoadOptions);
+            if (loaded.status === "fallback") {
+                throw new Error(`invalid browser save (${loaded.issues.join(", ")})`);
+            }
+            const prepared = prepareLoadedSave(loaded);
+            // Rejected files must never overwrite an existing slot.
+            await persistenceAdapter.saveSlot(slot, loaded.envelope);
+            applyLoadedSave(prepared);
+            saveSlotNameInput.value = slot;
+            await refreshSaveSlots({ silent: true });
+            saveStatus.textContent = `Save: imported tick ${orchestrator.telemetry().tick} (${slot})`;
+        }
+        catch (error) {
+            saveStatus.textContent = formatSaveFailureStatus("Import", stringifyError(error));
+        }
+        finally {
+            importSavePicker.value = "";
+            importSavePicker.disabled = false;
+        }
     };
     const onRefreshSaveSlots = () => {
         void refreshSaveSlots();
@@ -6701,6 +6786,8 @@ export function mountAppShell(options) {
     loadGameButton.addEventListener("click", onLoadGame);
     refreshSaveSlotsButton.addEventListener("click", onRefreshSaveSlots);
     deleteSaveSlotButton.addEventListener("click", onDeleteSaveSlot);
+    exportSaveButton.addEventListener("click", onExportSave);
+    importSavePicker.addEventListener("change", onImportSave);
     quitLevelConfirmButton.addEventListener("click", onConfirmQuitLevel);
     quitLevelCancelButton.addEventListener("click", onCancelQuitLevel);
     bankManagerTakeLoanButton.addEventListener("click", onTakeLoan);
@@ -6843,6 +6930,8 @@ export function mountAppShell(options) {
             loadGameButton.removeEventListener("click", onLoadGame);
             refreshSaveSlotsButton.removeEventListener("click", onRefreshSaveSlots);
             deleteSaveSlotButton.removeEventListener("click", onDeleteSaveSlot);
+            exportSaveButton.removeEventListener("click", onExportSave);
+            importSavePicker.removeEventListener("change", onImportSave);
             quitLevelConfirmButton.removeEventListener("click", onConfirmQuitLevel);
             quitLevelCancelButton.removeEventListener("click", onCancelQuitLevel);
             bankManagerTakeLoanButton.removeEventListener("click", onTakeLoan);

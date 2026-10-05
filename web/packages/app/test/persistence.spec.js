@@ -61,6 +61,25 @@ function setRect(terrain, left, top, width, height, values) {
     }
 }
 describe("app persistence integration", () => {
+    it("preserves fastest speed and camera zoom through portable saves", () => {
+        const orchestrator = new AppOrchestrator({ seed: 42, speedMultiplier: 8 });
+        orchestrator.dispatch({ device: "keyboard", action: "pause-toggle", source: "test" });
+        const mapView = { mapPath: "LEVELS/EXAMPLE.MAP", startX: 60, startY: 70, zoomIndex: 4 };
+        const loaded = deserializeSaveEnvelope(serializeSaveEnvelope(createAppSaveEnvelope(orchestrator, { mapView })));
+        expect(loaded.status).toBe("exact");
+        expect(loaded.envelope.payload.mapView).toEqual(mapView);
+        const restored = restoreOrchestratorFromSaveEnvelope(loaded.envelope);
+        expect(restored.telemetry().speedMultiplier).toBe(8);
+        expect(restored.telemetry().paused).toBe(true);
+        expect(restored.telemetry().stateHash).toBe(orchestrator.telemetry().stateHash);
+    });
+    it("rejects malformed camera zoom without silently accepting a partial save", () => {
+        const envelope = createAppSaveEnvelope(new AppOrchestrator({ seed: 42 }), {
+            mapView: { mapPath: "LEVELS/EXAMPLE.MAP", startX: 0, startY: 0, zoomIndex: 2 }
+        });
+        envelope.payload.mapView.zoomIndex = 5;
+        expect(deserializeSaveEnvelope(JSON.stringify(envelope)).status).toBe("fallback");
+    });
     it("creates save envelopes from orchestrator snapshots and restores equivalent telemetry", () => {
         const levelObjective = {
             requiredDischarges: 10,
