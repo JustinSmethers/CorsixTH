@@ -294,6 +294,15 @@ function normalizeLoanInterestPerChunk(value) {
     }
     return value;
 }
+function normalizeMedicineSupplierCost(value) {
+    if (value === undefined) {
+        return null;
+    }
+    if (!Number.isInteger(value) || value < 0) {
+        throw new Error("medicineSupplierCost must be a non-negative integer");
+    }
+    return value;
+}
 function normalizeTreatmentResearchProjectCost(value) {
     if (value === undefined) {
         return treatmentResearchProjectCost();
@@ -1041,6 +1050,8 @@ export class DeterministicSimulation {
     recurringIncomeBonus = 0;
     treatmentPricingPolicy = DEFAULT_TREATMENT_PRICING_POLICY;
     diseaseTreatmentPrices = {};
+    medicineSupplierCost = null;
+    totalMedicineSupplierExpense = 0;
     loanInterestPerChunk;
     outstandingLoan = 0;
     totalLoanInterest = 0;
@@ -1131,6 +1142,7 @@ export class DeterministicSimulation {
         this.treatmentResearchLevelIncrement = normalizeTreatmentResearchLevelIncrement(options.researchLevelIncrement);
         this.treatmentResearchImproveCostPercent = normalizeTreatmentResearchImproveCostPercent(options.researchImproveCostPercent);
         this.diseaseTreatmentPrices = normalizeDiseaseTreatmentPrices(options.diseaseTreatmentPrices);
+        this.medicineSupplierCost = normalizeMedicineSupplierCost(options.medicineSupplierCost);
         this.awardScoreMaxIncrease = normalizeAwardScoreMaxIncrease(options.awardScoreMaxIncrease);
         this.awardRewardOverrides = normalizeAwardRewardOverrides(options.awardRewardOverrides);
         this.staffTrainingCostValue = normalizeStaffTrainingCostValue(options.staffTrainingCost);
@@ -1596,6 +1608,10 @@ export class DeterministicSimulation {
             tickNet: this.tickIncome - this.tickExpenses,
             cumulativeIncome: this.totalIncome,
             cumulativeExpenses: this.totalExpenses,
+            ...(this.medicineSupplierCost !== null ? {
+                medicineSupplierCost: this.medicineSupplierCost,
+                cumulativeMedicineSupplierExpense: this.totalMedicineSupplierExpense
+            } : {}),
             cumulativeNet: this.totalIncome - this.totalExpenses,
             treatmentPricingPolicy: this.treatmentPricingPolicy,
             outstandingLoan: this.outstandingLoan,
@@ -3232,10 +3248,16 @@ export class DeterministicSimulation {
             this.emitEvent("patient-treatment-stage-complete", `${patient.id}|${room.roomType}|next:${treatmentRooms[stageIndex + 1]}`);
             return true;
         }
-        if (treatmentSucceedsForPatient(patient, this.treatmentResearchLevel, room?.roomType ?? "treatment", this.treatmentResearchSuccessBonus())) {
-            return this.dischargePatientById(patient.id);
+        const resolved = treatmentSucceedsForPatient(patient, this.treatmentResearchLevel, room?.roomType ?? "treatment", this.treatmentResearchSuccessBonus())
+            ? this.dischargePatientById(patient.id)
+            : this.failTreatmentById(patient.id);
+        // Native drug suppliers are paid after either outcome of a Pharmacy visit.
+        // Debug discharge commands bypass this automatic treatment path.
+        if (resolved && treatmentRooms[0] === "pharmacy" && this.medicineSupplierCost !== null) {
+            this.debitExpense(this.medicineSupplierCost);
+            this.totalMedicineSupplierExpense += this.medicineSupplierCost;
         }
-        return this.failTreatmentById(patient.id);
+        return resolved;
     }
     treatmentResearchSuccessBonus() {
         if (this.treatmentResearchStartRating === null) {

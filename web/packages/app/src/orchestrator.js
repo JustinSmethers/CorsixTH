@@ -1852,6 +1852,7 @@ export class AppOrchestrator {
             ...(this.scenarioIllnessRate !== null ? { scenarioIllnessRate: this.scenarioIllnessRate } : {}),
             ...(this.researchProjectTicks() !== DEFAULT_RESEARCH_PROJECT_TICKS ? { researchProjectTicks: this.researchProjectTicks() } : {}),
             ...(this.researchProjectCost() !== null ? { researchProjectCost: this.researchProjectCost() } : {}),
+            ...(this.researchSettings.startCost !== undefined ? { medicineSupplierCost: this.researchSettings.startCost } : {}),
             ...(this.researchSettings.minDrugCost !== undefined ? { researchProjectMinCost: this.researchSettings.minDrugCost } : {}),
             ...(this.researchStartRating() !== null ? { researchStartRating: this.researchStartRating() } : {}),
             ...(this.researchImproveRate() !== null ? { researchImproveRate: this.researchImproveRate() } : {}),
