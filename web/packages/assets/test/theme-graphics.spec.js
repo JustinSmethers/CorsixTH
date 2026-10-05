@@ -143,6 +143,7 @@ describe("Theme Hospital graphics decoder", () => {
             blockSheet,
             spriteSheet,
             animationSet: animations,
+            animationIndex: 0,
             palette,
             viewportWidth: 160,
             viewportHeight: 120,
@@ -153,7 +154,7 @@ describe("Theme Hospital graphics decoder", () => {
         });
         expect(scene.contract).toBe("theme-hospital-map-scene.v1");
         expect(scene.stats.floorSpriteCount).toBe(4);
-        expect(scene.stats.objectSpriteCount).toBe(1);
+        expect(scene.stats.objectSpriteCount).toBe(0);
         expect(scene.stats.animation?.animationIndex).toBe(0);
         expect(scene.pixels.some((value, index) => index % 4 === 3 && value !== 0)).toBe(true);
     });
@@ -184,12 +185,12 @@ describe("Theme Hospital graphics decoder", () => {
             tileRows: 1,
             wallAlpha: 0.5
         });
-        const overlappedPixel = ((46 * scene.width) + 40) * 4;
+        const overlappedPixel = ((46 * scene.width) + 8) * 4;
         expect([...scene.pixels.slice(overlappedPixel, overlappedPixel + 4)]).toEqual([127, 128, 0, 255]);
         expect(scene.stats.floorSpriteCount).toBe(1);
         expect(scene.stats.wallSpriteCount).toBe(1);
     });
-    it("draws floors, walls, tile objects, then animation overlays in the map scene", () => {
+    it("draws an explicit animation preview independently of map THOB values", () => {
         const paletteBytes = fixturePaletteBytes();
         paletteBytes[3 * 3 + 2] = 63;
         paletteBytes[4 * 3] = 63;
@@ -233,19 +234,20 @@ describe("Theme Hospital graphics decoder", () => {
             blockSheet,
             spriteSheet,
             animationSet,
+            animationIndex: 0,
             palette,
             viewportWidth: 80,
             viewportHeight: 60,
             originX: 40,
-            originY: -15,
+            originY: 16,
             tileColumns: 1,
             tileRows: 1
         });
-        const sharedPixel = ((0 * scene.width) + 40) * 4;
-        expect([...scene.pixels.slice(sharedPixel, sharedPixel + 4)]).toEqual([255, 255, 0, 255]);
+        const sharedPixel = ((29 * scene.width) + 40) * 4;
+        expect([...scene.pixels.slice(sharedPixel, sharedPixel + 4)]).toEqual([0, 0, 255, 255]);
         expect(scene.stats.floorSpriteCount).toBe(1);
         expect(scene.stats.wallSpriteCount).toBe(1);
-        expect(scene.stats.objectSpriteCount).toBe(1);
+        expect(scene.stats.objectSpriteCount).toBe(0);
         expect(scene.stats.animation).toEqual({
             animationIndex: 0,
             frameIndex: 0,
@@ -270,6 +272,7 @@ describe("Theme Hospital graphics decoder", () => {
             blockSheet,
             spriteSheet,
             animationSet: animations,
+            animationIndex: 0,
             palette,
             viewportWidth: 160,
             viewportHeight: 120,

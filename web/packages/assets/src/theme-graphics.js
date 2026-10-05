@@ -82,7 +82,7 @@ export function decodeThemeHospitalAnimationSet(startBytes, frameBytes, listByte
     const firstFrames = [];
     for (let index = 0; index < animationCount; index += 1) {
         let firstFrame = readUint16Le(startData, index * THEME_HOSPITAL_ANIMATION_START_RECORD_SIZE);
-        if (firstFrame > frameCount) {
+        if (firstFrame >= frameCount) {
             firstFrame = 0;
         }
         firstFrames.push(firstFrame);
@@ -161,6 +161,9 @@ export function findFirstRenderableThemeHospitalAnimation(animationSet, spriteSh
 export function renderThemeHospitalAnimationFrame(animationSet, spriteSheet, palette, animationIndex, options = {}) {
     const frame = animationFrameElements(animationSet, animationIndex, options.frameStep ?? 0);
     const drawableElements = frame.elements
+        .filter((element) => element.layerId === 0 ||
+            (options.layers?.[element.layer] ?? 0) === element.layerId ||
+            (element.layer === 5 && (options.layers?.[5] ?? 0) - 4 === element.layerId))
         .map((element) => ({ element, sprite: spriteSheet.sprites[element.spriteIndex] }))
         .filter((entry) => entry.sprite && entry.sprite.width > 0 && entry.sprite.height > 0 && isThemeHospitalSpriteVisible(entry.sprite, palette));
     if (drawableElements.length === 0) {
@@ -169,6 +172,8 @@ export function renderThemeHospitalAnimationFrame(animationSet, spriteSheet, pal
             height: 1,
             pixels: new Uint8ClampedArray(4),
             frameIndex: frame.frameIndex,
+            originX: 0,
+            originY: 0,
             elements: []
         };
     }
@@ -195,6 +200,8 @@ export function renderThemeHospitalAnimationFrame(animationSet, spriteSheet, pal
         height,
         pixels,
         frameIndex: frame.frameIndex,
+        originX: padding - minX,
+        originY: padding - minY,
         elements: drawableElements.map(({ element }) => element)
     };
 }
@@ -229,7 +236,7 @@ export function renderThemeHospitalMapScene(input) {
             tileDraws.push({ tile, baseX, baseY });
             const floor = input.blockSheet.sprites[tile.ground & 0xff];
             if (floor && floor.width > 0 && floor.height > 0) {
-                blitImage(pixels, width, height, renderThemeHospitalSprite(floor, input.palette), baseX, baseY - floor.height + 32);
+                blitImage(pixels, width, height, renderThemeHospitalSprite(floor, input.palette), baseX - 32, baseY - floor.height + 32, tile.ground >>> 8);
                 floorSpriteCount += 1;
             }
         }
@@ -240,41 +247,64 @@ export function renderThemeHospitalMapScene(input) {
         }
         return right.baseX - left.baseX;
     });
-    for (const draw of orderedTileDraws) {
-        for (const layer of ["northWall", "westWall"]) {
-            const spriteIndex = draw.tile[layer] & 0xff;
-            if (spriteIndex === 0) {
-                continue;
-            }
-            const sprite = input.blockSheet.sprites[spriteIndex];
-            if (!sprite || sprite.width === 0 || sprite.height === 0) {
-                continue;
-            }
-            const image = renderThemeHospitalSprite(sprite, input.palette);
-            const xOffset = layer === "westWall" ? -32 : -32;
-            blitImage(pixels, width, height, image, draw.baseX + xOffset, draw.baseY - image.height + 32, 0, { opacity: input.wallAlpha ?? 1 });
-            wallSpriteCount += 1;
-        }
-    }
     let objectSpriteCount = 0;
-    if (input.spriteSheet) {
-        for (const draw of orderedTileDraws) {
-            const spriteIndex = draw.tile.objectType & 0xff;
-            if (spriteIndex === 0) {
-                continue;
-            }
-            const sprite = input.spriteSheet.sprites[spriteIndex];
-            if (!sprite || sprite.width === 0 || sprite.height === 0) {
-                continue;
-            }
-            const image = renderThemeHospitalSprite(sprite, input.palette);
-            blitImage(pixels, width, height, image, draw.baseX - Math.floor(image.width / 2), draw.baseY - image.height + 16, draw.tile.objectFlags);
+    // Native map rendering uses two passes per diagonal scanline: north walls
+    // right to left, then west walls and entities left to right.
+    const scanlines = new Map();
+    for (const draw of orderedTileDraws) {
+        if (!scanlines.has(draw.baseY)) scanlines.set(draw.baseY, []);
+        scanlines.get(draw.baseY).push(draw);
+    }
+    const drawWall = (draw, layer) => {
+        const spriteIndex = draw.tile[layer] & 0xff;
+        if (spriteIndex === 0) return;
+        const sprite = input.blockSheet.sprites[spriteIndex];
+        if (!sprite || sprite.width === 0 || sprite.height === 0) return;
+        const image = renderThemeHospitalSprite(sprite, input.palette);
+        blitImage(pixels, width, height, image, draw.baseX - 32,
+            draw.baseY - image.height + 32, draw.tile[layer] >>> 8,
+            { opacity: input.wallAlpha ?? 1 });
+        wallSpriteCount += 1;
+    };
+    const drawObject = (draw) => {
+        if (!input.spriteSheet) return;
+        const objectType = draw.tile.objectType & 0xff;
+        if (objectType === 0) return;
+        if (input.animationSet) {
+            // These are the two map-created object types supported by native
+            // World:createMapObject and Lua/objects/doors/entrance_*.lua. THOB
+            // values are object types, never offsets into the raw sprite table.
+            const animationIds = THEME_HOSPITAL_MAP_OBJECT_ANIMATIONS[objectType];
+            if (!animationIds) return;
+            const animationIndex = animationIds[(draw.tile.objectFlags ?? 0) & 1];
+            if (animationIndex >= input.animationSet.animationCount) return;
+            const image = renderThemeHospitalAnimationFrame(input.animationSet,
+                input.spriteSheet, input.palette, animationIndex);
+            if (image.elements.length === 0) return;
+            blitImage(pixels, width, height, image,
+                Math.round(draw.baseX - image.originX),
+                Math.round(draw.baseY - image.originY));
             objectSpriteCount += 1;
+            return;
+        }
+        // Retain the raw sprite preview for bundles without animation metadata.
+        const sprite = input.spriteSheet.sprites[objectType];
+        if (!sprite || sprite.width === 0 || sprite.height === 0) return;
+        const image = renderThemeHospitalSprite(sprite, input.palette);
+        blitImage(pixels, width, height, image, draw.baseX - Math.floor(image.width / 2),
+            draw.baseY - image.height + 16, draw.tile.objectFlags);
+        objectSpriteCount += 1;
+    };
+    for (const draws of scanlines.values()) {
+        for (const draw of draws) drawWall(draw, "northWall");
+        for (let index = draws.length - 1; index >= 0; index -= 1) {
+            drawWall(draws[index], "westWall");
+            drawObject(draws[index]);
         }
     }
     let animation = null;
-    if (input.animationSet && input.spriteSheet) {
-        const animationIndex = input.animationIndex ?? findFirstRenderableThemeHospitalAnimation(input.animationSet, input.spriteSheet, input.palette);
+    if (input.animationSet && input.spriteSheet && input.animationIndex !== undefined) {
+        const animationIndex = input.animationIndex;
         if (animationIndex !== null) {
             const image = renderThemeHospitalAnimationFrame(input.animationSet, input.spriteSheet, input.palette, animationIndex, {
                 frameStep: input.animationFrameStep ?? 0
@@ -371,7 +401,10 @@ function animationFrameElements(animationSet, animationIndex, frameStep = 0) {
 function blitImage(targetPixels, targetWidth, targetHeight, image, targetX, targetY, flags = 0, options = {}) {
     const flipHorizontal = (flags & THEME_HOSPITAL_DRAW_FLAG_FLIP_HORIZONTAL) !== 0;
     const flipVertical = (flags & THEME_HOSPITAL_DRAW_FLAG_FLIP_VERTICAL) !== 0;
-    const opacity = Math.max(0, Math.min(1, options.opacity ?? 1));
+    const alphaFlags = flags & 12;
+    if (alphaFlags === 12) return;
+    const flagOpacity = alphaFlags === 4 ? 128 / 255 : alphaFlags === 8 ? 64 / 255 : 1;
+    const opacity = Math.max(0, Math.min(1, options.opacity ?? 1)) * flagOpacity;
     for (let sourceY = 0; sourceY < image.height; sourceY += 1) {
         const readY = flipVertical ? image.height - 1 - sourceY : sourceY;
         const y = targetY + sourceY;
@@ -523,3 +556,9 @@ const THEME_HOSPITAL_ANIMATION_ELEMENT_RECORD_SIZE = 6;
 const THEME_HOSPITAL_ANIMATION_LIST_SENTINEL = 0xffff;
 const THEME_HOSPITAL_DRAW_FLAG_FLIP_HORIZONTAL = 1;
 const THEME_HOSPITAL_DRAW_FLAG_FLIP_VERTICAL = 2;
+
+// Indexed by THOB, then the map direction flag parity (north / west).
+const THEME_HOSPITAL_MAP_OBJECT_ANIMATIONS = {
+    58: [316, 318],
+    59: [308, 312]
+};
