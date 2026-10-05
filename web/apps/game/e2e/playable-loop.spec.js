@@ -574,6 +574,8 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
   await expect(page.getByTestId("next-level")).toBeDisabled();
 
+  await page.getByTestId("pause-toggle").click();
+  await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
   const secondLevelSlot = `playable-loop-second-${Date.now()}`;
   const secondLevelObjective =
     (await page.getByTestId("level-objective-progress").textContent()) ?? "";
@@ -605,6 +607,7 @@ test("playable loop: build, hire, route, treat, save, and restore objective prog
   await expect(page.getByTestId("hospital-canvas-summary")).toHaveText(
     secondLevelSummary,
   );
+  await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
 });
 
 test("playable loop: front desk capacity blocks manual over-admission", async ({

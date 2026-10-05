@@ -17,9 +17,11 @@ async function winCurrentLevel(page, maxCycles) {
 }
 
 async function stepTicks(page, count) {
-    for (let index = 0; index < count; index += 1) {
-        await page.getByTestId("step").click();
-    }
+    await page.getByTestId("step").evaluate((button, ticks) => {
+        for (let index = 0; index < ticks; index += 1) {
+            button.click();
+        }
+    }, count);
 }
 
 async function expectHospitalCanvasForLevel(page, mapPath) {
@@ -124,6 +126,8 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await expect(page.getByTestId("quake-status")).toHaveText("Quake: none");
 
     await page.getByTestId("hospital-map-select").selectOption("LEVELS/LEVEL.L5");
+    await page.getByTestId("pause-toggle").click();
+    await expect(page.getByTestId("paused")).toHaveText("Paused: yes");
     await expect(page.getByTestId("hospital-map-select")).toHaveValue("LEVELS/LEVEL.L5");
     await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L5");
     await expect(page.getByTestId("campaign-progress")).toHaveText("Campaign: level 5/12 (Level Five (19-02-97))");
@@ -138,8 +142,9 @@ test("phase 8 real GoG import: browser loads actual GameData into a playable sce
     await expect(page.getByTestId("emergency-status")).toHaveText(/^Emergency: scheduled next 0 months 6-8 \(4-6 patients, need 75%, [A-Za-z '-]+\); scenario scheduled 10, active none, disaster 200 ticks$/u);
     await expect(page.getByTestId("quake-status")).toHaveText("Quake: scheduled 7, active none, severity 0, triggered 0, next 0 months 6-12 severity 1");
 
-    await page.getByTestId("pause-toggle").click();
-    await stepTicks(page, 384);
+    const currentTick = Number(((await page.getByTestId("tick").textContent()) ?? "").replace("Tick: ", ""));
+    expect(currentTick).toBeLessThanOrEqual(385);
+    await stepTicks(page, 385 - currentTick);
     await expect(page.getByTestId("tick")).toHaveText("Tick: 385");
     await expectHospitalCanvasForLevel(page, "LEVELS/LEVEL.L5");
     await expect(page.getByTestId("staff-market-status")).toHaveText("Staff market: doctors 7, nurses 4, handymen 4, receptionists 4, consultants 255, juniors 1, psych 255, surgeons 255, researchers 255, receptionists target 4; scenario staff month 4, seed 83498");

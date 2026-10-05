@@ -19,7 +19,7 @@ async function placeOnValidTile(page, button, expectedAction) {
     throw new Error(`No legal placement found for ${button}`);
 }
 
-test("real GoG hospital cures Bloaty Head through staffed rooms without manual treatment", async ({ page }) => {
+test("real GoG patient completes staffed diagnosis and discharge without manual treatment", async ({ page }) => {
     test.skip(!existsSync(gameDirectory), "Requires locally owned GoG assets");
     test.setTimeout(60_000);
     await page.goto("/");
@@ -42,7 +42,9 @@ test("real GoG hospital cures Bloaty Head through staffed rooms without manual t
         const walking = await page.getByTestId("walking-to-treatment-size").textContent();
         const treating = await page.getByTestId("treating-size").textContent();
         if (diagnosed === "Diagnosed: 1" && !sawDiagnosis) {
-            await expect(page.getByTestId("casebook-summary")).toContainText("Bloaty Head");
+            // Imported campaign pools override the manual severity picker. The
+            // first available Level One admission is Uncommon Cold.
+            await expect(page.getByTestId("casebook-summary")).toContainText("Uncommon Cold");
         }
         sawDiagnosis ||= diagnosed === "Diagnosed: 1";
         sawTreatment ||= walking === "Walking to treatment: 1" || treating === "Treating: 1";
