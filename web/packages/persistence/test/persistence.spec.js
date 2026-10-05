@@ -59,8 +59,11 @@ class FakeObjectStore {
 }
 class FakeTransaction {
     stores;
-    constructor(stores) {
+    constructor(stores, autoComplete = true) {
         this.stores = stores;
+        if (autoComplete) {
+            queueMicrotask(() => queueMicrotask(() => queueMicrotask(() => this.oncomplete?.())));
+        }
     }
     objectStore(name) {
         const records = this.stores.get(name);
@@ -282,6 +285,35 @@ describe("persistence schema and migration", () => {
     });
 });
 describe("indexeddb persistence adapter", () => {
+    it("waits for transaction commit after a successful write request", async () => {
+        const indexedDbFactory = new FakeIndexedDbFactory();
+        const adapter = createIndexedDbPersistenceAdapter({ indexedDbFactory, databaseName: "durable-save" });
+        await adapter.listSlots();
+        const database = indexedDbFactory.database("durable-save");
+        const transaction = new FakeTransaction(database.stores, false);
+        database.transaction = () => transaction;
+        let settled = false;
+        const saving = adapter.saveSlot("slot-a", createSaveEnvelope(sampleSnapshot())).then(() => { settled = true; });
+        for (let index = 0; index < 8; index += 1) await Promise.resolve();
+        expect(database.stores.get("save-slots").has("slot-a")).toBe(true);
+        expect(settled).toBe(false);
+        transaction.oncomplete();
+        await saving;
+        expect(settled).toBe(true);
+    });
+    it("rejects a transaction aborted after its write request succeeds", async () => {
+        const indexedDbFactory = new FakeIndexedDbFactory();
+        const adapter = createIndexedDbPersistenceAdapter({ indexedDbFactory, databaseName: "aborted-save" });
+        await adapter.listSlots();
+        const database = indexedDbFactory.database("aborted-save");
+        const transaction = new FakeTransaction(database.stores, false);
+        database.transaction = () => transaction;
+        const saving = adapter.saveSlot("slot-a", createSaveEnvelope(sampleSnapshot()));
+        const rejection = expect(saving).rejects.toThrow("IndexedDB transaction aborted");
+        for (let index = 0; index < 8; index += 1) await Promise.resolve();
+        transaction.onabort();
+        await rejection;
+    });
     it("supports slot save/load/list/delete", async () => {
         const indexedDbFactory = new FakeIndexedDbFactory();
         const adapter = createIndexedDbPersistenceAdapter({

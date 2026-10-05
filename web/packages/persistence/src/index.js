@@ -98,7 +98,15 @@ class IndexedDbPersistenceAdapterImpl {
         const database = await this.openDatabase();
         const transaction = database.transaction(this.storeName, mode);
         const store = transaction.objectStore(this.storeName);
-        return callback(store);
+        const completion = new Promise((resolve, reject) => {
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => reject(transaction.error ?? new Error("IndexedDB transaction failed"));
+            transaction.onabort = () => reject(transaction.error ?? new Error("IndexedDB transaction aborted"));
+        });
+        // Request success precedes durable commit. Reporting success earlier can lose
+        // a save when the player reloads or closes the page immediately afterwards.
+        const [result] = await Promise.all([Promise.resolve().then(() => callback(store)), completion]);
+        return result;
     }
     async openDatabase() {
         if (this.openDatabasePromise) {
