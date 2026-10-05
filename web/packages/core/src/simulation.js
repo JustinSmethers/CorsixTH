@@ -1,4 +1,4 @@
-import { diagnosisTicksForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, diseaseForId, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, isDiagnosisRoomType, isTreatmentRoomType, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, maintenanceStaffRepairBonusTicks, marketingCampaignCost, marketingCampaignReputationGain, OPERATING_COST_PER_ACTIVE_PATIENT_PER_TICK, PATIENT_CRITICAL_HEALTH_THRESHOLD, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientMaxHealthForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, requiredStaffCountForRoom, requiredStaffRoleForRoom, roomBuildCost, roomMaintenanceTicks, roomMaintenanceWearThreshold, roomRepairCost, roomSellRefund, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomTypeForDisease, treatmentRoomSequenceForDisease, treatmentSucceedsForPatient, treatmentTicksForSeverity, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, progressionIncomeBonusForUnlock, roomUpkeepCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "@corsixth/rules";
+import { diagnosisTicksForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, diseaseForId, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, isDiagnosisRoomType, isTreatmentRoomType, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, maintenanceStaffRepairBonusTicks, marketingCampaignCost, marketingCampaignReputationGain, OPERATING_COST_PER_ACTIVE_PATIENT_PER_TICK, PATIENT_CRITICAL_HEALTH_THRESHOLD, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientMaxHealthForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, requiredStaffCountForRoom, requiredStaffRoleForRoom, roomBuildCost, roomMaintenanceTicks, roomMaintenanceWearThreshold, roomRepairCost, roomSellRefund, treatmentPricingCashMultiplier, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomTypeForDisease, treatmentRoomSequenceForDisease, treatmentSucceedsForPatient, treatmentTicksForSeverity, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, progressionIncomeBonusForUnlock, roomUpkeepCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "@corsixth/rules";
 import { assertGameCommand } from "./command-contract";
 import { DeterministicRng, SimulationClock, TickScheduler } from "./deterministic";
 import { TileMap } from "./map-model";
@@ -3339,6 +3339,9 @@ export class DeterministicSimulation {
         this.emitEvent("patient-bowel-overflowed", `${patient.id}|tick:${this.clock.now()}`);
     }
     removeExpiredPatient(patientId) {
+        return this.recordPatientDeath(patientId);
+    }
+    recordPatientDeath(patientId, options = {}) {
         const patientIndex = this.waitingPatients.findIndex((patient) => patient.id === patientId);
         if (patientIndex < 0) {
             return false;
@@ -3350,7 +3353,9 @@ export class DeterministicSimulation {
         this.removeAssignmentsForPatient(patientId);
         this.waitingPatients.splice(patientIndex, 1);
         this.totalPatientDeaths += 1;
-        this.debitExpense(patientDeathCashPenaltyForSeverity(patient.severity));
+        if (options.chargeDeathPenalty !== false) {
+            this.debitExpense(patientDeathCashPenaltyForSeverity(patient.severity));
+        }
         this.reputation = clamp(this.reputation - patientDeathReputationPenaltyForSeverity(patient.severity), REPUTATION_MIN, REPUTATION_MAX);
         this.applyAutopsyForPatientDeath(patient);
         this.emitEvent("patient-died", `${patient.id}|severity:${patient.severity}`);
@@ -3513,26 +3518,16 @@ export class DeterministicSimulation {
         return true;
     }
     failTreatmentById(patientId) {
-        const patientIndex = this.waitingPatients.findIndex((patient) => patient.id === patientId);
-        if (patientIndex < 0) {
-            return false;
-        }
-        const patient = this.waitingPatients[patientIndex];
+        const patient = this.getPatientById(patientId);
         if (!patient) {
             return false;
         }
-        removeFromQueue(this.diagnosisQueue, patientId);
-        removeFromQueue(this.treatmentQueue, patientId);
-        this.removeAssignmentsForPatient(patientId);
-        this.waitingPatients.splice(patientIndex, 1);
+        // Native Patient:treatDisease bills the treatment before its cure check;
+        // an unsuccessful cure is a death, without a separate failure charge.
+        this.creditIncome(this.dischargeCashRewardForPatient(patient));
         this.totalTreatmentFailures += 1;
-        this.debitExpense(treatmentFailureCashPenaltyForSeverity(patient.severity));
-        this.reputation = clamp(this.reputation - treatmentFailureReputationPenaltyForSeverity(patient.severity), REPUTATION_MIN, REPUTATION_MAX);
         this.emitEvent("patient-treatment-failed", `${patient.id}|${patient.diseaseId}`);
-        this.markEmergencyPatientResolved(patient, "failed");
-        this.markEpidemicPatientResolved(patient, "failed");
-        this.markInsuranceContractPatientResolved(patient, "failed");
-        return true;
+        return this.recordPatientDeath(patientId, { chargeDeathPenalty: false });
     }
     manualTreatPatient(patientId) {
         if (this.waitingPatients.length === 0) {
