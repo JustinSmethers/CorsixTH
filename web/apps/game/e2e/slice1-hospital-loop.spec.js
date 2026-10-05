@@ -54,7 +54,7 @@ test("phase 7 slice 1 player journey: spawn, queue, diagnose, treat, discharge",
     await page.getByTestId("treat").click();
     await expect(page.getByTestId("discharged")).toHaveText("Discharged: 1");
     await expect(page.getByTestId("diagnosed-size")).toHaveText("Diagnosed: 1");
-    await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 0; penalties s1 80/-4, s2 130/-8, s3 200/-14");
+    await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 0; failed cures count as deaths, normal treatment fee");
     await expect(page.getByTestId("casebook-summary")).toContainText("Sleeping Illness");
     await page.getByTestId("treat").click();
     await expect(page.getByTestId("discharged")).toHaveText("Discharged: 2");
@@ -105,7 +105,7 @@ test("phase 7 slice 1 player journey: manual severity controls explicit treatmen
     await page.getByTestId("treat").click();
     await expect(page.getByTestId("waiting")).toHaveText("Waiting: 0");
     await expect(page.getByTestId("discharged")).toHaveText("Discharged: 2");
-    await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 0; penalties s1 80/-4, s2 130/-8, s3 200/-14");
+    await expect(page.getByTestId("treatment-failures")).toHaveText("Treatment failures: 0; failed cures count as deaths, normal treatment fee");
     await expect(page.getByTestId("last-event")).toHaveText("Last event: milestone-unlocked");
 });
 test("phase 7 slice 1 player journey: selected treatment targets the selected patient", async ({ page }) => {

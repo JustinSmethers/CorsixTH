@@ -554,7 +554,8 @@ test("phase 7 keyboard shortcuts save and load active slot", async ({ page }) =>
     const researchStatusBeforePanel = (await page.getByTestId("research-status").textContent()) ?? "";
     await page.keyboard.press("F6");
     await expect(page.getByTestId("research-panel")).toBeVisible();
-    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "research-panel-start");
+    await expect(page.getByTestId("research-panel-start")).toBeDisabled();
+    await expect(page.locator(":focus")).toHaveAttribute("data-testid", "research-panel-close");
     await expect(page.getByTestId("research-panel-status")).toHaveText(researchStatusBeforePanel);
     await expect(page.getByTestId("research-panel-effect")).toHaveText(await page.getByTestId("research-effect").textContent() ?? "");
     await expect(page.getByTestId("research-panel-expertise")).toHaveText(await page.getByTestId("scenario-expertise").textContent() ?? "");

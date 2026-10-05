@@ -1776,7 +1776,7 @@ describe("app shell campaign objectives", () => {
         })).toBe("Deaths: 1, walkouts 2 (25%), abductions 3; death penalties s1 120/-12, s2 180/-20, s3 260/-30; send-home s1 40/-2, s2 70/-4, s3 110/-8");
         expect(formatTreatmentFailuresStatus({
             treatmentFailures: 2
-        })).toBe("Treatment failures: 2; penalties s1 80/-4, s2 130/-8, s3 200/-14");
+        })).toBe("Treatment failures: 2; failed cures count as deaths, normal treatment fee");
         expect(formatCareActionButtonLabel("shoot-rat")).toBe("Shoot Rat");
         expect(formatCareActionButtonLabel("water-plant")).toBe("Water Plant");
         expect(canShootRatFromTelemetry({ levelObjectiveStatus: "running" })).toBe(true);

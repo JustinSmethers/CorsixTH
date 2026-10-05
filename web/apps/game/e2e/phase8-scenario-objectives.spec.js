@@ -115,6 +115,24 @@ async function placeRoomOnFirstValidTile(page, buttonTestId) {
     throw new Error(`No valid placement found for ${buttonTestId}`);
 }
 
+async function hireStaffOnFirstValidTile(page, buttonTestId) {
+    await page.getByTestId(buttonTestId).click();
+    const canvas = page.getByTestId("hospital-map-canvas");
+    for (const y of [128, 160, 192, 224, 256, 288, 320]) {
+        for (const x of [256, 288, 320, 352, 384, 416, 448, 480, 512]) {
+            await canvas.hover({ position: { x, y } });
+            const placement = (await page.getByTestId("hospital-placement-mode").textContent()) ?? "";
+            if (!placement.includes("(valid)")) {
+                continue;
+            }
+            await canvas.click({ position: { x, y } });
+            await expect(page.getByTestId("action-status")).toHaveText("Action: staff hired");
+            return;
+        }
+    }
+    throw new Error(`No valid staff placement found for ${buttonTestId}`);
+}
+
 async function selectVisiblePatient(page) {
     const canvas = page.getByTestId("hospital-map-canvas");
     for (let index = 0; index < 16; index += 1) {
@@ -1986,8 +2004,7 @@ test("phase 8 scenario import: no-staff routing pressure slows automatic browser
     await page.getByTestId("fire-selected-staff").click();
     await expect(page.getByTestId("action-status")).toHaveText("Action: staff fired");
     await expect(page.getByTestId("routing-rules")).toHaveText("Scenario routing: queue 15, distance 1, no-staff 20 (+4 ticks)");
-    await page.getByTestId("hire-receptionist").click();
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 416, y: 176 } });
+    await hireStaffOnFirstValidTile(page, "hire-receptionist");
     await expect(page.getByTestId("front-desk-status")).toHaveText("Front desk: 1 active receptionists, capacity 4, intake cap 4");
     await page.getByTestId("admissions-toggle").click();
     await expect(page.getByTestId("next-admission")).toHaveText(/^Next arrival: \d+ ticks; scenario illness 2, pop 3, pool \d+\/2(?:, next [A-Za-z '-]+)?, allocation 4\/1\/2, delay 3m\/192 ticks, auto 14 ticks\/cap 4$/u);
@@ -2112,14 +2129,9 @@ test("phase 8 scenario import: locked object availability gates automatic diseas
     await expect(page.getByTestId("room-availability")).toHaveText("Room availability: GP's Office, Ward, Fracture Clinic");
     await expect(page.getByTestId("object-availability")).toHaveText("Object availability: 1/2 available, locked 1, disabled 0, research 0; available: Cast Remover; locked: Hair Restorer");
     await expect(page.getByTestId("build-fracture-clinic-room")).toHaveText("Build Fracture Clinic (1500)");
-    await page.getByTestId("hire-receptionist").click();
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 416, y: 176 } });
-    await page.getByTestId("hire-receptionist").click();
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 432, y: 176 } });
-    await page.getByTestId("hire-receptionist").click();
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 448, y: 176 } });
-    await page.getByTestId("hire-receptionist").click();
-    await page.getByTestId("hospital-map-canvas").click({ position: { x: 464, y: 176 } });
+    for (let index = 0; index < 4; index += 1) {
+        await hireStaffOnFirstValidTile(page, "hire-receptionist");
+    }
     await expect(page.getByTestId("front-desk-status")).toHaveText("Front desk: 4 active receptionists, capacity 16, intake cap 11");
     await page.getByTestId("admissions-toggle").click();
 

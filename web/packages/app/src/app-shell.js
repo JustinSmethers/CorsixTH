@@ -8,7 +8,7 @@ import {
 } from "@corsixth/assets";
 import { createWebAudioMixer } from "@corsixth/audio-webaudio";
 import { createIndexedDbPersistenceAdapter, deserializeSaveEnvelope, serializeSaveEnvelope } from "@corsixth/persistence";
-import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, roomRepairCost, staffHireCost, staffWageCostPerTick, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
+import { patientDeathCashPenaltyForSeverity, patientDeathReputationPenaltyForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, roomBuildCost, roomRepairCost, staffHireCost, staffWageCostPerTick, treatmentPricingCashMultiplier, treatmentPricingReputationDelta } from "@corsixth/rules";
 import { normalizeKeyboardEvent, normalizeKeyboardReleaseEvent, normalizeMouseEvent, normalizeTouchEvent } from "./input-normalization";
 import { AppOrchestrator } from "./orchestrator";
 import { createAppSaveEnvelope, restoreOrchestratorFromSaveEnvelope, saveOrchestratorToSlot } from "./persistence";
@@ -1659,8 +1659,7 @@ export function formatPatientDeathsStatus(telemetry) {
     return `Deaths: ${telemetry.patientDeaths}, walkouts ${telemetry.patientWalkouts} (${telemetry.waitingTimesWalkoutPercent}%), abductions ${telemetry.patientAbductions}; death penalties ${deathPenalties}; send-home ${sendHomePenalties}`;
 }
 export function formatTreatmentFailuresStatus(telemetry) {
-    const failurePenalties = formatSeverityPenaltyTable(treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity);
-    return `Treatment failures: ${telemetry.treatmentFailures}; penalties ${failurePenalties}`;
+    return `Treatment failures: ${telemetry.treatmentFailures}; failed cures count as deaths, normal treatment fee`;
 }
 export function formatQueuePressureStatus(telemetry) {
     return `Queue pressure status: ${telemetry.queuePressureStatus}, high >= ${QUEUE_PRESSURE_HIGH_THRESHOLD}, reputation -${QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK}/tick`;
@@ -2974,6 +2973,67 @@ function drawObjectMarker(context, object, center) {
 function patientRenderPosition(patient) {
     return patient.position;
 }
+export function createHospitalSceneEntities(state) {
+    const staff = state.entities.staff.map((member) => ({
+        id: `staff:${member.id}`,
+        position: member.position,
+        humanoidType: member.role,
+        direction: "east",
+        animationState: "idle",
+        frameStep: state.tick
+    }));
+    const patients = state.entities.waitingPatients.map((patient) => {
+        const female = patient.id % 2 === 0;
+        const gender = female ? "Female" : "Male";
+        let humanoidType = `Standard ${gender} Patient`;
+        let layers;
+        // Original disease appearances are defined in Lua/diseases/* initPatient.
+        // Stable ID-based variants avoid consuming the simulation's random stream.
+        if (patient.diseaseId === "cranial-pressure") {
+            humanoidType = "Standard Male Patient";
+            layers = { 0: 12 + (patient.id % 3) * 2 };
+        }
+        else if (patient.diseaseId === "baldness") {
+            humanoidType = "Slack Male Patient";
+            layers = { 0: 12 };
+        }
+        else if (patient.diseaseId === "slack-tongue") {
+            humanoidType = `Slack ${gender} Patient`;
+            layers = { 0: female ? 10 : 2 };
+        }
+        else if (patient.diseaseId === "itchy-feet") {
+            humanoidType = "Invisible Patient";
+            layers = { 0: 2, 1: 0, 2: 4, 3: 0, 4: 0 };
+        }
+        else if (patient.diseaseId === "transparency") {
+            humanoidType = `Transparent ${gender} Patient`;
+        }
+        else if (patient.diseaseId === "hairyitis") {
+            humanoidType = "Chewbacca Patient";
+        }
+        else if (patient.diseaseId === "king-complex" || patient.diseaseId === "sideburns") {
+            humanoidType = "Elvis Patient";
+        }
+        else if (patient.diseaseId === "alien-dna") {
+            humanoidType = `Alien ${gender} Patient`;
+        }
+        const position = patientRenderPosition(patient);
+        const next = patient.movement?.path?.[patient.movement.pathIndex + 1];
+        const direction = next
+            ? next.x > position.x ? "east" : next.x < position.x ? "west" : next.y > position.y ? "south" : "north"
+            : "east";
+        return {
+            id: `patient:${patient.id}`,
+            position,
+            humanoidType,
+            direction,
+            animationState: next ? "walk" : "idle",
+            frameStep: state.tick,
+            ...(layers ? { layers } : {})
+        };
+    });
+    return [...staff, ...patients];
+}
 export function formatHospitalCanvasSummary(view, state, frameStats) {
     const placedObjects = state.entities.objects?.length ?? 0;
     return `${view.mapPath} viewport ${view.startX},${view.startY}; zoom ${formatHospitalZoomLevel(view)}; transparent walls ${view.transparentWalls ? "yes" : "no"}; patients ${state.patientsWaiting}; rooms ${state.entities.rooms.length}; staff ${state.entities.staff.length}; floor ${frameStats.floorSpriteCount}; walls ${frameStats.wallSpriteCount}; objects ${frameStats.objectSpriteCount}; placed objects ${placedObjects}`;
@@ -3027,8 +3087,15 @@ function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placemen
         tileColumns: view.tileColumns,
         tileRows: view.tileRows,
         wallAlpha: view.transparentWalls ? 0.42 : 1,
-        animationFrameStep: state.tick
+        animationFrameStep: state.tick,
+        entities: createHospitalSceneEntities(state),
+        objects: state.entities.objects ?? []
     });
+    const renderedEntityIds = new Set((frame.entityDraws ?? []).map((entity) => entity.id));
+    const renderedObjectIds = new Set((frame.objectDraws ?? []).map((object) => object.id));
+    canvas.dataset.nativeEntityCount = String(frame.stats.entitySpriteCount ?? 0);
+    canvas.dataset.nativeEntityTypes = JSON.stringify([...new Set((frame.entityDraws ?? []).map((entity) => entity.humanoidType))]);
+    canvas.dataset.nativeObjectCount = String(frame.stats.placedObjectSpriteCount ?? 0);
     context.putImageData(new ImageData(frame.pixels, frame.width, frame.height), 0, 0);
     if (selectedTile && isTileVisible(view, selectedTile)) {
         drawDiamond(context, tileToHospitalScreen(view, selectedTile), "#f3c74f");
@@ -3041,13 +3108,17 @@ function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placemen
         if (!isTileVisible(view, staff.position)) {
             continue;
         }
-        drawStaffMarker(context, staff, tileToHospitalScreen(view, staff.position));
+        if (!renderedEntityIds.has(`staff:${staff.id}`)) {
+            drawStaffMarker(context, staff, tileToHospitalScreen(view, staff.position));
+        }
     }
     for (const object of state.entities.objects ?? []) {
         if (!isTileVisible(view, object.position)) {
             continue;
         }
-        drawObjectMarker(context, object, tileToHospitalScreen(view, object.position));
+        if (!renderedObjectIds.has(object.id)) {
+            drawObjectMarker(context, object, tileToHospitalScreen(view, object.position));
+        }
     }
     for (const patient of state.entities.waitingPatients) {
         drawPatientRoute(context, patient, view);
@@ -3055,7 +3126,9 @@ function renderHospitalCanvas(canvas, view, orchestrator, selectedTile, placemen
         if (!isTileVisible(view, position)) {
             continue;
         }
-        drawPatientMarker(context, patient, tileToHospitalScreen(view, position));
+        if (!renderedEntityIds.has(`patient:${patient.id}`)) {
+            drawPatientMarker(context, patient, tileToHospitalScreen(view, position));
+        }
     }
     drawSelectionOverlay(context, selectedEntity, state, view);
     return formatHospitalCanvasSummary(view, state, frame.stats);
@@ -3159,7 +3232,7 @@ function blitSpriteImage(targetPixels, targetWidth, targetHeight, image, targetX
 }
 export function mountAppShell(options) {
     const frameClock = options.frameClock ?? browserFrameClock();
-    const audioMixer = options.audioMixer ?? createWebAudioMixer();
+    const audioMixer = options.audioMixer ?? createWebAudioMixer({ assetBundle: options.assetBundle });
     const hospitalView = createImportedHospitalView(options.assetBundle);
     const mapOptions = formatHospitalMapOptionsHtml(hospitalView);
     options.root.innerHTML = `
@@ -6133,7 +6206,7 @@ export function mountAppShell(options) {
         }
         if (!placementAction && action.action === "treat-patient") {
             const target = findSelectableEntityAtTile(orchestrator.getState(), tile);
-            if (target?.type === "staff" || target?.type === "room") {
+            if (target?.type === "staff" || target?.type === "room" || target?.type === "object") {
                 selectedEntity = target;
                 actionStatus.textContent = formatSelectedEntityActionStatus(target.type);
                 return null;
@@ -6857,6 +6930,7 @@ export function mountAppShell(options) {
         },
         dispose: () => {
             frameClock.cancelFrame(animationFrameHandle);
+            audioMixer.dispose?.();
             telemetryElements.pauseToggleButton.removeEventListener("click", onPauseToggle);
             telemetryElements.speedSelect.removeEventListener("change", onSpeedSelect);
             telemetryElements.admissionPolicySelect.removeEventListener("change", onAdmissionPolicySelect);
