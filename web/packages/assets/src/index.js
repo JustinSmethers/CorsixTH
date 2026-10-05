@@ -10,6 +10,7 @@ export {
     decodeThemeHospitalSpriteSheetFromBundle,
     findFirstRenderableThemeHospitalAnimation,
     findFirstVisibleThemeHospitalSprite,
+    resolveThemeHospitalHumanoidAnimation,
     renderThemeHospitalAnimationFrame,
     renderThemeHospitalMapScene,
     renderThemeHospitalSprite

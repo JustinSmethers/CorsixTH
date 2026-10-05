@@ -158,13 +158,46 @@ export function findFirstRenderableThemeHospitalAnimation(animationSet, spriteSh
     return null;
 }
 
+/** Native walking/standing animation and appearance selection from
+ * Lua/entities/humanoid.lua and Lua/humanoid_actions/{walk,idle}.lua.
+ * Returns null for unsupported humanoids so callers can provide a fallback.
+ */
+export function resolveThemeHospitalHumanoidAnimation(humanoidType, options = {}) {
+    const type = THEME_HOSPITAL_HUMANOID_ALIASES[humanoidType] ?? humanoidType;
+    const animations = THEME_HOSPITAL_HUMANOID_ANIMATIONS[type];
+    if (!animations) return null;
+    const direction = options.direction ?? "east";
+    if (!["north", "east", "south", "west"].includes(direction)) {
+        throw new Error(`Unsupported humanoid direction: ${direction}`);
+    }
+    const state = options.state ?? "idle";
+    if (!["idle", "walk", "walking"].includes(state)) {
+        throw new Error(`Unsupported humanoid animation state: ${state}`);
+    }
+    const walking = state !== "idle";
+    const north = direction === "north" || direction === "west";
+    const animationIndex = animations[(walking ? 0 : 2) + (north ? 0 : 1)];
+    const flags = direction === "west" || direction === "south" ? 1 : 0;
+    const layers = type.includes("Patient") ? { 0: 2, 1: 0, 2: 0, 3: 0, 4: 0 } : { 5: 2 };
+    return { humanoidType: type, animationIndex, flags, layers: { ...layers, ...options.layers } };
+}
+
 export function renderThemeHospitalAnimationFrame(animationSet, spriteSheet, palette, animationIndex, options = {}) {
     const frame = animationFrameElements(animationSet, animationIndex, options.frameStep ?? 0);
     const drawableElements = frame.elements
         .filter((element) => element.layerId === 0 ||
             (options.layers?.[element.layer] ?? 0) === element.layerId ||
             (element.layer === 5 && (options.layers?.[5] ?? 0) - 4 === element.layerId))
-        .map((element) => ({ element, sprite: spriteSheet.sprites[element.spriteIndex] }))
+        .map((element) => {
+            const sprite = spriteSheet.sprites[element.spriteIndex];
+            const mirrored = ((options.flags ?? 0) & THEME_HOSPITAL_DRAW_FLAG_FLIP_HORIZONTAL) !== 0;
+            return {
+                element,
+                sprite,
+                x: mirrored && sprite ? -element.x - sprite.width : element.x,
+                flags: element.flags ^ (mirrored ? THEME_HOSPITAL_DRAW_FLAG_FLIP_HORIZONTAL : 0)
+            };
+        })
         .filter((entry) => entry.sprite && entry.sprite.width > 0 && entry.sprite.height > 0 && isThemeHospitalSpriteVisible(entry.sprite, palette));
     if (drawableElements.length === 0) {
         return {
@@ -181,19 +214,19 @@ export function renderThemeHospitalAnimationFrame(animationSet, spriteSheet, pal
     let minY = Number.POSITIVE_INFINITY;
     let maxX = Number.NEGATIVE_INFINITY;
     let maxY = Number.NEGATIVE_INFINITY;
-    for (const { element, sprite } of drawableElements) {
-        minX = Math.min(minX, element.x);
+    for (const { element, sprite, x } of drawableElements) {
+        minX = Math.min(minX, x);
         minY = Math.min(minY, element.y);
-        maxX = Math.max(maxX, element.x + sprite.width);
+        maxX = Math.max(maxX, x + sprite.width);
         maxY = Math.max(maxY, element.y + sprite.height);
     }
     const padding = 2;
     const width = Math.max(1, Math.ceil(maxX - minX + padding * 2));
     const height = Math.max(1, Math.ceil(maxY - minY + padding * 2));
     const pixels = new Uint8ClampedArray(width * height * 4);
-    for (const { element, sprite } of drawableElements) {
+    for (const { element, sprite, x, flags } of drawableElements) {
         const image = renderThemeHospitalSprite(sprite, palette);
-        blitImage(pixels, width, height, image, Math.round(element.x - minX + padding), Math.round(element.y - minY + padding), element.flags);
+        blitImage(pixels, width, height, image, Math.round(x - minX + padding), Math.round(element.y - minY + padding), flags | ((options.flags ?? 0) & 12));
     }
     return {
         width,
@@ -233,7 +266,7 @@ export function renderThemeHospitalMapScene(input) {
             }
             const baseX = Math.round(originX + (x - y) * 32);
             const baseY = Math.round(originY + (x + y) * 16);
-            tileDraws.push({ tile, baseX, baseY });
+            tileDraws.push({ tile, baseX, baseY, mapX, mapY });
             const floor = input.blockSheet.sprites[tile.ground & 0xff];
             if (floor && floor.width > 0 && floor.height > 0) {
                 blitImage(pixels, width, height, renderThemeHospitalSprite(floor, input.palette), baseX - 32, baseY - floor.height + 32, tile.ground >>> 8);
@@ -295,11 +328,61 @@ export function renderThemeHospitalMapScene(input) {
             draw.baseY - image.height + 16, draw.tile.objectFlags);
         objectSpriteCount += 1;
     };
+    const entityDraws = [];
+    const entitiesByTile = new Map();
+    if (input.animationSet && input.spriteSheet) {
+        for (const entity of input.entities ?? []) {
+            const position = entity.position ?? entity;
+            if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+                throw new Error(`Invalid native entity position: ${entity.id}`);
+            }
+            if (Math.floor(position.x) < startX || Math.floor(position.x) >= startX + tileColumns ||
+                Math.floor(position.y) < startY || Math.floor(position.y) >= startY + tileRows) continue;
+            const appearance = entity.animationIndex === undefined
+                ? resolveThemeHospitalHumanoidAnimation(entity.humanoidType ?? entity.role ?? "patient", {
+                    direction: entity.direction,
+                    state: entity.animationState,
+                    layers: entity.layers
+                })
+                : { humanoidType: entity.humanoidType ?? null, animationIndex: entity.animationIndex,
+                    flags: entity.flags ?? 0, layers: entity.layers ?? {} };
+            if (!appearance || appearance.animationIndex >= input.animationSet.animationCount) continue;
+            const image = renderThemeHospitalAnimationFrame(input.animationSet, input.spriteSheet,
+                input.palette, appearance.animationIndex, {
+                    flags: appearance.flags,
+                    layers: appearance.layers,
+                    frameStep: entity.frameStep ?? input.animationFrameStep ?? 0
+                });
+            if (image.elements.length === 0) continue;
+            const key = `${Math.floor(position.x)}:${Math.floor(position.y)}`;
+            if (!entitiesByTile.has(key)) entitiesByTile.set(key, []);
+            const localX = position.x - startX;
+            const localY = position.y - startY;
+            const screenX = Math.round(originX + (localX - localY) * 32 - image.originX);
+            const screenY = Math.round(originY + (localX + localY) * 16 - image.originY);
+            entitiesByTile.get(key).push({ entity, image, appearance, screenX, screenY });
+        }
+    }
+    const drawEntities = (draw) => {
+        const key = `${draw.mapX}:${draw.mapY}`;
+        const entities = entitiesByTile.get(key) ?? [];
+        entities.sort((left, right) => left.screenY + left.image.originY - right.screenY - right.image.originY ||
+            String(left.entity.id).localeCompare(String(right.entity.id)));
+        for (const entry of entities) {
+            const { entity, image, appearance, screenX, screenY } = entry;
+            if (screenX + image.width <= 0 || screenX >= width || screenY + image.height <= 0 || screenY >= height) continue;
+            blitImage(pixels, width, height, image, screenX, screenY);
+            entityDraws.push({ id: entity.id, humanoidType: appearance.humanoidType,
+                animationIndex: appearance.animationIndex, frameIndex: image.frameIndex,
+                screenX, screenY, width: image.width, height: image.height });
+        }
+    };
     for (const draws of scanlines.values()) {
         for (const draw of draws) drawWall(draw, "northWall");
         for (let index = draws.length - 1; index >= 0; index -= 1) {
             drawWall(draws[index], "westWall");
             drawObject(draws[index]);
+            drawEntities(draws[index]);
         }
     }
     let animation = null;
@@ -325,7 +408,9 @@ export function renderThemeHospitalMapScene(input) {
         width,
         height,
         pixels,
+        entityDraws,
         stats: {
+            entitySpriteCount: entityDraws.length,
             floorSpriteCount,
             wallSpriteCount,
             objectSpriteCount,
@@ -376,7 +461,20 @@ function animationFrameElements(animationSet, animationIndex, frameStep = 0) {
     }
     let frameIndex = animationSet.firstFrames[animationIndex] ?? 0;
     const steps = Number.isInteger(frameStep) && frameStep > 0 ? frameStep : 0;
+    const visitedFrames = new Map();
     for (let step = 0; step < steps; step += 1) {
+        const priorStep = visitedFrames.get(frameIndex);
+        if (priorStep !== undefined) {
+            const cycleLength = step - priorStep;
+            const cycles = Math.floor((steps - step) / cycleLength);
+            if (cycles > 0) {
+                step += cycles * cycleLength;
+                if (step === steps) break;
+            }
+        }
+        else {
+            visitedFrames.set(frameIndex, step);
+        }
         const frame = animationSet.frames[frameIndex];
         if (!frame || frame.nextFrame === frameIndex) {
             break;
@@ -561,4 +659,36 @@ const THEME_HOSPITAL_DRAW_FLAG_FLIP_VERTICAL = 2;
 const THEME_HOSPITAL_MAP_OBJECT_ANIMATIONS = {
     58: [316, 318],
     59: [308, 312]
+};
+
+// walk north, walk east, idle north, idle east. These IDs index VSTART-1.ANI.
+const THEME_HOSPITAL_HUMANOID_ANIMATIONS = {
+    "Standard Male Patient": [16, 18, 24, 26],
+    "Standard Female Patient": [0, 2, 8, 10],
+    "Slack Male Patient": [1484, 1486, 1492, 1494],
+    "Slack Female Patient": [0, 2, 8, 10],
+    "Alternate Male Patient": [2704, 2706, 2712, 2714],
+    "Gowned Male Patient": [406, 408, 414, 416],
+    "Gowned Female Patient": [2876, 2878, 2884, 2886],
+    "Stripped Male Patient": [818, 820, 826, 828],
+    "Stripped Female Patient": [834, 836, 842, 844],
+    "Transparent Male Patient": [1064, 1066, 1072, 1074],
+    "Transparent Female Patient": [3012, 3014, 3020, 3022],
+    "Chewbacca Patient": [858, 860, 866, 868],
+    "Elvis Patient": [978, 980, 986, 988],
+    "Invisible Patient": [1642, 1644, 1840, 1842],
+    "Alien Male Patient": [3598, 3600, 3606, 3608],
+    "Alien Female Patient": [3598, 3600, 3606, 3608],
+    Doctor: [32, 34, 40, 42],
+    Surgeon: [2288, 2290, 2296, 2298],
+    Nurse: [1206, 1208, 1650, 1652],
+    Handyman: [1858, 1860, 1866, 1868],
+    Receptionist: [3668, 3670, 3676, 3678],
+    VIP: [266, 268, 274, 276],
+    Inspector: [266, 268, 274, 276],
+    "Grim Reaper": [994, 996, 1002, 1004]
+};
+const THEME_HOSPITAL_HUMANOID_ALIASES = {
+    patient: "Standard Male Patient", doctor: "Doctor", diagnostician: "Doctor",
+    nurse: "Nurse", handyman: "Handyman", receptionist: "Receptionist", surgeon: "Surgeon"
 };
