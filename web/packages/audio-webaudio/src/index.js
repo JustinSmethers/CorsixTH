@@ -1,3 +1,14 @@
+import { decodePcmWave, decodeThemeHospitalSoundArchive } from "./theme-sound.js";
+export { decodePcmWave, decodeThemeHospitalSoundArchive } from "./theme-sound.js";
+
+export const NATIVE_CUE_FILENAMES = {
+    "ui.pause": "SCLICK.WAV",
+    "ui.resume": "SCLICK.WAV",
+    "ui.step": "SELECTX.WAV",
+    "patient.admit": "BELL.WAV",
+    "patient.treat.success": "CASHREG.WAV",
+    "patient.treat.empty": "WRONG2.WAV"
+};
 export const AUDIO_TRIGGER_CONTRACT = {
     "app.paused": "ui.pause",
     "app.resumed": "ui.resume",
@@ -21,6 +32,10 @@ class WebAudioMixer {
     context;
     masterGainNode;
     sfxGainNode;
+    nativeSounds = new Map();
+    nativeBuffers = new Map();
+    activeSources = new Set();
+    disposed = false;
     state = {
         initialization: "waiting-for-user-gesture",
         soundMuted: false,
@@ -33,6 +48,15 @@ class WebAudioMixer {
         this.createAudioContext = options.createAudioContext ?? defaultAudioContextFactory;
         this.triggerContract = options.triggerContract ?? AUDIO_TRIGGER_CONTRACT;
         this.cueLibrary = options.cueLibrary ?? AUDIO_CUE_LIBRARY;
+        const soundBytes = options.assetBundle?.filesByPath?.get("SOUND/DATA/SOUND-0.DAT")?.bytes;
+        if (soundBytes) {
+            try {
+                this.nativeSounds = decodeThemeHospitalSoundArchive(soundBytes);
+            }
+            catch (error) {
+                this.state.nativeError = stringifyError(error);
+            }
+        }
     }
     status() {
         return {
@@ -43,10 +67,13 @@ class WebAudioMixer {
             paused: this.state.paused,
             volume: this.state.volume,
             queuedCueCount: this.state.queuedCueIds.length,
+            nativeSampleCount: this.nativeSounds.size,
+            ...(this.state.nativeError ? { nativeError: this.state.nativeError } : {}),
             ...(this.state.lastError ? { lastError: this.state.lastError } : {})
         };
     }
     async initializeFromGesture() {
+        if (this.disposed) return false;
         if (this.state.initialization === "unsupported") {
             return false;
         }
@@ -175,16 +202,68 @@ class WebAudioMixer {
             return;
         }
         const cue = this.cueLibrary[cueId];
+        if (!cue) return;
         const cueGain = this.context.createGain();
         cueGain.gain.value = cue.gain;
+        const nativeBuffer = this.nativeBufferForCue(cueId);
+        if (nativeBuffer) {
+            const source = this.context.createBufferSource();
+            source.buffer = nativeBuffer;
+            source.connect(cueGain);
+            cueGain.connect(this.sfxGainNode);
+            this.activeSources.add(source);
+            source.onended = () => {
+                this.activeSources.delete(source);
+                source.disconnect();
+                cueGain.disconnect();
+            };
+            source.start(this.context.currentTime);
+            return;
+        }
         const oscillator = this.context.createOscillator();
         oscillator.type = cue.waveform;
         oscillator.frequency.value = cue.frequencyHz;
         oscillator.connect(cueGain);
         cueGain.connect(this.sfxGainNode);
+        this.activeSources.add(oscillator);
+        oscillator.onended = () => {
+            this.activeSources.delete(oscillator);
+            oscillator.disconnect?.();
+            cueGain.disconnect?.();
+        };
         const startAt = this.context.currentTime;
         oscillator.start(startAt);
         oscillator.stop(startAt + cue.durationMs / 1000);
+    }
+    nativeBufferForCue(cueId) {
+        const filename = NATIVE_CUE_FILENAMES[cueId];
+        if (!filename || !this.nativeSounds.has(filename)) return null;
+        if (this.nativeBuffers.has(filename)) return this.nativeBuffers.get(filename);
+        try {
+            const pcm = decodePcmWave(this.nativeSounds.get(filename));
+            const buffer = this.context.createBuffer(pcm.channels.length, pcm.frameCount, pcm.sampleRate);
+            pcm.channels.forEach((samples, index) => buffer.getChannelData(index).set(samples));
+            this.nativeBuffers.set(filename, buffer);
+            return buffer;
+        }
+        catch (error) {
+            this.state.nativeError = stringifyError(error);
+            this.nativeBuffers.set(filename, null);
+            return null;
+        }
+    }
+    dispose() {
+        this.disposed = true;
+        this.state.initialization = "unsupported";
+        this.state.queuedCueIds = [];
+        for (const source of this.activeSources) {
+            try { source.stop(); } catch { /* Already finished. */ }
+            source.disconnect?.();
+        }
+        this.activeSources.clear();
+        this.nativeBuffers.clear();
+        this.nativeSounds.clear();
+        void this.context?.close?.().catch(() => {});
     }
 }
 export function createWebAudioMixer(options) {
