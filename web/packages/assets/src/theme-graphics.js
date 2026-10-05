@@ -1,4 +1,5 @@
 import { decompressRnc, isRncCompressed } from "./rnc.js";
+import { THEME_HOSPITAL_OBJECT_DEFINITIONS } from "./theme-object-definitions.js";
 
 export function decodeThemeHospitalPalette(bytes, options = {}) {
     const data = maybeDecompress(bytes);
@@ -182,6 +183,48 @@ export function resolveThemeHospitalHumanoidAnimation(humanoidType, options = {}
     return { humanoidType: type, animationIndex, flags, layers: { ...layers, ...options.layers } };
 }
 
+/** Resolve scenario #objects[THOB] to native idle animation components.
+ * Furniture keeps its idle first frame; caller frameStep can opt into motion.
+ * Components include slaves (e.g. operating table and radiation shield).
+ */
+export function resolveThemeHospitalObjectAnimation(objectIndex, options = {}) {
+    const objectType = typeof objectIndex === "string" && THEME_HOSPITAL_OBJECT_DEFINITIONS[objectIndex]
+        ? objectIndex : THEME_HOSPITAL_OBJECT_TYPES_BY_INDEX.get(objectIndex);
+    const definition = THEME_HOSPITAL_OBJECT_DEFINITIONS[objectType];
+    if (!definition) return null;
+    const orientation = options.orientation ?? "north";
+    if (!["north", "east", "south", "west"].includes(orientation)) {
+        throw new Error(`Unsupported object orientation: ${orientation}`);
+    }
+    const details = definition.orientations[orientation];
+    if (!details && Object.keys(definition.orientations).length > 0) return null;
+    const mirrored = definition.animations[orientation] === undefined;
+    const sourceOrientation = mirrored ? THEME_HOSPITAL_OBJECT_MIRROR_ORIENTATION[orientation] : orientation;
+    const animationIndex = definition.animations[sourceOrientation];
+    if (animationIndex === undefined) return null;
+    const drawingLayer = definition.side
+        ? { north: 1, west: 2, east: definition.objectIndex === 50 ? 2 : 8, south: 9 }[orientation]
+        : objectType === "analyser" ? 3 : objectType.includes("door") ? 0 : 4;
+    const component = {
+        objectType, animationIndex, flags: mirrored ? 1 : 0, drawingLayer,
+        early: details?.early === true, bottom: details?.bottom === true,
+        anchorOffset: [...(details?.anchor ?? [0, 0])],
+        attachOffset: [...(details?.attach ?? [0, 0])], layers: {}
+    };
+    const components = [component];
+    if (definition.slaveId) {
+        const slave = resolveThemeHospitalObjectAnimation(definition.slaveId, { orientation });
+        const offset = details?.slavePosition ?? [0, 0];
+        for (const child of slave?.components ?? []) {
+            components.push({ ...child,
+                anchorOffset: [child.anchorOffset[0] + offset[0], child.anchorOffset[1] + offset[1]],
+                attachOffset: [child.attachOffset[0] + offset[0], child.attachOffset[1] + offset[1]]
+            });
+        }
+    }
+    return { ...component, objectIndex: definition.objectIndex, orientation, components };
+}
+
 export function renderThemeHospitalAnimationFrame(animationSet, spriteSheet, palette, animationIndex, options = {}) {
     const frame = animationFrameElements(animationSet, animationIndex, options.frameStep ?? 0);
     const drawableElements = frame.elements
@@ -329,7 +372,19 @@ export function renderThemeHospitalMapScene(input) {
         objectSpriteCount += 1;
     };
     const entityDraws = [];
+    const objectDrawsById = new Map();
     const entitiesByTile = new Map();
+    const imageCache = new Map();
+    const getAnimationImage = (appearance, frameStep) => {
+        const key = `${appearance.animationIndex}:${appearance.flags}:${frameStep}:${JSON.stringify(appearance.layers)}`;
+        if (!imageCache.has(key)) {
+            imageCache.set(key, renderThemeHospitalAnimationFrame(input.animationSet, input.spriteSheet,
+                input.palette, appearance.animationIndex, {
+                    flags: appearance.flags, layers: appearance.layers, frameStep
+                }));
+        }
+        return imageCache.get(key);
+    };
     if (input.animationSet && input.spriteSheet) {
         for (const entity of input.entities ?? []) {
             const position = entity.position ?? entity;
@@ -347,12 +402,7 @@ export function renderThemeHospitalMapScene(input) {
                 : { humanoidType: entity.humanoidType ?? null, animationIndex: entity.animationIndex,
                     flags: entity.flags ?? 0, layers: entity.layers ?? {} };
             if (!appearance || appearance.animationIndex >= input.animationSet.animationCount) continue;
-            const image = renderThemeHospitalAnimationFrame(input.animationSet, input.spriteSheet,
-                input.palette, appearance.animationIndex, {
-                    flags: appearance.flags,
-                    layers: appearance.layers,
-                    frameStep: entity.frameStep ?? input.animationFrameStep ?? 0
-                });
+            const image = getAnimationImage(appearance, entity.frameStep ?? input.animationFrameStep ?? 0);
             if (image.elements.length === 0) continue;
             const key = `${Math.floor(position.x)}:${Math.floor(position.y)}`;
             if (!entitiesByTile.has(key)) entitiesByTile.set(key, []);
@@ -360,25 +410,83 @@ export function renderThemeHospitalMapScene(input) {
             const localY = position.y - startY;
             const screenX = Math.round(originX + (localX - localY) * 32 - image.originX);
             const screenY = Math.round(originY + (localX + localY) * 16 - image.originY);
-            entitiesByTile.get(key).push({ entity, image, appearance, screenX, screenY });
+            entitiesByTile.get(key).push({ entity, image, appearance, screenX, screenY, category: "humanoid", drawingLayer: 4, early: false });
         }
     }
-    const drawEntities = (draw) => {
+    if (input.animationSet && input.spriteSheet) {
+        for (const object of input.objects ?? []) {
+            const position = object.position ?? object;
+            if (!Number.isFinite(position.x) || !Number.isFinite(position.y)) {
+                throw new Error(`Invalid native object position: ${object.id}`);
+            }
+            // Large native furnishings can reach a few cells beyond their origin.
+            if (position.x < startX - 4 || position.x >= startX + tileColumns + 4 ||
+                position.y < startY - 4 || position.y >= startY + tileRows + 4) continue;
+            const resolved = resolveThemeHospitalObjectAnimation(object.objectIndex ?? object.objectType, {
+                orientation: object.orientation
+            });
+            if (!resolved) continue;
+            for (const appearance of resolved.components) {
+                if (appearance.animationIndex >= input.animationSet.animationCount) continue;
+                const image = getAnimationImage(appearance, object.frameStep ?? 0);
+                if (image.elements.length === 0) continue;
+                const mapX = Math.floor(position.x + appearance.attachOffset[0]);
+                const mapY = Math.floor(position.y + appearance.attachOffset[1]);
+                const key = `${mapX}:${mapY}`;
+                const localX = position.x + appearance.anchorOffset[0] - startX;
+                const localY = position.y + appearance.anchorOffset[1] - startY;
+                const screenX = Math.round(originX + (localX - localY) * 32 - image.originX);
+                const screenY = Math.round(originY + (localX + localY) * 16 - image.originY);
+                if (screenX + image.width <= 0 || screenX >= width || screenY + image.height <= 0 || screenY >= height) continue;
+                if (!entitiesByTile.has(key)) entitiesByTile.set(key, []);
+                entitiesByTile.get(key).push({ entity: object, image, appearance, screenX, screenY,
+                    category: "object", drawingLayer: appearance.drawingLayer, early: appearance.early });
+                if (mapX < startX || mapX >= startX + tileColumns || mapY < startY || mapY >= startY + tileRows) {
+                    const baseY = Math.round(originY + (mapX - startX + mapY - startY) * 16);
+                    if (!scanlines.has(baseY)) scanlines.set(baseY, []);
+                    const draws = scanlines.get(baseY);
+                    if (!draws.some((draw) => draw.mapX === mapX && draw.mapY === mapY)) {
+                        draws.push({ tile: {}, mapX, mapY, baseY,
+                            baseX: Math.round(originX + (mapX - startX - mapY + startY) * 32) });
+                    }
+                }
+            }
+        }
+    }
+    const drawEntities = (draw, early = false) => {
         const key = `${draw.mapX}:${draw.mapY}`;
-        const entities = entitiesByTile.get(key) ?? [];
-        entities.sort((left, right) => left.screenY + left.image.originY - right.screenY - right.image.originY ||
-            String(left.entity.id).localeCompare(String(right.entity.id)));
+        const entities = (entitiesByTile.get(key) ?? []).filter((entry) => entry.early === early);
+        entities.sort((left, right) => left.drawingLayer - right.drawingLayer || left.screenY + left.image.originY - right.screenY - right.image.originY ||
+            `${left.category}:${left.entity.id}:${left.appearance.objectType ?? ""}`.localeCompare(`${right.category}:${right.entity.id}:${right.appearance.objectType ?? ""}`));
         for (const entry of entities) {
             const { entity, image, appearance, screenX, screenY } = entry;
             if (screenX + image.width <= 0 || screenX >= width || screenY + image.height <= 0 || screenY >= height) continue;
             blitImage(pixels, width, height, image, screenX, screenY);
-            entityDraws.push({ id: entity.id, humanoidType: appearance.humanoidType,
-                animationIndex: appearance.animationIndex, frameIndex: image.frameIndex,
-                screenX, screenY, width: image.width, height: image.height });
+            if (entry.category === "object") {
+                const previous = objectDrawsById.get(entity.id);
+                const right = Math.max(previous ? previous.screenX + previous.width : screenX, screenX + image.width);
+                const bottom = Math.max(previous ? previous.screenY + previous.height : screenY, screenY + image.height);
+                const x = Math.min(previous?.screenX ?? screenX, screenX);
+                const y = Math.min(previous?.screenY ?? screenY, screenY);
+                objectDrawsById.set(entity.id, { id: entity.id, objectIndex: entity.objectIndex,
+                    objectType: previous?.objectType ?? appearance.objectType,
+                    animationIndex: previous?.animationIndex ?? appearance.animationIndex, frameIndex: image.frameIndex,
+                    screenX: x, screenY: y, width: right - x, height: bottom - y,
+                    componentCount: (previous?.componentCount ?? 0) + 1 });
+            }
+            else {
+                entityDraws.push({ id: entity.id, humanoidType: appearance.humanoidType,
+                    animationIndex: appearance.animationIndex, frameIndex: image.frameIndex,
+                    screenX, screenY, width: image.width, height: image.height });
+            }
         }
     };
-    for (const draws of scanlines.values()) {
-        for (const draw of draws) drawWall(draw, "northWall");
+    for (const [, draws] of [...scanlines].sort((left, right) => left[0] - right[0])) {
+        draws.sort((left, right) => right.baseX - left.baseX);
+        for (const draw of draws) {
+            drawWall(draw, "northWall");
+            drawEntities(draw, true);
+        }
         for (let index = draws.length - 1; index >= 0; index -= 1) {
             drawWall(draws[index], "westWall");
             drawObject(draws[index]);
@@ -409,7 +517,9 @@ export function renderThemeHospitalMapScene(input) {
         height,
         pixels,
         entityDraws,
+        objectDraws: [...objectDrawsById.values()],
         stats: {
+            placedObjectSpriteCount: objectDrawsById.size,
             entitySpriteCount: entityDraws.length,
             floorSpriteCount,
             wallSpriteCount,
@@ -692,3 +802,13 @@ const THEME_HOSPITAL_HUMANOID_ALIASES = {
     patient: "Standard Male Patient", doctor: "Doctor", diagnostician: "Doctor",
     nurse: "Nurse", handyman: "Handyman", receptionist: "Receptionist", surgeon: "Surgeon"
 };
+
+const THEME_HOSPITAL_OBJECT_MIRROR_ORIENTATION = {
+    north: "west", west: "north", east: "south", south: "east"
+};
+const THEME_HOSPITAL_OBJECT_TYPES_BY_INDEX = new Map();
+for (const [type, definition] of Object.entries(THEME_HOSPITAL_OBJECT_DEFINITIONS)) {
+    if (!THEME_HOSPITAL_OBJECT_TYPES_BY_INDEX.has(definition.objectIndex)) {
+        THEME_HOSPITAL_OBJECT_TYPES_BY_INDEX.set(definition.objectIndex, type);
+    }
+}

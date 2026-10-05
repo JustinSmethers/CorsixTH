@@ -11,6 +11,7 @@ export {
     findFirstRenderableThemeHospitalAnimation,
     findFirstVisibleThemeHospitalSprite,
     resolveThemeHospitalHumanoidAnimation,
+    resolveThemeHospitalObjectAnimation,
     renderThemeHospitalAnimationFrame,
     renderThemeHospitalMapScene,
     renderThemeHospitalSprite
