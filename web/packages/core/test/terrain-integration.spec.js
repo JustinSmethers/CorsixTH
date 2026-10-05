@@ -106,6 +106,30 @@ describe("simulation terrain integration", () => {
         });
     });
 
+    it("places bootstrap and implicit staff hires on distinct reachable tiles when default positions are blocked", () => {
+        const terrain = createTerrain(8, 8);
+        setRect(terrain, 0, 0, 8, 8, { passable: false, buildable: false });
+        for (const point of [{ x: 6, y: 6 }, { x: 7, y: 6 }, { x: 6, y: 7 }]) {
+            setTile(terrain, point.x, point.y, { passable: true });
+        }
+        const options = { bounds: { width: 8, height: 8 }, terrain };
+        const simulation = new DeterministicSimulation(7605, options);
+        expect(simulation.getState().entities.staff).toMatchObject([
+            { id: 1, role: "diagnostician", position: { x: 6, y: 6 } },
+            { id: 2, role: "nurse", position: { x: 7, y: 6 } }
+        ]);
+        simulation.execute({ type: "hire-staff", role: "nurse" });
+        expect(simulation.getState().entities.staff[2]).toMatchObject({
+            id: 3, role: "nurse", position: { x: 6, y: 7 }
+        });
+        const beforeFull = simulation.getState();
+        simulation.execute({ type: "hire-staff", role: "nurse" });
+        expect(simulation.getState()).toEqual(beforeFull);
+        const replay = new DeterministicSimulation(7605, options);
+        replay.execute({ type: "hire-staff", role: "nurse" });
+        expect(replay.currentHash()).toBe(simulation.currentHash());
+    });
+
     it("includes non-default terrain signatures in deterministic hashes", () => {
         const leftTerrain = createTerrain(8, 8);
         const rightTerrain = {

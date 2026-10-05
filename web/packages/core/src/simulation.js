@@ -2135,7 +2135,12 @@ export class DeterministicSimulation {
         if (!isPositionInBounds(preferredPosition, this.bounds)) {
             throw new Error(`Invalid staff position: ${JSON.stringify(preferredPosition)}`);
         }
-        const placement = this.evaluateStaffPlacement(role, preferredPosition, { charge: options.charge === true });
+        const candidatePosition = position ?? this.findNearestPosition(preferredPosition, (candidate) =>
+            this.isTraversablePosition(candidate) && !this.isStaffPositionOccupied(candidate));
+        if (!candidatePosition) {
+            return;
+        }
+        const placement = this.evaluateStaffPlacement(role, candidatePosition, { charge: options.charge === true });
         const resolvedPosition = placement.position;
         if (!placement.valid || !resolvedPosition) {
             return;
