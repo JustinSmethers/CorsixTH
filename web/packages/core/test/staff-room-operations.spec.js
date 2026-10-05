@@ -501,7 +501,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         oneSurgeon.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         specialized.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         let specializedAssignmentTick = null;
-        for (let tick = 1; tick <= 16; tick += 1) {
+        for (let tick = 1; tick <= 40; tick += 1) {
             blocked.execute({ type: "tick", count: 1 });
             oneSurgeon.execute({ type: "tick", count: 1 });
             specialized.execute({ type: "tick", count: 1 });
@@ -541,7 +541,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
             simulation.execute({ type: "admit-patient", severity: 2, diseaseId: "spare-ribs", position: { x: 2, y: 4 } });
         }
         missingWard.execute({ type: "tick", count: 16 });
-        ready.execute({ type: "tick", count: 16 });
+        ready.execute({ type: "tick", count: 40 });
         expect(missingWard.getState().entities.waitingPatients[0]).toMatchObject({
             diseaseId: "spare-ribs",
             preferredTreatmentRoomType: "operating-theatre",
@@ -551,7 +551,7 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         expect(missingWard.getState().hospitalLoop.dischargedPatients).toBe(0);
         expect(ready.getState().hospitalLoop.dischargedPatients).toBe(1);
     });
-    it("routes native Ward patients to nurse-staffed Ward rooms", () => {
+    it("routes surgical patients through a nurse-staffed Ward before surgery", () => {
         const missingWard = new DeterministicSimulation(72101, { bounds: { width: 14, height: 14 } });
         const ready = new DeterministicSimulation(72101, { bounds: { width: 14, height: 14 } });
         ready.execute({ type: "open-room", roomType: "ward", position: { x: 7, y: 7 } });
@@ -562,12 +562,14 @@ describe("phase 7 slice 2 staff lifecycle and room operations", () => {
         ready.execute({ type: "tick", count: 8 });
         expect(missingWard.getState().entities.waitingPatients[0]).toMatchObject({
             diseaseId: "pregnancy",
-            preferredTreatmentRoomType: "ward",
+            preferredTreatmentRoomType: "operating-theatre",
+            nextTreatmentRoomType: "ward",
             status: "awaiting-treatment"
         });
         expect(ready.getState().entities.waitingPatients[0]).toMatchObject({
             diseaseId: "pregnancy",
-            preferredTreatmentRoomType: "ward",
+            preferredTreatmentRoomType: "operating-theatre",
+            nextTreatmentRoomType: "ward",
             status: "walking-to-treatment",
             assignedRoomId: expect.any(Number)
         });

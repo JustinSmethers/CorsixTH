@@ -1,4 +1,4 @@
-import { PHASE7_SLICE1_RULESET, PHASE7_SLICE2_RULESET, PHASE7_SLICE3_RULESET, PHASE7_SLICE4_RULESET, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, DISEASE_CATALOG, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, TREATMENT_PRICING_POLICIES, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, facilityRoomTypes, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, maintenanceStaffRepairBonusTicks, nativeRoomDefinitionForType, nativeRoomMinimumSize, progressionIncomeBonusForUnlock, roomBuildCost, roomRepairCost, roomSellRefund, roomUpkeepCostPerTick, roomMaintenanceTicks, roomMaintenanceWearThreshold, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, diagnosisRoomTypes, diagnosisTicksForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomSuccessBonusForDisease, treatmentRoomTypeForDisease, treatmentRoomTypes, treatmentSucceedsForPatient, treatmentTicksForSeverity, dischargeCashRewardForSeverity, dischargeReputationRewardForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, marketingCampaignCost, marketingCampaignReputationGain, requiredStaffCountForRoom, requiredStaffRoleForRoom, requiredStaffSpecialtyForRoom, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "../src/index";
+import { PHASE7_SLICE1_RULESET, PHASE7_SLICE2_RULESET, PHASE7_SLICE3_RULESET, PHASE7_SLICE4_RULESET, DEFAULT_ROOM_BLUEPRINT, DEFAULT_STAFF_BLUEPRINT, DISEASE_CATALOG, PROGRESSION_MILESTONES, QUEUE_PRESSURE_HIGH_THRESHOLD, QUEUE_PRESSURE_REPUTATION_PENALTY_PER_TICK, TREATMENT_PRICING_POLICIES, diseaseForSeverity, emergencyWaveCashReward, emergencyWaveDurationTicks, emergencyWavePatientCount, emergencyWaveReputationReward, emergencyWaveSeverity, epidemicOutbreakCashPenalty, epidemicOutbreakCashReward, epidemicOutbreakDurationTicks, epidemicOutbreakMaxSpreadPatients, epidemicOutbreakPatientCount, epidemicOutbreakReputationPenalty, epidemicOutbreakReputationReward, epidemicOutbreakSeverity, epidemicOutbreakSpreadIntervalTicks, facilityRoomTypes, financeAuditCashRecovery, financeAuditCooldownTicks, hospitalAwardCashReward, hospitalAwardReputationReward, hospitalAwardTierForScore, hospitalRatingScoreForMetrics, insuranceContractCashPenalty, insuranceContractCashReward, insuranceContractDurationTicks, insuranceContractPatientCount, insuranceContractReputationPenalty, insuranceContractReputationReward, insuranceContractSeverity, maintenanceStaffRepairBonusTicks, nativeRoomDefinitionForType, nativeRoomMinimumSize, progressionIncomeBonusForUnlock, roomBuildCost, roomRepairCost, roomSellRefund, roomUpkeepCostPerTick, roomMaintenanceTicks, roomMaintenanceWearThreshold, staffHireCost, staffMaxSkillLevel, staffSkillDurationReductionForLevel, staffTrainingCost, staffTrainingTicks, staffWageCostPerTick, staffAutoBreakTicks, staffBurnoutTicks, diagnosisRoomTypes, diagnosisTicksForSeverity, patientSendHomeCashPenaltyForSeverity, patientSendHomeReputationPenaltyForSeverity, treatmentFailureCashPenaltyForSeverity, treatmentFailureReputationPenaltyForSeverity, treatmentResearchMaxLevel, treatmentResearchProjectCost, treatmentResearchProjectTicks, treatmentResearchSuccessBonusForLevel, treatmentRoomDurationReductionForDisease, treatmentRoomSuccessBonusForDisease, treatmentRoomTypeForDisease, treatmentRoomSequenceForDisease, treatmentRoomTypes, treatmentSucceedsForPatient, treatmentTicksForSeverity, dischargeCashRewardForSeverity, dischargeReputationRewardForSeverity, dischargeCashRewardForSeverityAndPricing, dischargeReputationRewardForSeverityAndPricing, loanChunkAmount, loanInterestPerTickForOutstanding, loanMaxOutstanding, marketingCampaignCost, marketingCampaignReputationGain, requiredStaffCountForRoom, requiredStaffRoleForRoom, requiredStaffSpecialtyForRoom, vipInspectionDurationTicks, vipInspectionMaxQueuePressure, vipInspectionMinReputation, vipInspectionPenaltyCash, vipInspectionPenaltyReputation, vipInspectionRewardCash, vipInspectionRewardReputation } from "../src/index";
 describe("phase 7 slice 1 gameplay rules", () => {
     it("exports a versioned ruleset marker for the core hospital loop slice", () => {
         expect(PHASE7_SLICE1_RULESET.id).toBe("phase7-slice1-hospital-loop.v1");
@@ -44,8 +44,8 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("mild-cold")).toBe("treatment");
         expect(treatmentRoomTypeForDisease("gastric-grumble")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("gut-rot")).toBe("pharmacy");
-        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("ward");
-        expect(treatmentRoomTypeForDisease("kidney-beans")).toBe("ward");
+        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("operating-theatre");
+        expect(treatmentRoomTypeForDisease("kidney-beans")).toBe("operating-theatre");
         expect(treatmentRoomTypeForDisease("slack-tongue")).toBe("slack-tongue-clinic");
         expect(treatmentRoomTypeForDisease("cranial-pressure")).toBe("inflation-room");
         expect(treatmentRoomTypeForDisease("acute-sneezes")).toBe("pharmacy");
@@ -68,7 +68,7 @@ describe("phase 7 slice 1 gameplay rules", () => {
         expect(treatmentRoomTypeForDisease("fake-blood")).toBe("psychiatry");
         expect(treatmentRoomTypeForDisease("broken-heart")).toBe("operating-theatre");
         expect(treatmentRoomTypeForDisease("iron-lungs")).toBe("operating-theatre");
-        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("ward");
+        expect(treatmentRoomTypeForDisease("pregnancy")).toBe("operating-theatre");
         expect(treatmentRoomTypeForDisease("ruptured-nodules")).toBe("operating-theatre");
         expect(treatmentRoomSuccessBonusForDisease("psychiatry", "gastric-grumble")).toBe(15);
         expect(treatmentRoomSuccessBonusForDisease("treatment", "gastric-grumble")).toBe(0);
@@ -660,6 +660,15 @@ describe("phase 7 slice 1 gameplay rules", () => {
     });
     it("exports a versioned ruleset marker for economy/progression/events", () => {
         expect(PHASE7_SLICE3_RULESET.id).toBe("phase7-slice3-economy-progression-events.v1");
+    });
+    it("preserves the mandatory native surgical treatment sequence for every surgical disease", () => {
+        for (const diseaseId of ["broken-heart", "golf-stones", "iron-lungs", "kidney-beans", "pregnancy", "ruptured-nodules", "spare-ribs", "unexpected-swelling"]) {
+            expect(treatmentRoomSequenceForDisease(diseaseId)).toEqual(["ward", "operating-theatre"]);
+        }
+        expect(treatmentRoomSequenceForDisease("gut-rot")).toEqual(["pharmacy"]);
+        const sequence = treatmentRoomSequenceForDisease("spare-ribs");
+        sequence.pop();
+        expect(treatmentRoomSequenceForDisease("spare-ribs")).toEqual(["ward", "operating-theatre"]);
     });
     it("locks deterministic operating wages/upkeep costs and progression income bonuses", () => {
         expect(staffWageCostPerTick("diagnostician")).toBe(5);

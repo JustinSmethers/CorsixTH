@@ -191,7 +191,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "gut-rot": "pharmacy",
     "king-complex": "psychiatry",
     "spare-ribs": "operating-theatre",
-    "kidney-beans": "ward",
+    "kidney-beans": "operating-theatre",
     "fractured-bones": "fracture-clinic",
     "corrugated-ankles": "pharmacy",
     "transparency": "pharmacy",
@@ -212,7 +212,7 @@ const TREATMENT_ROOM_TYPE_BY_DISEASE_ID = {
     "chronic-nosehair": "pharmacy",
     "fake-blood": "psychiatry",
     "iron-lungs": "operating-theatre",
-    "pregnancy": "ward",
+    "pregnancy": "operating-theatre",
     "ruptured-nodules": "operating-theatre"
 };
 const DEFAULT_DISEASE_IDS_BY_SEVERITY = {
@@ -936,6 +936,11 @@ export function isDiagnosisRoomType(roomType) {
 }
 export function treatmentRoomTypeForDisease(diseaseId) {
     return TREATMENT_ROOM_TYPE_BY_DISEASE_ID[diseaseId] ?? "treatment";
+}
+// Native disease definitions list mandatory treatment visits in order.
+export function treatmentRoomSequenceForDisease(diseaseId) {
+    const finalRoomType = treatmentRoomTypeForDisease(diseaseId);
+    return finalRoomType === "operating-theatre" ? ["ward", finalRoomType] : [finalRoomType];
 }
 export function treatmentRoomSuccessBonusForDisease(roomType, diseaseId) {
     return roomType === treatmentRoomTypeForDisease(diseaseId) ? TREATMENT_ROOM_MATCH_SUCCESS_BONUS : 0;
